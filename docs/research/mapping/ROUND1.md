@@ -66,6 +66,10 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 | 23 | AC1 content | AC1 garage test: Garage → TEST → yes; during the fight `0x800411F8` = 70 and `0x8019F518` = 70 (`../ac1/content.md` §1) | AC1 disc in DuckStation, memory view |
 | 24 | AC1 content | AC1 new game: right after NEW GAME the 160 bytes at `0x80031B34` equal those at `0x800B7174`, and `0x80031A94` has 1 at index 0 and 10 (`../ac1/content.md` §3) | AC1 disc in DuckStation, memory view |
 | 25 | AC1 content | AC1 mail pictures: after "Exterminate Organisms" (slot 7) the mail "Giant Organisms" opens with 2 pictures (`../ac1/content.md` §2) | AC1 disc, a save near chapter 19 |
+| 26 | AC1 import | AC1 mission chain: win "Destroy Floating Mines" → "Destruction of Ravens" starts without the menu; `0x8019F518` goes 48 → 49 (`../ac1/import-outlook.md` §1b) | AC1 disc, a save at chapter 36 |
+| 27 | AC1 import | PP imports an AC1 save: in PP's LOAD pick an AC1 save; the garage shows the same AC (an AC1 back weapon id 21 WC-XP4000 is PP id 31) and credits are AC1's + 100,000 (`../ac1/import-outlook.md` §6) | PP disc + an AC1 save on the same memory card |
+| 28 | AC1 import | AC1 hidden part: in "Secret Factory Recon" pick up the item → `0x80031AF3` (owned index 95, WM-S60/4) becomes 1; note anything drawn from screen-memory pages x 832–959, y 256–511 (`../ac1/import-outlook.md` §2, §4) | AC1 disc, memory view + VRAM view |
+| 29 | AC1 import | AC1 gift: after "Remove Gun Emplacement" `0x80031AB2`, `0x80031AE4`, `0x80031AE6` are 1 (LN-SSVT, SP-SAP, SP-AXL); in a mission with an enemy AC, player block 2 `0x8004133C` stays unchanged (`../ac1/import-outlook.md` §2, §5) | AC1 disc, memory view |
 
 ## Open questions left by the lanes
 - **Foundations:** menu module 201 header/entry; disc files 0 and 3; what the 72 PA archives hold (motion,

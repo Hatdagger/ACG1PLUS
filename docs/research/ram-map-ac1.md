@@ -64,6 +64,7 @@ that wrote it. Details and the stretches no code was seen using: `mapping/scratc
 | `800411F4` | 316 | struct | `p1_stat_block` | [exe bss] Player 1 compiled stat block = player block +0x254 (player 2 at +924), written by the compile routine 0x8009C964 (FDAT 201) at VS START / launch. 8 bytes shorter than PP's (records.md §3) | code | R2 W1 in 1 fn: `800122A8` | VS RWP 5; link R 1; menu RWP 11; missions RWP 50 | ac1/records.md |
 | `800411F8` | 1 | u8 | `p1_stage_number` | [exe bss] Stat +0x04: stage / engine mission number; the boot loop tests it for 21-22, 47-48, 49 after a mission (endings, guess) | code | R2 in 1 fn: `800122A8` | VS R 1; link R 1; menu RWP 8; missions RWP 2 | ac1/records.md |
 | `8004121B` | 1 | u8 | `p1_body_number` | [exe bss] Player 1 block +0x27B: body kit number 0-71; the missions engine writes it into its name string as P<n/20>\PA<nn>.T and registers it as archive 0 (0x8004F1A8 in FDAT 202). PP has it at block +0x281 | code | — | menu W 1; missions R 2 | ac1/foundations.md §4 |
+| `8004121C` | 1 | u8 | `ac1_com_voice` | COM voice byte (player block 1 +0x27C): picks message set and map sound bank | code | — | menu W 1; missions R 2 | ac1/import-outlook.md |
 | `8004133C` | 924 | struct | `player_block_2` | [exe bss] Player block 2 (see player_block_1) | code | W2 P1 in 2 fn: `800122A8`, `80016E64` | VS RWP 11; link RWP 4; menu RW 4 | ac1/foundations.md §6 |
 | `80041B10` | 120 | u8[120] | `mission_save_copy` | [exe bss] Saved copy of mission table T+0..+0x77 (store 0x80086654), card +0xC58 | code | — | menu RWP 11 | ac1/records.md |
 | `800485A0` | 96 | u8[96] | `owned_part_bits` | [exe bss] Owned-part bitmasks, saved at card +0x268 | code | — | menu RWP 16 | ac1/records.md |
@@ -72,6 +73,7 @@ that wrote it. Details and the stretches no code was seen using: `mapping/scratc
 | `80049EC8` | 196 | u8[196] | `mail_save_copy` | [exe bss] Saved copy of mail block S+0..+0xC3 (store 0x800960C0), card +0xD4F | code | — | menu RWP 6 | ac1/records.md |
 | `8004A2A4` | 240 | struct[20] | `archive_table` | [exe bss] One 12-byte row per archive number 0-19: +0 pointer to its entry list (start sectors, halfwords), +4 CD position, +8 size. Filled by the register routine 0x80016678, read by the loader 0x800165E4 | code | R4 P3 in 4 fn: `80015C9C`, `80015D80`, `800165E4`, `80016678` | — | ac1/foundations.md §2 |
 | `8004A394` | 4 | u32 | `archive_list_fill` | [exe bss] Next free byte for archive entry lists; the register routine copies each archive's list here and stops with an error once it reaches 0x80048508 | code | R2 W2 in 2 fn: `80016678`, `800167D0` | VS RW 1; link RW 1; missions RW 1 | ac1/foundations.md §2 |
+| `8004A610` | 4 | u32 | `ac1_fight_result` | Result of the last mission, set by the missions engine; 2 = won (menu ending checks, boot loop 0x80012538) | guess | — | — | ac1/import-outlook.md |
 
 ## Module area (rebuilt on every module load; depends on the engine)
 
@@ -81,6 +83,8 @@ that wrote it. Details and the stretches no code was seen using: `mapping/scratc
 | `8004CC2C` | 20 | u16[10] | `ac1_owned_part_bases` | [menu] Owned-part index bases: head 0, core 10, arms 13, legs 29, generator 61, FCS 68, option 76, booster 87, back 93, hand 127 (blade 143 not stored) (FDAT 201 +0x1E8C) | data | — | menu RP 2 | ac1/content.md |
 | `8008C2B8` | 924 | struct | `vs_player_block_backup_p1` | [VS] VS engine's copy of player block 1 (P2 at 0x8008C654), set at run time | code | — | VS RWP 1 | ac1/records.md |
 | `8008D928` | 10 | char[] | `missions_body_archive_name` | [missions] Name string 'P0\PA00.T' (FDAT 202 +0x42B88); digits are written in before it is registered as archive 0. Link copy 0x800895D0 (FDAT 203 +0x3E830), VS copy 0x800893D4 (FDAT 204 +0x3E634) | data | — | missions WP 1 | ac1/foundations.md §4 |
+| `8008E530` | 224 | struct[8] | `ac1_mission_effect_table` | [missions] 28-byte effect records (8; PP has 9) passed by the shared mission helper (FDAT 202 +0x43790) | code | — | missions RP 1 | ac1/import-outlook.md |
+| `800906CC` | 200 | u16[100] | `ac1_mission_number_table` | [missions] Per-mission u16 by engine number (24 for 8 and 11, else 56), read at 0x800835A8 into 0x8008EF4A (FDAT 202 +0x4592C) | code | — | missions R 1 | ac1/import-outlook.md |
 | `800B70D4` | 160 | u8[160] | `ac1_newgame_owned_counts` | [menu] New-game owned-part counts (11 parts = the starting AC), copied to 0x80031A94 by 0x8005AD34 (FDAT 201 +0x6C334) | data | — | menu RP 1 | ac1/content.md |
 | `800B7174` | 160 | u8[160] | `ac1_newgame_shop_stock` | [menu] New-game shop stock (85 × 1, 23 back weapons × 2, rest 0), copied to 0x80031B34 (FDAT 201 +0x6C3D4) | data | — | menu RP 1 | ac1/content.md |
 | `800B91F4` | 600 | struct[10] | `ac1_part_table_head` | [menu] Head part table, 10 × 60 B (PP layout; FDAT 201 +0x6E454) | data | — | menu RP 12 | ac1/content.md |
@@ -96,19 +100,34 @@ that wrote it. Details and the stretches no code was seen using: `mapping/scratc
 | `800BB11C` | 484 | struct[11] | `ac1_part_table_option` | [menu] Optional part table, 11 × 44 B, no DUMMY rows (FDAT 201 +0x7037C) | data | — | menu RP 8 | ac1/content.md |
 | `800BB300` | 1392 | struct[58] | `ac1_weapon_detail_tables` | [menu] Weapon detail records, 24 B: weapon arms (arms id - 8) 8, hand 16, back 34, back to back (FDAT 201 +0x70560) | data | — | menu R 4 | ac1/content.md |
 | `800BD338` | 448 | char[28][16] | `ac1_weapon_type_names` | [menu] Weapon type names, same 28 as PP; index = weapon detail +7 (FDAT 201 +0x72598) | data | — | menu R 1 | ac1/content.md |
+| `800BDC68` | 72 | struct[9] | `ac1_movie_table` | [menu] Movies: 9 x {name pointer, frame count}: ACOPA, DEMOPLAY, ACOPB, ACED1-5, STAFF; player 0x800A448C(index) (FDAT 201 +0x72EC8) | code | — | menu R 1 | ac1/import-outlook.md |
 | `8017F6D0` | 4496 | struct | `mail_block` | [menu] Mail block S, PP's layout: flags, 64 triggers at +0x40, count +0xC0, MIS.T 818 copied to S+0x110 (callback 0x800963A0) | code | — | menu RWP 23 | ac1/records.md |
+| `80198808` | 768 | struct[32] | `ac1_mission_point_classes` | [missions] Point classes, map block 8 (24 B x 32), loader 0x800731E8 | code | — | missions RWP 4 | ac1/import-outlook.md |
+| `80198B08` | 26624 | struct[512] | `ac1_mission_event_points` | [missions] Event points / trigger zones, map block 9 (52 B x 512; item points: kind +0x22, owned index +0x24), loader 0x8007334C | code | — | missions RWP 12 | ac1/import-outlook.md |
 | `8019B480` | 1 | u8 | `link_stage_slot` | [link] Stage slot n (90-94): RTIM n, FDAT 2n (stage code, to 0x801B80C8), FDAT 2n+1 (stage data, to the buffer at 0x8019B488) | code | — | link RW 2 | ac1/foundations.md §4 |
 | `8019B488` | 4 | u32 | `link_stage_buf` | [link] Pointer to the link engine's work buffer (body archive entry 1, RTIM 100, RTIM n, FDAT 200, stage data) | code | — | link RWP 2 | ac1/foundations.md §4 |
+| `8019F308` | 512 | ptr[128] | `ac1_mission_touch_list` | [missions] Event points that can be touched (type set, flag 0x4000 clear), rebuilt by 0x80073170 | code | — | missions RWP 4 | ac1/import-outlook.md |
+| `8019F508` | 2 | u16 | `ac1_mission_touch_count` | [missions] Number of entries in the touch list | code | — | missions RWP 4 | ac1/import-outlook.md |
 | `8019F518` | 1 | u8 | `mission_slot` | [missions] Mission slot n: picks RTIM n (pictures), FDAT 2n (mission code, to 0x801C4B40) and FDAT 2n+1 (mission map, to the buffer at 0x8019F520). Slots 0-49 (16, 29, 39 empty), 60, 70 | code | — | missions RWP 4 | ac1/foundations.md §4 |
 | `8019F520` | 4 | u32 | `mission_map_buf` | [missions] Pointer to the work buffer: gets body archive entry 1, RTIM 100, RTIM n, FDAT 200 and the mission map in turn | code | — | missions RWP 2 | ac1/foundations.md §4 |
+| `8019F538` | 1408 | struct[32] | `ac1_mission_object_types` | [missions] Object types, map block 11 (44 B x 32), loader 0x800739AC | code | — | missions RWP 3 | ac1/import-outlook.md |
+| `8019FAB8` | 11264 | struct[256] | `ac1_mission_placements` | [missions] Placements, map block 12 (44 B x 256; 40 B on disc), loader 0x80073B74 | code | — | missions RWP 5 | ac1/import-outlook.md |
+| `801A26B8` | 5888 | struct[16] | `ac1_mission_objects` | [missions] Mission object pool, 16 x 368 B (slot 0 = player AC; same layout as PP's AC object) | code | — | missions RWP 40 | ac1/import-outlook.md |
+| `801A5DD8` | 64 | u8[64] | `ac1_mission_active_sections` | [missions] Active map-section bit set (512 bits) | code | — | missions RP 4 | ac1/import-outlook.md |
 | `801AB678` | 1 | u8 | `vs_stage_slot` | [VS] Stage slot n (80-84): RTIM n, FDAT 2n (stage code, to 0x801C8460), FDAT 2n+1 (stage data, to the buffer at 0x801AB680) | code | — | VS RW 2 | ac1/foundations.md §4 |
 | `801AB680` | 4 | u32 | `vs_stage_buf` | [VS] Pointer to the VS engine's work buffer (body archive entry 1, RTIM 100, RTIM n, FDAT 200, stage data) | code | — | VS RWP 2 | ac1/foundations.md §4 |
 | `801AB748` | 368 | struct | `vs_ac_object_p1` | [VS] Player 1 AC object (P2 at 0x801AB8B8); same 368-byte layout as PP except +0xF2..+0xF6 (PP +0xF0..+0xF4) | code | — | VS RWP 25 | ac1/records.md |
 | `801AB8B8` | 368 | struct | `vs_ac_object_p2` | [VS] Player 2 AC object (see vs_ac_object_p1) | code | — | VS RWP 19 | ac1/records.md |
+| `801AD82C` | 4096 | struct[256] | `ac1_mission_view_table` | [missions] Map block 10 table, 16 B x 256 (14 B on disc; PP keeps 1,024), loader 0x80056AD0 | code | — | missions RWP 3 | ac1/import-outlook.md |
 | `801B645C` | 57344 | struct[256] | `vs_object_pool` | [VS] Object pool, 256 x 224 bytes (shots, missiles, effects), cleared by 0x80081FD0; same size as PP's | code | — | VS RWP 7 | ac1/records.md |
 | `801B80C8` | 6144 | code | `link_stage_code` | [link] Per-stage code (FDAT 180-188, 4-6 KB), loaded at 0x80050084 (FDAT 203) | code | — | link P 1 | ac1/foundations.md §4 |
 | `801C4B40` | 43008 | code | `mission_code` | [missions] Per-mission code module (FDAT 2n, 6-43 KB), loaded at 0x8004F784; starts with a table of handler pointers into itself. PP loads its mission code at 0x80097A38 | code | — | missions P 1 | ac1/foundations.md §4 |
 | `801C8460` | 6144 | code | `vs_stage_code` | [VS] Per-stage code (FDAT 160-168, 4-6 KB), loaded at 0x8004FB7C (FDAT 204). PP loads VS stage code at 0x8008F5D0 | code | — | VS P 1 | ac1/foundations.md §4 |
+| `801D0B44` | 36 | struct | `ac1_mission_timer_end` | [missions] Timer message / end code record (tallies +0x24/+0x28 on PP) | guess | — | missions RWP 8 | ac1/import-outlook.md |
+| `801D0B68` | 32768 | struct[512] | `ac1_mission_sections` | [missions] Map sections (64 B x 512), loader 0x80071E14 | code | — | missions RWP 31 | ac1/import-outlook.md |
+| `801D8B68` | 65536 | bytes | `ac1_mission_section_heap` | [missions] Section data heap, 64 KB (PP 96 KB) | code | — | missions P 1 | ac1/import-outlook.md |
+| `801E8B68` | 4 | ptr | `ac1_mission_heap_pointer` | [missions] Next free byte of the section heap; allocator 0x80073674 (PP 0x8007141C) | code | — | missions RWP 4 | ac1/import-outlook.md |
+| `801ED850` | 4 | struct | `ac1_mission_messages` | [missions] Mission message table copy (200 lines; PP line n+50 = AC1 line n) | guess | — | missions RWP 4 | ac1/import-outlook.md |
 | `801F3750` | 6468 | struct | `mission_table` | [menu] Mission table T, PP's layout: 64 slots, flags at +0x38, MIS.T entry 0 copied to T+0xC4 (0x620 words, callback 0x80086E34) | code | — | menu RWP 26 | ac1/records.md |
 
 ## Touched by the exe's game code but not named yet
@@ -325,4 +344,4 @@ engines read or write, not covered by any entry. Sorted by how many routines use
 
 ## Counts
 
-58 named entries (code 39). Exe scan: 3139 references to 796 addresses.
+77 named entries (code 55, guess 3). Exe scan: 3139 references to 796 addresses.

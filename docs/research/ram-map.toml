@@ -5600,3 +5600,213 @@ disc = "AC1"
 what = "[menu] New-game shop stock (85 × 1, 23 back weapons × 2, rest 0), copied to 0x80031B34 (FDAT 201 +0x6C3D4)"
 status = "data"
 src = "ac1/content.md"
+
+# ───────────── AC1 topic 4: missions engine records, import outlook (ac1/import-outlook.md) ─────────────
+
+[[var]]
+addr = 0x80198808
+size = 768
+type = "struct[32]"
+name = "ac1_mission_point_classes"
+disc = "AC1"
+what = "[missions] Point classes, map block 8 (24 B x 32), loader 0x800731E8"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x801D8F50
+
+[[var]]
+addr = 0x80198B08
+size = 26624
+type = "struct[512]"
+name = "ac1_mission_event_points"
+disc = "AC1"
+what = "[missions] Event points / trigger zones, map block 9 (52 B x 512; item points: kind +0x22, owned index +0x24), loader 0x8007334C"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x801D9250
+
+[[var]]
+addr = 0x8019F308
+size = 512
+type = "ptr[128]"
+name = "ac1_mission_touch_list"
+disc = "AC1"
+what = "[missions] Event points that can be touched (type set, flag 0x4000 clear), rebuilt by 0x80073170"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x801DFA50
+
+[[var]]
+addr = 0x8019F508
+size = 2
+type = "u16"
+name = "ac1_mission_touch_count"
+disc = "AC1"
+what = "[missions] Number of entries in the touch list"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x801DFC50
+
+[[var]]
+addr = 0x8019F538
+size = 1408
+type = "struct[32]"
+name = "ac1_mission_object_types"
+disc = "AC1"
+what = "[missions] Object types, map block 11 (44 B x 32), loader 0x800739AC"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x801DFC60
+
+[[var]]
+addr = 0x8019FAB8
+size = 11264
+type = "struct[256]"
+name = "ac1_mission_placements"
+disc = "AC1"
+what = "[missions] Placements, map block 12 (44 B x 256; 40 B on disc), loader 0x80073B74"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x801E01E0
+
+[[var]]
+addr = 0x801A26B8
+size = 5888
+type = "struct[16]"
+name = "ac1_mission_objects"
+disc = "AC1"
+what = "[missions] Mission object pool, 16 x 368 B (slot 0 = player AC; same layout as PP's AC object)"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x801E2DE0
+
+[[var]]
+addr = 0x801A5DD8
+size = 64
+type = "u8[64]"
+name = "ac1_mission_active_sections"
+disc = "AC1"
+what = "[missions] Active map-section bit set (512 bits)"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x801E6500
+
+[[var]]
+addr = 0x801AD82C
+size = 4096
+type = "struct[256]"
+name = "ac1_mission_view_table"
+disc = "AC1"
+what = "[missions] Map block 10 table, 16 B x 256 (14 B on disc; PP keeps 1,024), loader 0x80056AD0"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x801A8FCC
+
+[[var]]
+addr = 0x801D0B44
+size = 36
+type = "struct"
+name = "ac1_mission_timer_end"
+disc = "AC1"
+what = "[missions] Timer message / end code record (tallies +0x24/+0x28 on PP)"
+status = "guess"
+src = "ac1/import-outlook.md"
+pp = 0x801F4588
+
+[[var]]
+addr = 0x801D0B68
+size = 32768
+type = "struct[512]"
+name = "ac1_mission_sections"
+disc = "AC1"
+what = "[missions] Map sections (64 B x 512), loader 0x80071E14"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x801BC328
+
+[[var]]
+addr = 0x801D8B68
+size = 65536
+type = "bytes"
+name = "ac1_mission_section_heap"
+disc = "AC1"
+what = "[missions] Section data heap, 64 KB (PP 96 KB)"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x801C4328
+
+[[var]]
+addr = 0x801E8B68
+size = 4
+type = "ptr"
+name = "ac1_mission_heap_pointer"
+disc = "AC1"
+what = "[missions] Next free byte of the section heap; allocator 0x80073674 (PP 0x8007141C)"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x801D4328
+
+[[var]]
+addr = 0x801ED850
+size = 4
+type = "struct"
+name = "ac1_mission_messages"
+disc = "AC1"
+what = "[missions] Mission message table copy (200 lines; PP line n+50 = AC1 line n)"
+status = "guess"
+src = "ac1/import-outlook.md"
+pp = 0x800A52F0
+
+[[var]]
+addr = 0x8008E530
+size = 224
+type = "struct[8]"
+name = "ac1_mission_effect_table"
+disc = "AC1"
+what = "[missions] 28-byte effect records (8; PP has 9) passed by the shared mission helper (FDAT 202 +0x43790)"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x8008D42C
+
+[[var]]
+addr = 0x800906CC
+size = 200
+type = "u16[100]"
+name = "ac1_mission_number_table"
+disc = "AC1"
+what = "[missions] Per-mission u16 by engine number (24 for 8 and 11, else 56), read at 0x800835A8 into 0x8008EF4A (FDAT 202 +0x4592C)"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x8008F874
+
+[[var]]
+addr = 0x8004121C
+size = 1
+type = "u8"
+name = "ac1_com_voice"
+disc = "AC1"
+what = "COM voice byte (player block 1 +0x27C): picks message set and map sound bank"
+status = "code"
+src = "ac1/import-outlook.md"
+pp = 0x8004276A
+
+[[var]]
+addr = 0x8004A610
+size = 4
+type = "u32"
+name = "ac1_fight_result"
+disc = "AC1"
+what = "Result of the last mission, set by the missions engine; 2 = won (menu ending checks, boot loop 0x80012538)"
+status = "guess"
+src = "ac1/import-outlook.md"
+pp = 0x8003BF28
+
+[[var]]
+addr = 0x800BDC68
+size = 72
+type = "struct[9]"
+name = "ac1_movie_table"
+disc = "AC1"
+what = "[menu] Movies: 9 x {name pointer, frame count}: ACOPA, DEMOPLAY, ACOPB, ACED1-5, STAFF; player 0x800A448C(index) (FDAT 201 +0x72EC8)"
+status = "code"
+src = "ac1/import-outlook.md"
