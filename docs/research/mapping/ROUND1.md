@@ -61,6 +61,8 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 | 18 | AC1 records | AC1 save: in a real AC1 save file, the byte sum of +0x230 … +0xE13 equals the word at +0x200 (`../ac1/records.md` §4) | an AC1 save file (card image) |
 | 19 | R2 missions | Placements past 64: play PP mission "Destroy Main Facility" (slot 7, its map has 93 placements). Byte `0x801E01E0` + 44 × 70 = `0x801E09A8` should turn 1 (spawned) or 3 (destroyed) at some point; MoA's engine would never touch it (`missions-import-pp.md` §1a) | DuckStation memory view |
 | 20 | R2 missions | Message set byte: byte `0x8004276A` before a mission, once per value of the COM / voice option in the options screen; it should be 0, 1, 2 and the mission's COM lines should change voice with it (`missions-import-pp.md` §1) | DuckStation memory view |
+| 21 | R2 leftovers | Volume and vibration bytes: in Options, turn the music volume down one step → `0x80041572` (default 62) changes; turn vibration off → `0x8004132C` = 0. In a VS fight `0x80041573` = the master value `0x80041570` (126) and `0x80041575` = the music value; when the match ends `0x80041573` falls to 0 in steps of 6 (`menus-screens.md` PP-1) | DuckStation memory view |
+| 22 | R2 leftovers | AC surface mask: in a VS fight, P1 AC +0x3A = `0x801D811A` reads 7; in an arena fight the player's `0x801D1D5A` reads 7 too (`battle-system.md`, AC object) | DuckStation memory view |
 
 ## Open questions left by the lanes
 - **Foundations:** menu module 201 header/entry; disc files 0 and 3; what the 72 PA archives hold (motion,

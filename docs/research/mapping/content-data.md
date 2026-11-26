@@ -116,8 +116,20 @@ Everything else (all other heads, cores, arms, boosters, blades, options, the ot
 ### 1c. Weapon type names (data, open)
 
 Weapon detail +7 indexes a 16-byte name table (MoA `0x800D5488`, 33 names). WG-1-KARASAWA uses 12 on PP and
-27 on MoA; MoA's 27 is LASER RIFLE. PP's table has not been located yet; whether PP's 12 is "PLASMA RIFLE" or PP
-simply has fewer names is **open** (needed only for HUD text of imported weapons).
+27 on MoA; MoA's 27 is LASER RIFLE.
+
+**PP table (round 2 topic 5): `0x800BCB18` (FDAT 201 +0x73A48), 28 names × 16 bytes**, right-aligned and
+space-padded, just after the body combination table. Names 0–27 are **byte for byte MoA's 0–27** (MACHINE GUN …
+LASER RIFLE, "BOMB DISPENCER" spelt the same on both). MoA adds 28 SPECIAL MISSILE, 29 PLASMA DISPENSER,
+30 SPECIAL ROCKET, 31 MINE DISPENSER, 32 FLAME SHELL for its new weapons. So PP shows KARASAWA as PLASMA RIFLE
+(type 12, like WG-XC4) and MoA re-typed it as LASER RIFLE; PP already uses 27 LASER RIFLE for WG-XFwPPk. (data)
+
+Reader (code): the stat-block builder `0x8009A238` copies `table + 16 × detail+7` into weapon slot +42 … +57
+with unaligned loads / stores, once per slot kind (`0x8009B944` weapon arms detail `0x800B9BDC`, `0x8009BF80`
+hand detail `0x800B9D5C`, `0x8009CDB0` / `0x8009D454` / `0x8009DFAC` back detail `0x800B9F54`), the same slot
+field as MoA (`stat-block.md`, weapon slots +42). **Importing a MoA weapon of type 28–32** would read past PP's
+28 names into the bytes that follow (`0x800BCCD8` …, small numbers, not text, reader not found): the five names
+have to be added with the weapon (our own pack or a moved table).
 
 ## 2. Compiled stat block on PP (data + code)
 
@@ -296,13 +308,14 @@ uses owned + 0x200 (`0x800344F0`) as MoA does (`0x800371EC`), so PP stock is mos
 
 ## 7. Open
 
-- PP weapon type name table (1c).
+- ~~PP weapon type name table (1c)~~: `0x800BCB18`, 28 names (round 2 topic 5). What the bytes after it are.
 - Part model archives (`*_T.T`): entry counts match the table sizes per kind (BWL/BWR 59 vs 60, WEL 9 vs 6, WER
   21 vs 26, MENU_TMD 249 vs 252, the rest equal), but how body-part archives group 16 entries per part isn't
   decoded; PP has data in some `DUMMY` slots. Needed to import a part's model.
 - PP shop stock address (guess `0x800343F0`) and new-game stock values.
 - PP's 7-byte copy to `0x8003BD24` vs MoA's 8 bytes to `0x8003EAC8`: which byte MoA added.
-- Paint (48 bytes) and emblem formats: copied unchanged by the old importer, not mapped field by field here.
+- Paint (48 bytes) and emblem formats: copied unchanged by the old importer, not mapped field by field here. Still open after round 2
+  (topic 5 ran out of room; next step: read the CHANGE COLOR page `0x8005DF7C` and the emblem editor `0x8006844C` …).
 - Whether PP's fight code reads stability and damage factors the same way as MoA's (Lanes 2, 4).
 
 ## Handed over

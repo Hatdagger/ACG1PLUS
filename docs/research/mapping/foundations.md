@@ -57,8 +57,15 @@ Both discs: `SYSTEM.CNF`, `LICENSEA.DAT`, `COPY.TXT`, the boot exe, and a `GG/` 
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Archive | RTIM | FDAT | MENU_TIM | MENU_TMD | MENU_VAB | CORE_T | LEG_T | ARMS_T | HEAD_T | BST_T | BWL_T | BWR_T | WEL_T | WER_T | COMP_T | SPEC_T | GENE_T | MIS |
 
-Files 0 and 3 are not registered at boot; every fight engine loads `file 0, entry 1` first, so file 0 is most
-likely the current stage archive (`GG/Pn/PAnn.T`), registered when a stage is picked `guess` (Lane 3).
+Files 0 and 3 are not registered at boot. **File 0 = the player's body archive** (round 2 topic 5, code): every
+fight engine registers it with `0x80017244(0, name)` just before its "file 0, entry 1" load (missions
+`0x8004D7F4`, link `0x8004DE80`, VS `0x8004D8C4`, arena `0x8004E080`, replay `0x8004D814`, all PP), after writing
+the digits of player block +0x281 (the body combination 0–71) into a `P0\PA00.T` template (VS template at
+`0x800874C4`): folder digit = n ÷ 20, then the two-digit number. So the name is `GG/P(n÷20)/PA(nn).T`
+(`pa-archives.md`). **File 3 is never used on PP**: no register call and no load with file 3 anywhere in the exe
+or the six modules (loader calls with a fixed file number pass 0, 1 or 2; the menu's file loader `0x8004F2D8`
+is called with 5, 6 or a part archive number). Checked by call-site scan, so `code` for the fixed ones. It is a free slot, for
+example for our own pack.
 
 ## 3. FDAT.T and the overlay table
 
@@ -77,11 +84,15 @@ PP's module numbers are MoA's minus 5 (exe loads `0xC9`/`0xCD` on PP where MoA l
 Every module loads at the module base: **PP `0x800490D0`**, MoA `0x80050DD8` (code: the loader calls, and
 jal-target voting puts 470–520 internal calls on that base). The fight engines start with a header: word 0 = 4,
 **word 1 = entry point**, then names ("ENERGY", "MISSION TIMER", "LOCK"…). The menu's header is different
-(word 0 = 5, then data) and its entry is not read yet.
+(word 0 = 5, then four VRAM rectangles x, y, w, h: (448, 192, 16, 64), (368, 225, 16, 1), (768, 448, 64, 64),
+(0, 493, 256, 1) that the hub ring copies at `0x8004C018` … and `0x8004E084` …, then texts from `0x800490F4`).
+**The menu is not entered through its header**: the exe loads FDAT 201 and calls **`0x80098EF0`** directly
+(`jal` at `0x80012E2C`; MoA `0x800A69C8` from `0x80012674`); the fight engines are started through header word 1
+(`lw 0x800490D4`, `jalr` at `0x80012FF0`). (round 2 topic 5, code)
 
 | PP FDAT | MoA FDAT | Module | PP size | MoA size | PP entry | MoA entry | Routines paired |
 |---|---|---|---|---|---|---|---|
-| 201 | 206 | menu (hub, garage, shop, VS menu…) | 548,864 | 618,496 | ? | ? | 1,079 |
+| 201 | 206 | menu (hub, garage, shop, VS menu…) | 548,864 | 618,496 | `0x80098EF0` (direct call) | `0x800A69C8` (direct call) | 1,079 |
 | 202 | 207 | missions engine | 290,816 | 294,912 | `0x8004A68C` | `0x800524B8` | 667 |
 | 203 | 208 | link engine (two consoles) | 274,432 | 278,528 | `0x8004A2B8` | `0x80051FDC` | 639 |
 | 204 | 209 | VS engine (split screen) | 270,336 | 274,432 | `0x8004A228` | `0x80051F4C` | 636 |
@@ -158,8 +169,7 @@ inside the compiled stat block (MoA +0x250 … +0x393) one byte goes missing som
 some other record (object pool? stage or camera records?): not named yet.
 
 ## 6. Open (for this lane or others)
-- Menu module 201: header format and entry point. Lane 3 / 8.
-- File numbers 0 and 3: what registers them (stage archive?). Lane 3.
+- ~~Menu module 201: header format and entry point~~; ~~file numbers 0 and 3~~: round 2 topic 5 (§2, §3).
 - `GG/Pn/PAnn.T` (72 archives): what each is and which routine reads it. Lane 3 / 7.
 - MoA FDAT 200 and 204: what they are (no PP counterpart). Lane 3.
 - The −4 struct family in `fields.tsv`. Lane 4.

@@ -5369,3 +5369,58 @@ moa = 0x80045412
 what = "Player block 1 +0x282: picks the missions engine's message set (common blocks 4–6) and the map's sound bank (0–2); likely the COM voice option"
 status = "guess"
 src = "mapping/missions-import-pp.md §1"
+
+# ---------------------------------------------------------------------------------------------------------
+# Mapping round 2, topic 5 (small leftovers), PP.
+
+[[var]]
+addr = 0x80041AC8
+size = 2560
+type = "struct[256]"
+name = "sound_id_records"
+disc = "PP"
+moa = 0x80044758
+what = "[fight engines] Sound id records, 10 bytes each (s16 bank slot, s16 program, s16 tone, s16 note, u16 weight), 448 bytes into sound_id_table (FDAT 200 block 3). Read by the play routine (VS 0x8004B8D0). 250 of 256 match MoA; 59 and 188-192 differ"
+status = "code"
+src = "mapping/scenario.md §7a"
+
+[[var]]
+addr = 0x8004132C
+size = 1
+type = "u8"
+name = "vibration_on"
+disc = "PP"
+what = "[exe] Vibration on/off: the vibration routine 0x800179B0(port, strength, time) does nothing when 0. Menu settings defaults (0x800AA428) write 1"
+status = "code"
+src = "mapping/menus-screens.md PP-1"
+
+[[var]]
+addr = 0x800BCB18
+size = 448
+type = "char[28][16]"
+name = "weapon_type_names"
+disc = "PP"
+moa = 0x800D5488
+what = "[menu] Weapon type names for the HUD, 28 × 16 chars, right-aligned (MACHINE GUN … LASER RIFLE; same as MoA's 0-27, MoA adds 28-32). Index = weapon detail +7; copied into weapon slot +42 by the stat-block builder 0x8009A238. FDAT 201 +0x73A48"
+status = "data"
+src = "mapping/content-data.md §1c"
+
+[[var]]
+addr = 0x8008F5C6
+size = 8
+type = "u16[4]"
+name = "vs_match_effect_template"
+disc = "PP"
+what = "[VS] Match struct +0x16 ... +0x1D: 0x80, 0, 0x40, ? set at load (0x8004DF60); the per-frame AC routine passes its address to the effect spawner 0x80083738, which copies it to the new pool object's +0x20. Meaning of the values not read"
+status = "code"
+src = "mapping/battle-system.md (VS match struct)"
+
+[[var]]
+addr = 0x801CC6FC
+size = 28
+type = "struct[]"
+name = "vs_stage_hit_list"
+disc = "PP"
+what = "[VS] Results of a stage hit query, 28-byte records ending with a 0 pointer; +0 polygon pointer (its +0x0E bits 0-2 = surface flags), +0x0E distance. 0x8006E958(mask) returns the nearest result whose flags do not share a bit with the mask (AC +0x3A)"
+status = "code"
+src = "mapping/battle-system.md (AC object +0x3A)"

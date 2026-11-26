@@ -73,7 +73,7 @@ they are set at run time). Addresses `0x801Dxxxx` are run-time RAM only.
 | +0x10 | u16 | **End countdown** (0 = fighting; 30 at time up, +90 when the result is decided; waits at 30 for CONTINUE?) | code |
 | +0x12 | u16 | Steps elapsed (capped 0x4000); the clock only runs once it is ≥ 16 | code |
 | +0x14 | u16 | **Time left in steps** = the larger of the two players' time setting (player block +0x258) × 22 | code |
-| +0x16 / +0x1A | u16 | Set to 0x80 / 0x40 at load `?` | code, meaning guess |
+| +0x16 / +0x1A | u16 | Set to 0x80 / 0x40 at load (`0x8004DF60`); +0x16 … +0x1D (with +0x18 = 0) is an **8-byte template**: the per-frame AC routine passes `&match+0x16` (`0x8007A52C`) to the effect spawner `0x80083738`, which copies it into the new pool object's +0x20 … +0x27 (topic 5). What the values mean in the effect (size, colour, speed) `?` | code, meaning guess |
 | +0x18 | u16 | Cleared at load `?` | code |
 | +0x20 … | | Stage code loaded here (see "Stage area boxes") | code |
 
@@ -141,7 +141,7 @@ MoA added them.
 | +0x28 / +0x2A | u16 | Width / body height (step-size limit, hit cylinder centre) | same | moved |
 | +0x36 | u16 | Flags; **0x10 = busy** (set on hit stagger, blade swing). VS load writes 1 for P1, 2 for P2 on top of match start's 1 `?` | same | code |
 | +0x38 | u16 | Stat flags from match start (+0x28C minus bits 0–1) | same | code |
-| +0x3A | u8 | 7 at match start `?` (MoA's +0x43 = 5) | +0x43 | code (value), meaning unknown |
+| +0x3A | u8 | **Surface mask for stage hit queries**, 7 at match start (MoA's +0x43 = 5). Passed as the mask to `0x8006E9D0` (calls `0x80071640`, `0x80072F04`, `0x800735FC`, `0x8007EC50`), whose second step `0x8006E958` walks the hit list at `0x801CC6FC` (28-byte records) and skips any result whose surface word (+0x0E of the record's polygon, bits 0–2) shares a bit with the mask; the nearest remaining result wins. MoA's 5 lets surfaces flagged only 2 count (topic 5) | +0x43 | code |
 | +0x3C | u8 | **State** (0x80 / 0x81 = hit stagger, 0x20 / 0x21 blade, 0x22 cannon stance …) | +0x45 | code |
 | +0x3D | u8 | **Movement class** (0xC0 airborne) | +0x46 | code (on-hit) |
 | +0x3E | u8 | Missile volley counter | +0x47 | moved |
@@ -151,13 +151,13 @@ MoA added them.
 | +0x50 | u32 | Animation-finished callback (ACs: `0x8007B42C`) | +0x58 | moved |
 | +0x54 / +0x58 | u32 | Two more callbacks | +0x5C / +0x60 | moved |
 | +0x5C | u32 | **On-hit callback**, called after the AP write (ACs: `0x80079FE8`) | +0x64 | code |
-| +0x60 | | Animation player argument / model data `?` | +0x68 | moved |
+| +0x60 | u32 | **Pointer to the AC's model instance**: match start passes AC + 0x60 to `0x80051B44` (model / animation set-up, with AC +0x0E as model slot), which reads the pointer and creates the instance (`0x80052DA4`) when it is 0; instance +0 kind, +2 model slot (topic 5) | +0x68 | code |
 | +0x64 / +0x65 | u8 | Animation player (+0x64 = 255 while staggered; gun fire needs +0x65 = 255) | +0x6C / +0x6D | code |
 | +0x68 | u8 | 2 from match start `?` | +0x70 | code (value) |
 | +0x6A / +0x6C | u16 | Hit cylinder radius / height | +0x72 / +0x74 | moved |
 | +0x6E | s16 | **Frame counter of the current state** (blade hit window 7–11) | +0x76 | code (blade) |
 | +0x76 / +0x78 / +0x7A | s16 | Missile cursor pitch etc. reset on a non-locking shot | +0x7E / +0x80 / +0x82 | code (gun fire) |
-| +0x7C | s16 | From weapon slot +0x0A on each shot `?` | +0x84 | code |
+| +0x7C | s16 | **Firing animation id**, from weapon slot +0x0A on each shot (the MoA field +0x84 that `stat-block.md` names; same three fire routines) | +0x84 | code |
 | +0xCC / +0xCE / +0xD0 | s16 | **Velocity x / y / z** (1/64 units per step) | +0xD4 … +0xD8 | code (on-hit knock-back) |
 | +0x110 | | Missile interceptor burst counter (0 at match start) | +0x118 | code (value), moved |
 | +0x148 | u16 | Cleared on stagger; gun fire clears bits 4–7 | +0x150 | code |
@@ -334,8 +334,8 @@ Not run yet. Each is one value to watch in a debug build (or an emulator's memor
 
 ### Open
 
-- The meaning of AC +0x3A (7), +0x60, +0x7C; match struct +0x16 / +0x1A; `0x8003BCF1`; the two
-  `0x801DA3E0` records.
+- ~~The meaning of AC +0x3A (7), +0x60, +0x7C; match struct +0x16 / +0x1A~~ (round 2 topic 5, tables above);
+  still open: `0x8003BCF1`; the two `0x801DA3E0` records; what the match +0x16 template does in the effect.
 - The wreck sequence (`0x800719DC`) and the stagger installers (`0x80073E6C`, `0x80073EBC`) not read in full.
 - The arena's extra hit calls (`0x80083988`, `0x80083810`) update a 20 × 28-byte table at `0x8008F014`
   (+0x16): handed to Lane 6.

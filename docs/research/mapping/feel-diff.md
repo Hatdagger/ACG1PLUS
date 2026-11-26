@@ -306,11 +306,78 @@ The owner wants Kaze kept and turned into a feature, working **left as well as r
 ## 9. Open
 
 - Nothing here is `tested` yet on PP; §7 lists two optional checks.
-- AC +0x43 (MoA 5) / PP +0x3A (7): no reader found in the VS modules; may be read in the arena module
-  or the boot EXE.
+- ~~AC +0x43 (MoA 5) / PP +0x3A (7)~~: found in round 2 topic 5, it is a surface mask for the stage hit
+  query (§10.3, `battle-system.md`).
 - Flight table byte +0x17 (MoA 0x30): meaning.
-- The arena engine (PP 205 / MoA 210) was not compared; its movement code should be checked the same
-  way (Lane 6 owns the AI part of it).
+- ~~The arena engine (PP 205 / MoA 210) was not compared~~: done in round 2 topic 5 (§10).
+
+## 10. Arena engine, PP 205 / MoA 210 (round 2, topic 5, 2026-11-26)
+
+**Answer: the arena engine moves exactly like the VS engine on each disc.** Every movement routine of §3 has
+a copy in the arena module, with the same logic and the same numbers, and the PP ↔ MoA differences inside
+the arena module are the same ones §4 lists for VS. So everything in §3–§8 holds for arena fights too.
+
+### 10.1 How we know (code)
+For each §3 routine, the arena copy was found by code shape on each disc separately (normalised compare,
+`ld.py` rules, over every routine of FDAT 205 / FDAT 210), then compared three ways: VS ↔ arena on PP,
+VS ↔ arena on MoA (raw, only addresses masked, so numbers count), and MoA arena ↔ PP arena (normalised).
+Script: our own throwaway helper over the extracted packs; it prints addresses only.
+
+| Routine (§3) | PP VS → PP arena | MoA VS → MoA arena | MoA arena ↔ PP arena |
+|---|---|---|---|
+| State setter | `0x80077D94` → `0x800799C4` | `0x8007FFF0` → `0x80081CC0` | same |
+| Pad → wanted state | `0x8007CD10` → `0x8007E920` | `0x80085180` → `0x80086E30` | same |
+| Ground-boost state handler | `0x8007D27C` → `0x8007EE8C` | `0x80085704` → `0x800873B4` | same |
+| Ground boost | `0x80077560` → `0x80079190` | `0x8007F7BC` → `0x8008148C` | same |
+| Rise / air / gravity / air boost | `0x80077950` → `0x80079580` | `0x8007FBAC` → `0x8008187C` | same |
+| Turning / turn helper / recover turn | `0x800760E8` / `0x80075B8C` / `0x800762EC` → `0x80077D18` / `0x800777BC` / `0x80077F1C` | `0x8007E1DC` / `0x8007DC80` / `0x8007E3E0` → `0x8007FEAC` / `0x8007F950` / `0x800800B0` | same |
+| Animation-finished callback | `0x8007B42C` → `0x8007D03C` | `0x8008389C` → `0x8008554C` | same |
+| Stepper installers | `0x80073B00`, `0x80073374`, `0x800736C0`, `0x8007D56C`, `0x80076620` → `0x80075708`, `0x80074F7C`, `0x800752C8`, `0x8007F17C`, `0x80078250` | `0x8007B8B0`, `0x8007B108`, `0x8007B454`, `0x800859F4`, `0x8007E714` → `0x8007D578`, `0x8007CDD0`, `0x8007D11C`, `0x800876A4`, `0x800803E4` | same |
+| Stepper installer (walk, wall test) | `0x80073878` → `0x80075480` | `0x8007B60C` → `0x8007D2D4` | MoA's reason-5 callback, as in VS |
+| Wall / floor tests | `0x80070F40` / `0x80070DA4` → `0x80072B10` / `0x80072974` | `0x80078C4C` / `0x80078AB0` → `0x8007A8DC` / `0x8007A740` | same |
+| Stun countdown / stun / knock-back setters | `0x80077C70`, `0x80073E6C`, `0x80073EBC` → `0x800798A0`, `0x80075A64`, `0x80075AB4` | `0x8007FECC`, `0x8007BC1C`, `0x8007BC6C` → `0x80081B9C`, `0x8007D8D4`, `0x8007D924` | same |
+| Stun length from impact | `0x80071D0C` → `0x80073914` | `0x80079AA4` → `0x8007B76C` | different, as §4 #4 |
+| AC hit callback | `0x80079FE8` → `0x8007BC08` | `0x80082430` → `0x800840F0` | different, as VS |
+| Damage routine | `0x800718D0` → `0x800734A0` | `0x800795DC` → `0x8007B26C` | MoA's jam / burn, as VS |
+| Per-frame AC routine (energy) | `0x8007A48C` → `0x8007C09C` | `0x800828BC` → `0x8008456C` | interceptor cone ×8 vs ×4, as §4 #9 |
+| Stat scale-in | `0x8007AFD0` → `0x8007CBE0` | `0x8008342C` → `0x800850DC` | +0x3A = 7 vs +0x43 = 5, as VS |
+| Blade swing | `0x80076A54` → `0x80078684` | `0x8007EB48` → `0x80080818` | different, as §4.4 |
+| Lock-on guns / missiles | `0x80077E84` / `0x800783D0` → `0x80079AB4` / `0x8007A000` | `0x800800E4` / `0x80080638` → `0x80081DB4` / `0x80082308` | as VS |
+| Gun fire | `0x80078B8C` → `0x8007A7BC` | `0x80080DF4` → `0x80082AC4` | as VS (MoA alternate-side fire) |
+| Main loop | `0x8004A228` → `0x8004A654` | `0x80051F4C` → `0x80052378` | one VSync per step in all four (the arena loop passes a register that holds 1) |
+
+PP VS ↔ PP arena, raw: the per-frame AC routine, ground boost, air, scale-in and the ground-boost state handler
+differ only in addresses (no number changed). The two places where the arena copy really differs from its own
+VS copy are the same on both discs:
+- **Damage routine**: the arena adds the AI learning calls after a hit (PP `0x80083988` when the player is hit,
+  `0x80083810` when the opponent is; MoA `0x800898A4` / `0x80089744`), already in `ai.md`.
+- **Hit callback / walk-stepper installer**: VS picks the vibration port by player (PP 0 / 0x10, MoA 0 / 1);
+  the arena always uses port 0 (one human player).
+
+### 10.2 What it means
+- Arena fights on PP feel the same as VS fights on PP; PP-vs-MoA feel differences in the arena are exactly the
+  VS ones (stun, jam / burn, blade, interceptor, back-right walk start in the PA data).
+- A movement change (for example Kaze "Both sides", §8) has to be made in **five copies** (missions, link, VS,
+  arena, replay; VS was compared in round 1, arena now; the missions, link and replay copies are not compared
+  yet). VS and arena are the same code, so one hook written for VS fits the arena copy at the addresses above.
+
+### 10.3 AC +0x3A (PP 7, MoA +0x43 = 5), from topic 5
+Read in `battle-system.md` (AC object): it is the **surface mask** the AC passes to the stage hit query
+(`0x8006E9D0` → `0x8006E958`, VS): hit results whose surface flags share a bit with the mask are skipped.
+PP's 7 skips surfaces flagged 1, 2 or 4; MoA's 5 does not skip surfaces flagged only 2. So on a stage with
+"flag 2" surfaces, a MoA AC stops where a PP AC passes. Which stages have such surfaces is for `stages.md`.
+Status code (mask use), effect in game `guess`.
+
+### 10.4 Handed over to the build chat (routine starts found in topic 5, PP, all `code`)
+FDAT 205 (arena): `0x800799C4`, `0x8007E920`, `0x8007EE8C`, `0x80079190`, `0x80079580`, `0x80077D18`, `0x800777BC`,
+`0x80077F1C`, `0x8007D03C`, `0x80075480`, `0x80075708`, `0x80074F7C`, `0x800752C8`, `0x8007F17C`, `0x80078250`,
+`0x80072B10`, `0x80072974`, `0x800798A0`, `0x80075A64`, `0x80075AB4`, `0x80073914`, `0x8007BC08`, `0x800734A0`,
+`0x8007C09C`, `0x8007CBE0`, `0x80078684`, `0x80079AB4`, `0x8007A000`, `0x8007A7BC` (the §10.1 table).
+FDAT 204 (VS): `0x8004B8D0` (play sound), `0x8004C06C` (music volume), `0x8004AE38` (sound block at start),
+`0x8006E9D0`, `0x8006E958` (stage hit query with mask), `0x80083738` (effect spawner), `0x80051B44` (model
+set-up). FDAT 201: `0x80098EF0` (menu entry), `0x8009A238` (stat-block builder), `0x800AA428` (settings
+defaults), `0x8004F2D8` (menu file loader). Exe: `0x80017244` (register a file name), `0x800179B0` (vibration),
+`0x80020578` (master volume), `0x80017D2C` (sound reset, inside its routine).
 
 ## Handed over
 
