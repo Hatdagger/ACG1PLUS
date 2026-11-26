@@ -20,16 +20,17 @@ Disc locations follow `docs/disc-patch-track.md`:
 
 **What MoA changed in how a fight feels, in plain words.**
 
-1. **Hit stun works differently.** In PP the freeze after a hit grows with the weapon's impact and
-   shrinks with stability: from 1 frame up to 30. MoA rewrote it: at most 5 frames, but it reaches
-   those 5 frames quickly, and a very sturdy AC **ignores** low-impact hits completely. On a normal AC,
-   light and mid hits stun a little *longer* in MoA, the heaviest hits longer in PP.
+1. **Hits barely stun in Phantasma.** In PP the freeze after a hit is impact × 50 ÷ stability frames,
+   at least 1. But PP's stability numbers are about 6× bigger than MoA's (Lane 5), so on nearly every
+   build and weapon this comes out at the **1-frame minimum**. MoA rewrote the rule: a normal AC is
+   frozen **3 to 5 frames** by most hits, while a very sturdy AC can ignore low-impact hits completely.
+   So Phantasma lets you keep moving under fire; MoA makes hits "stick".
 2. **Energy refills much more slowly in Phantasma.** MoA raised the output of the five cheaper
    generators (the starting GPS-VVA from 4,728 to 6,000). With the starting AC, PP refills
    129 per step standing and **46 while moving**; MoA refills 210 and 127. So in PP, boosting has
    to be rationed far more.
 3. **Locks are harder to hold in Phantasma.** MoA made the lock box of
-   most rifles, bazookas and energy rifles (lock class 2) about 45% bigger on every FCS, and
+   most rifles and energy rifles (lock class 2) about 45% bigger on every FCS, and
    moved both bazookas into that class. Smaller boxes in PP mean side-steps break locks more easily.
    MoA also drops every lock when a blade swing ends; PP keeps the lock.
 4. **Missile defence and jamming are stronger in Phantasma.** The core's missile interceptor has a
@@ -121,7 +122,7 @@ PP's numbers (§5 lists every one MoA changed).
 | 1 | Back-right walk start (anim 18) in body sets 11, 13, 27 | slides forward-right at ~75 units/frame (sets 11: (−747, 0, −600) in 8 frames; 13/27: (−999, 0, −700) in 10) | normal small step back-right ((−122, 0, 24) / (−149, 0, 150)) | `GG/P0/PA11.T`, `PA13.T`, `GG/P1/PA27.T` entry 1, anim 18 at +0x32A / +0x30A / +0x30A (both discs) | data |
 | 2 | Walk / strafe tracks (anims 2, 4, 6, 9, 12) in body set 12 | 16-frame tracks (another legs' timing) | 12-frame tracks like every other light-legs set | `GG/P0/PA12.T` entry 1 from +0xB2 (both) | data |
 | 3 | Body model + joint animation (entry 0) of sets 11, 12, 13, 27 | PP version | rebuilt (13 to 47 KB of bytes differ, 120–180 bytes shorter) | `PA11/12/13/27.T` entry 0 | data |
-| 4 | Hit stun length | 8 × impact ÷ stability, clamp 1–30 frames; every hit with impact staggers | 41 × impact ÷ stability, clamp 0–5; **0 = no stagger** | PP `0x80071D0C` (204+0x28C3C), called `0x8007A2B8`; MoA `0x80079AA4` (209+0x28CCC), called `0x8008257C` | code |
+| 4 | Hit stun length | impact × 50 ÷ AC +0x164, clamp 1–30 frames; with PP's large stability almost always 1 | impact × 256 ÷ AC +0x16C, clamp 0–5; **0 = no stagger**; usually 3–5 | PP `0x80071D0C` (204+0x28C3C), called `0x8007A2B8`; MoA `0x80079AA4` (209+0x28CCC), called `0x8008257C` | code |
 | 5 | Jam on hit (AC +0x3A): sparks, all locks dropped each frame, no new lock | not present | set by hits with flag 0x40 (only WR-RS7 has it), length = hit +2, halved unless the victim's player block +0x284 bit 0 | MoA `0x800796A4`, `0x8007CE84` (MoA only), `0x800830CC`, `0x8008012C` | code |
 | 6 | Burn on hit (AC +0x3C/+0x3E) | not present | flag 0x80 (only WG-FGI-00) | MoA `0x800796E4`, `0x8007CE84` | code |
 | 7 | Locks after a blade swing | kept | **all dropped** when the swing ends | MoA `0x8007EFDC` (209+0x2E204); PP `0x80076E1C` has no such call | code |
@@ -130,7 +131,7 @@ PP's numbers (§5 lists every one MoA changed).
 | 10 | Missile interceptor kill chance per shot | rand < 0x800 (1 in 16) | rand < 0x400 (1 in 32) | PP `0x8007A830` (204+0x31760); MoA `0x80082C60` | code |
 | 11 | SP-JAM: missile lock on a jammer breaks per frame | rand < 0xCCD (10%) | rand < 0x667 (5%) | PP `0x80078720` (204+0x2F650); MoA `0x80080988` | code |
 | 12 | Generator output (refill) | GPS-VVA 4,728, GPS-V6 4,728, GRD-RX5 5,300, GRD-RX6 6,000, GRD-RX7 6,810 | 6,000, 6,000, 6,560, 6,800, 7,440 | generator record +0x2A; PP table `0x800B95C8` (201+0x704F8), stride 48 | data |
-| 13 | FCS lock box for class 2 (rifles, bazookas, energy rifles) | e.g. COMDEX-C7 box 110 × 110, inner 85 × 85 | 160 × 160, inner 125 × 125 (all FCS about +45%) | FCS record +0x48 … +0x4E; PP table `0x800B8FC8` (201+0x6FEF8), stride 96 | data |
+| 13 | FCS lock box for class 2 (rifles, energy rifles, some back cannons; missiles are class 1, bazookas class 3 on PP) | e.g. COMDEX-C7 box 110 × 110, inner 85 × 85 | 160 × 160, inner 125 × 125 (all FCS about +45%) | FCS record +0x48 … +0x4E; PP table `0x800B8FC8` (201+0x6FEF8), stride 96 | data |
 | 14 | Lock class of weapons | WG-B2120, WG-B2180 class 3; WG-RFM118, WG-PB26 class 0 | all four class 2 | hand detail +0x06; PP `0x800B9D74` (201+0x70CA4) | data |
 | 15 | Pad word in the player block | 32-bit at +0x08, bytes swapped (✕ 0x40, ○ 0x20, START 0x800) | 16-bit at +0x04 (✕ 0x4000, ○ 0x2000, START 0x08) | e.g. pause `0x80074BE0` vs `0x8007CA00` | code |
 | 16 | Wall notification from the walk stepper | none | +0x5C(ac, 5) on wall contact, ignored by ACs | MoA `0x8007B868` | code |
@@ -149,21 +150,23 @@ record +4, blade +0x32 / gun detail +0x16). If it is 0 there is no stagger. Othe
 - The stun handler (MoA `0x8007FECC`, PP `0x80077C70`) counts the timer down and keeps the busy bit
   (AC +0x36 bit 0x10) until it reaches 0. Same on both.
 
-Examples with the default AC (AC stability field 237, per `battle-system.md`) and PP hand-gun impacts
-(hand detail +0x16: 0 on most rifles and machine guns, 3, 4, 7, 9, 10, 12, 15, 28, 40 on the rest):
+**Stability is not the same number on both discs.** Lane 5 (`content-data.md`, section 2) found PP's
+compiled stability (stat +0x24) is about 6× MoA's, and most PP builds reach its top value, 255. So PP's
+AC +0x164 is usually 255 × 25 ÷ 4 = 1,593, while MoA's default AC has 237. Examples with PP hand-gun
+impacts (hand detail +0x16: 0 on many guns, 3–15 on most others, 28 on WG-B2120, 40 on WG-HG1):
 
-| Impact | PP frames | MoA frames |
+| Impact | PP frames (field 1,593) | MoA frames (default AC, field 237) |
 |---|---|---|
 | 0 | no stagger | no stagger |
 | 3 | 1 (0, raised to the minimum) | 3 |
 | 9 | 1 | 5 (cap) |
-| 28 | 5 | 5 |
-| 40 | 8 | 5 |
+| 28 | 1 | 5 |
+| 40 | 1 | 5 |
 
-So on a normal AC, **MoA stuns longer for light and mid hits (always near its 5-frame cap) and PP
-longer only for the heaviest hits (up to 30 frames on fragile ACs)**. MoA's "no stagger at all" needs a
-stability field above 256 × impact, i.e. a very sturdy AC hit by a low-impact weapon. Which one feels
-"stickier" depends on the weapon mix; needs a live check (§7, test 4).
+So **in PP almost every hit is a 1-frame flinch; in MoA most hits freeze a normal AC for 3–5 frames.**
+PP only goes above 1 frame on builds with low stability (below 255 on stat +0x24) hit by high-impact
+weapons. MoA's "no stagger at all" needs a stability field above 256 × impact. A live check would confirm
+(§7, test 1).
 
 ### 4.3 Animation data (data)
 
@@ -255,8 +258,8 @@ is what was seen in passing, so later changes don't break them.
 Plain VS, 2 players, unlimited time, any flat stage. Player 2 just stands.
 
 1. **Hit stun.** Player 2 with WG-RF/5 (impact 9) shoots player 1 (default AC) while player 1 holds
-   forward. Watch how long player 1 stops on each hit. Expect PP: about 1 frame, barely visible;
-   MoA: about 5 frames. Then player 2 with WG-HG1 (impact 40): PP about 8 frames, MoA 5, so now PP stops longer.
+   forward. Watch how long player 1 stops on each hit. Expect PP: a 1-frame flinch, barely visible;
+   MoA: about 5 frames, a clear stop. Same with WG-HG1 (impact 40): PP still about 1 frame.
 2. **Energy.** Default AC: hold ✕ until the bar is low, then walk (no boost) and time how long the bar
    takes to refill. Expect PP to be roughly 2.5 times slower than MoA while walking.
 
@@ -276,6 +279,8 @@ test (owner: they work on PP).
   burst weapons). Importing those weapons means porting those small pieces of code into PP, and
   growing PP's AC object (8 bytes MoA added) or finding room for them elsewhere.
 - Options the owner may want as settings later: MoA's hit stun, MoA's lock-drop after a blade swing.
+- Imported MoA parts must have their stability compiled the PP way (PP's formula, Lane 5), or hit stun on
+  builds using them changes.
 
 ## 8b. Planned feature: Kaze as an option (owner, 2026-11-26)
 
