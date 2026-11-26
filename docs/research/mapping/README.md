@@ -28,6 +28,15 @@
 | 4 | Missions import plan | `missions-import-pp.md` | |
 | 5 | Small leftovers | owning lane docs | |
 
+## AC1 mapping (2026-11-26, one chat, topics in order; `PLAN-AC1.md`)
+
+| # | Topic | Doc | Status |
+|---|---|---|---|
+| 1 | Foundations + AC1 ↔ PP tables | `../ac1/foundations.md`, `../xdisc/ac1-pp/` | next |
+| 2 | Main records on AC1 | `../ac1/records.md` | |
+| 3 | Content inventory | `../ac1/content.md` | |
+| 4 | Import outlook | `../ac1/import-outlook.md` | |
+
 A chat claims its lane by setting Status to "claimed <date>" (one commit), and sets it to "done <date>, PR #n"
 at the end.
 

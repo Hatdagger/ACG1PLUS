@@ -12,6 +12,8 @@ waited for.
 ## Border with the build chat
 - Mapping chat: `docs/research/**`, `tools/xdisc/`, `tools/mapping/`, `tools/feeldiff/`, branch `mapping/round2-<topic>`.
 - Build chat: `game*.toml`, `seeds/`, `symbols.toml`, `CMakeLists.txt`, `launcher/`, `packaging/`, `scripts/`.
+- **A third chat maps Armored Core 1** (added 2026-11-26): its files are listed in `PLAN-AC1.md` ("Border").
+  Shared files (`ram-map.toml`, `ROUND1.md` test table) are append-only for both mapping chats; keep both sides on a clash.
 - **Seeds for the PP modules (FDAT 201–206) belong to the build chat** (it needs them first). The mapping chat
   hands over any routine starts it finds in a "Handed over to the build chat" list at the end of its topic doc.
 
