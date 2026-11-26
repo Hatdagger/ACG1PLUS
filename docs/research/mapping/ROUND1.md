@@ -48,6 +48,8 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 | 5 | Lane 2 | Kaze check (XCA-00 + AN-K1 + LN-1001, standing, Down + R1 without boost); hit stun with WG-RF/5 and WG-HG1; energy refill timing (`feel-diff.md` §7) | real PP, DuckStation |
 | 6 | Lane 7 | Test A: 2-minute VS fight on the existing MoA build (Deck + Windows), send `psx_last_run_report.json` and FPS. Test B: Deck FPS with `PSX_RENDER_THREAD=1 %command%` vs without | old MoA build |
 | 7 | Lane 7 | Test C: `host_profile.py` in VS and arena | **first PP build** |
+| 8 | R2 PA | Hit size from the body file: plain VS; default AC, then XCA-00 + AN-K1 + LN-1001, then any caterpillar. Halfwords at `0x801D8030` / `0x801D8032` should read 100 / 212, 100 / 225, 112 / 150 (`pa-archives.md` §4) | DuckStation memory view |
+| 9 | R2 PA | Body number: in VS, byte `0x80042769` (player 1 block + 0x281) = 0 with the default AC, 11 with XCA-00 + AN-K1 + LN-1001 (`pa-archives.md` §1) | DuckStation memory view |
 
 ## Open questions left by the lanes
 - **Foundations:** menu module 201 header/entry; disc files 0 and 3; what the 72 PA archives hold (motion,

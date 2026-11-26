@@ -3782,9 +3782,9 @@ size = 0
 type = "ptr[]"
 name = "vs_model_table"
 disc = "PP"
-what = "[VS] Model table, indexed by AC +0x0E + 0x80 (filled by 0x800587F0, 0x80058730, 0x800584FC)"
-status = "guess"
-src = "mapping/renderer.md; PP address from xdisc/globals.tsv (near, low)"
+what = "[VS] Model table, indexed by AC +0x0E + 0x80 (filled by 0x800587F0, 0x80058730, 0x800584FC). PP direct read (round 2): [0x80 + player] = that player's body (PA entry 0), [0xE0 + 16 x player + k] = its part models (k 0 core, 1 legs, 2 head, 3 arms, 4 booster, 5 hand, 6 back L, 7 back R), stored by 0x80050A1C from the body loader 0x8004D820"
+status = "code"
+src = "mapping/renderer.md, mapping/pa-archives.md §3; PP address from xdisc/globals.tsv (near, low)"
 moa = 0x801A27FC
 arena = 0x80193B8C
 link = 0x8018AC94
@@ -4409,9 +4409,9 @@ size = 176
 type = "struct[4]"
 name = "vs_loaded_files"
 disc = "PP"
-what = "[VS] 4 × 44-byte records for files loaded into the fight heap by 0x800780DC (+0 / +2 = halfwords from the file's +4 / +6 ÷ 4, +4 id, +0x28 data pointer). Records 0 / 1: each player's body file P<n>\\PA<nn>.T entry 1, loaded by 0x80055214 (nn = body combination, stat block +0x29; n = nn ÷ 20, see vs_body_file_name). Records 2 / 3 filled by 0x80078178. The AC object setup 0x8007D23C points AC object +4 at one of them. This is also the base the fight code addresses vs_fight_sys from (+0x23A0)"
+what = "[VS] 4 × 44-byte records for files loaded into the fight heap by 0x800780DC (+0 / +2 = halfwords from the file's +4 / +6 ÷ 4, +4 id, +0x28 data pointer). PP direct read (round 2): for the players +0 / +2 are the hit cylinder radius / height (PA entry 1 +8 / +10 ÷ 4: 100 / 225 two-legged, 112 / 150 four-legged and caterpillar, 100 / 212 body set 0), copied by 0x80075144 to AC object +0x6A / +0x6C and +0x28 / +0x2A; +0x28 = the root-motion tracks, copied to AC object +0x80; the copy is 0x800703D0. Records 0 / 1: each player's body file P<n>\\PA<nn>.T entry 1, loaded by 0x80055214 (nn = body combination, stat block +0x29; n = nn ÷ 20, see vs_body_file_name). Records 2 / 3 filled by 0x80078178. The AC object setup 0x8007D23C points AC object +4 at one of them. This is also the base the fight code addresses vs_fight_sys from (+0x23A0)"
 status = "code"
-src = "ram-map.md (VS module read 2026-11-22); PP address from xdisc/globals.tsv (exact, high)"
+src = "ram-map.md (VS module read 2026-11-22), mapping/pa-archives.md §4; PP address from xdisc/globals.tsv (exact, high)"
 moa = 0x801D4B10
 arena = 0x801D1C70
 link = 0x801C8D78
@@ -4494,9 +4494,9 @@ size = 10
 type = "char[10]"
 name = "vs_body_file_name"
 disc = "PP"
-what = "[VS] File name template \"P0\\PA00.T\": 0x80055214 writes the body combination (stat block +0x29, 0–71) into it as P<nn ÷ 20>\\PA<nn>.T, so the files are GG\\P0 … P3\\PA00 … PA71.T on the disc, then loads entry 1 (see vs_loaded_files)"
-status = "guess"
-src = "ram-map.md (VS module read 2026-11-22), mapping/stat-block.md; PP address from xdisc/globals.tsv (near, low)"
+what = "[VS] File name template \"P0\\PA00.T\": the body loader (PP 0x8004D820; MoA 0x80055214) writes the body combination (stat block +0x29, 0–71) into it as P<nn ÷ 20>\\PA<nn>.T, so the files are GG\\P0 … P3\\PA00 … PA71.T on the disc, then loads entry 1 (see vs_loaded_files)"
+status = "code"
+src = "mapping/pa-archives.md §1 (PP direct read), mapping/stat-block.md; PP address from xdisc/globals.tsv (near, low)"
 moa = 0x8008FC9C
 arena = 0x8008C7D8
 link = 0x80088728
@@ -4603,3 +4603,14 @@ what = "Menu heap (InitHeap at every menu start, 0x8004F194); menu only"
 status = "code"
 disc = "PP"
 src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x800BC7B8
+size = 864
+type = "struct[72]"
+name = "body_combo_table"
+disc = "PP"
+what = "[menu] Body combination table, 72 x 12 bytes: core id, 3 pad, pointer to an arms-id list, pointer to a legs-id list (lists end in 255). The stat compile 0x8009A238 takes the first row matching the build (core 3 searched as core 0; no end check) and stores its index at stat +0x29 (player block +0x281); that number picks GG/P<n/20>/PA<nn>.T"
+status = "code"
+src = "mapping/pa-archives.md §1"
+moa = 0x800D4A64
