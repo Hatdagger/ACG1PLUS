@@ -1,4 +1,4 @@
-/* Armored Core Gen 1 launcher: a controller-first front end drawn over the
+/* ACG1PLUS launcher: a controller-first front end drawn over the
  * framework's own launcher (recomp-ui), in the Master of Arena system-menu look.
  *
  * Brought over from the AC1Recomp fork's recomp-ui moa_menu.inc (the user's own
@@ -460,20 +460,18 @@ static void start_game(LauncherModel* m) {
 
 /* ---- which disc this program is for -------------------------------------------
  *
- * Each disc version is its own program (CMakeLists.txt ACG_REGION). The US one
- * sits in RecompData/, the Japanese one in RecompData/Japan/; when the disc
- * found or picked is the other version's, the framework closes this program
- * and starts that one (regional/regional-launch.toml). ACG_REGION_JP is set
- * for the Japanese program.
+ * Armored Core: Project Phantasma, USA (SLUS-00670), since 2026-11-26. The
+ * Master of Arena programs (US and Japanese) are retired; their setup is in
+ * reference/moa-build/.
+ *
+ * ACG_QUICK_START: LOAD GAME / NEW GAME / FULL BOOT need game-side hooks at
+ * Phantasma's addresses (ladder 0.3). Until then (0) every start is a normal
+ * boot (game/acg_start_none.c) and START GAME offers only LAUNCH GAME.
  */
-#ifndef ACG_REGION_JP
-#define ACG_REGION_JP 0
+#ifndef ACG_QUICK_START
+#define ACG_QUICK_START 0
 #endif
-#if ACG_REGION_JP
-static const char* const kRegionTag = "MASTER OF ARENA  JAPAN";
-#else
-static const char* const kRegionTag = "MASTER OF ARENA";
-#endif
+static const char* const kRegionTag = "PROJECT PHANTASMA";
 
 /* ---- START GAME page ---------------------------------------------------------
  *
@@ -492,12 +490,11 @@ static const char* const kRegionTag = "MASTER OF ARENA";
 static bool g_full_boot = false;
 static bool g_full_boot_read = false;
 
+/* In the game folder (game/acg_portable.h): the install is portable. */
 static std::string full_boot_file() {
-    char* dir = SDL_GetPrefPath("", "Armored-Core-Gen-1");
-    if (!dir) return std::string();
-    std::string p = std::string(dir) + "full-boot.txt";
-    SDL_free(dir);
-    return p;
+    const char* dir = acg_portable_launcher_dir();
+    if (!dir || !dir[0]) return std::string();
+    return std::string(dir) + "full-boot.txt";
 }
 
 static bool full_boot() {
@@ -667,25 +664,25 @@ static void draw_start_page(LauncherModel* m, const Gfx& g, const Input& in) {
     for (int i = 0; i < S__COUNT; ++i) {
         bool hovered = false;
         const float y = 90.0f + (kRowH + 2.0f) * i;
-        /* The Japanese program boots every start the normal way for now
-         * (game/acg_start_none.c): LOAD and NEW are dimmed, no FULL BOOT. */
-        const bool offered = !ACG_REGION_JP || i == S_LAUNCH;
+        /* Until Phantasma's quick-start hooks exist every start boots the
+         * normal way (game/acg_start_none.c): LOAD and NEW are dimmed, no FULL BOOT. */
+        const bool offered = ACG_QUICK_START || i == S_LAUNCH;
         if (row(g, 25.0f, y, 590.0f, i == cur, offered, kLabels[i],
-                offered ? nullptr : "LATER", i == S_LAUNCH && !ACG_REGION_JP,
+                offered ? nullptr : "LATER", i == S_LAUNCH && ACG_QUICK_START,
                 full_boot(), &hovered))
             activate = i;
-        if (i == S_LAUNCH && !ACG_REGION_JP)
+        if (i == S_LAUNCH && ACG_QUICK_START)
             text_right(g, 25.0f + 590.0f - 60.0f, y + 7.0f, 10.0f, kDim, "FULL BOOT");
         if (hovered && (ImGui::GetIO().MouseDelta.x != 0.0f || ImGui::GetIO().MouseDelta.y != 0.0f))
             cur = i;
     }
-#if ACG_REGION_JP
+#if !ACG_QUICK_START
     static const char* const kInfo[S__COUNT] = {
-        "Not on the Japanese disc yet: its game code sits at different addresses "
-        "than the US disc's, and they still have to be found. Use LAUNCH GAME and "
-        "the game's own LOAD.",
-        "Not on the Japanese disc yet. Use LAUNCH GAME and the game's own NEW GAME.",
-        "Start the Japanese disc the normal way: logos, intro movie and title screen.",
+        "Not on Project Phantasma yet (comes with fast starts, version 0.3). Use "
+        "LAUNCH GAME and the game's own LOAD.",
+        "Not on Project Phantasma yet (version 0.3). Use LAUNCH GAME and the game's "
+        "own NEW GAME.",
+        "Start Project Phantasma the normal way: logos, intro movie and title screen.",
     };
 #else
     static const char* const kInfo[S__COUNT] = {
@@ -700,19 +697,19 @@ static void draw_start_page(LauncherModel* m, const Gfx& g, const Input& in) {
     panel(g, 24.0f, 190.0f, 592.0f, 120.0f, "INFO");
     text(g, 38.0f, 206.0f, 11.0f, kHi, kLabels[cur]);
     text(g, 38.0f, 228.0f, 11.0f, kText, kInfo[cur], 560.0f);
-    footer(g, cur == S_LAUNCH && !ACG_REGION_JP
+    footer(g, cur == S_LAUNCH && ACG_QUICK_START
                   ? "A / ENTER  START      LEFT / RIGHT  FULL BOOT      B / ESC  BACK"
                   : "A / ENTER  SELECT      D-PAD  MOVE      B / ESC  BACK");
     if (in.back) { g_state.start_page = false; return; }
-    if (cur == S_LAUNCH && !ACG_REGION_JP && (in.left || in.right)) {
+    if (cur == S_LAUNCH && ACG_QUICK_START && (in.left || in.right)) {
         set_full_boot(!full_boot());
         sfx(moa_sound::SFX_CURSOR);
     }
     if (in.confirm || in.start) activate = cur;
     if (activate < 0) return;
     cur = activate;
-    if (ACG_REGION_JP && activate != S_LAUNCH) {
-        note("NOT ON THE JAPANESE DISC YET. USE LAUNCH GAME");
+    if (!ACG_QUICK_START && activate != S_LAUNCH) {
+        note("NOT ON PROJECT PHANTASMA YET. USE LAUNCH GAME");
         sfx(moa_sound::SFX_REFUSED);
         return;
     }
@@ -776,7 +773,7 @@ static void open_versus_page() {
 static void draw_versus_page(const Gfx& g, const Input& in) {
     move_cursor(PAGE_VERSUS, kVersusCount, in, kVersusCount);
     int& cur = g_state.cursor[PAGE_VERSUS];
-    header(g, "VERSUS", "MASTER OF ARENA");
+    header(g, "VERSUS", kRegionTag);
     panel(g, 24.0f, 76.0f, 592.0f, 124.0f, "SELECT");
     int activate = -1;
     for (int i = 0; i < kVersusCount; ++i) {
@@ -810,15 +807,9 @@ static void draw_versus_page(const Gfx& g, const Input& in) {
  * name, and select it. The framework's own disc check (disc_identity.cpp) does
  * the reading, so the launcher and the game judge a disc the same way.
  */
-/* MoA disc 1, this program's own version first. The other one is taken too:
- * picking it makes the framework start that version's program (see "which
- * disc this program is for"), so a player with only a Japanese disc lands in
- * the Japanese program. */
-#if ACG_REGION_JP
-static const char* const kDiscSerials[] = { "SLPS-01855", "SLUS-01030" };
-#else
-static const char* const kDiscSerials[] = { "SLUS-01030", "SLPS-01855" };
-#endif
+/* Project Phantasma USA. Only this disc: a Master of Arena disc is a content
+ * source for later (ladder 0.7), not something this program can start. */
+static const char* const kDiscSerials[] = { "SLUS-00670" };
 
 static bool disc_candidate(const std::filesystem::path& p) {
     std::string ext = p.extension().u8string();
@@ -833,13 +824,13 @@ static bool disc_candidate(const std::filesystem::path& p) {
     return false;
 }
 
-/* The player's folder when the game sits in RecompData/ under it (the
- * Windows release layout, see launcher/acg_starter.c); empty in a flat build. */
+/* The player's folder when the game sits in RecompData/windows/ (or
+ * RecompData/linux/) under it: the portable layout, see launcher/acg_starter.c
+ * and docs/building.md. Empty in a flat build. */
 static std::filesystem::path player_root() {
     std::filesystem::path data = std::filesystem::u8path(asset("")).lexically_normal();
     if (!data.has_filename()) data = data.parent_path();   /* trailing slash */
-    /* The Japanese program sits one level deeper, in RecompData/Japan/. */
-    if (data.filename() == "Japan" && data.parent_path().filename() == "RecompData")
+    if ((data.filename() == "windows" || data.filename() == "linux") && data.has_parent_path())
         data = data.parent_path();
     if (data.filename() == "RecompData" && data.has_parent_path()) return data.parent_path();
     return {};

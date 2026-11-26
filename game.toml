@@ -1,41 +1,47 @@
-# Autofilled by tools/new_project_layout/probe_disc.py from your legal dump.
-# Review before shipping. Runtime quirks / overlay seeds still need hand work.
+# Armored Core: Project Phantasma, USA (SLUS-00670, COPY.TXT "Version 1.0").
+# Identity probed from the owner's own dump 2026-11-26 (tools/new_project_layout/probe_disc.py).
+# This file holds no game code: only the disc's identity (sizes, digests) and how to run it.
+# The Master of Arena configs this repo used before are kept in reference/moa-build/ (not built).
 
 [game]
-name = "Armored Core: Master of Arena"
-id = "SLUS-01030"
+name = "Armored Core: Project Phantasma"
+id = "SLUS-00670"
 players = 2
-exe = "disc/SLUS_010.30"
-disc = "disc/Armored Core - Master of Arena (USA) (Disc 1).cue"
+exe = "disc/SLUS_006.70"
+disc = "disc/Armored Core - Project Phantasma (USA).cue"
 load_address = "0x80011000"
-entry_pc = "0x80011D84"
-text_size = "0x0002E000"
+entry_pc = "0x80011E94"
+text_size = "0x0002B000"
 stack_base = "0x801FFFF0"
 
-# Digests are for data Track 01 (first BINARY FILE / TRACK 01).
+# Digests are for data Track 01 (first BINARY FILE / TRACK 01). Image sha256
+# 1dbedf486a0c529678361c64e9535ca3af71d3c43797d6621a2726f71e26bd0f (claude/phantasma-base.md).
 [prepare_disc]
 out_dir = "disc"
-bin_name = "Armored Core - Master of Arena (USA) (Disc 1).bin"
-cue_name = "Armored Core - Master of Arena (USA) (Disc 1).cue"
-boot_exe = "SLUS_010.30"
-known_sizes = [700507920]
+bin_name = "Armored Core - Project Phantasma (USA).bin"
+cue_name = "Armored Core - Project Phantasma (USA).cue"
+boot_exe = "SLUS_006.70"
+known_sizes = [454072416]
 known_md5 = [
-  "4d5774c4baa65d6eaf281db59ee8e945",
+  "91badb09339ee7e3b6d235609e8da1be",
 ]
 known_sha1 = [
-  "96f5fcc9513ca47b19fd44bd72ee51c65a55cd43",
+  "0d3b5bbf3f860fad1482c242566b2ba890f314e2",
 ]
 known_crc32 = [
-  "446ae06c",
+  "aaa1ef9c",
 ]
 
 [recompiler]
+# Function starts in the main program (addresses only). The code Phantasma loads
+# from the disc while playing (FDAT 201-206, mission and stage code) is listed in
+# seeds/modules/ and compiled from aot/overlays.json during Generate.
 seeds = "seeds/ghidra_funcs.txt"
 out_dir = "generated"
 strict = true
 
 [runtime]
-window_title = "Armored Core: Master of Arena"
+window_title = "Armored Core: Project Phantasma"
 memcard_dir = "saves"
 overlay_cache = true
 
@@ -50,15 +56,15 @@ internal_resolution = "1440p"
 texture_filtering = "nearest"
 vsync = "on"
 # The framework dithers like the console by default, which looks grainy at
-# high resolution; the old AC1Recomp build had none (true colour).
+# high resolution.
 dithering = "off"
 
 [controller]
 default_mode = "digital"
 
 # Online mount gate: digests + track count + optional TOC fingerprint
-# (see docs/NETPLAY.md).
+# (see psxrecomp docs/NETPLAY.md).
 [netplay]
 require_cue = true
 required_tracks = 1
-required_disc_fp = "cc8bb1835c4010be72b82914edccb74b3413f94c523475e7aebaddd0149fcb02"
+required_disc_fp = "1b8cdff66b85737755b650a44983af575a6768f21c91562389173b80bb11deb8"

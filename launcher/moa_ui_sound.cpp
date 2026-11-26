@@ -8,6 +8,7 @@
  */
 #include "moa_ui_sound.h"
 #include "moa_vab.h"
+#include "acg_portable.h"
 #include "iso_reader.h"
 
 #include <SDL3/SDL.h>
@@ -141,12 +142,11 @@ void load(std::string path) {
     g_ready = true;
 }
 
+/* In the game folder (game/acg_portable.h): the install is portable. */
 std::string choice_file() {
-    char* dir = SDL_GetPrefPath("", "Armored-Core-Gen-1");
-    if (!dir) return "";
-    std::string p = std::string(dir) + "menu-sounds.txt";
-    SDL_free(dir);
-    return p;
+    const char* dir = acg_portable_launcher_dir();
+    if (!dir || !dir[0]) return "";
+    return std::string(dir) + "menu-sounds.txt";
 }
 
 } /* namespace */

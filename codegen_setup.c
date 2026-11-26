@@ -6,25 +6,19 @@
 #include "psxrecomp_codegen_host.h"
 
 static const PsxrecompCodegenHostConfig kCodegenConfig = {
-    .display_name = "Armored Core Gen 1",
-    .project_root_env = "ARMORED_CORE_GEN_1_PROJECT_ROOT",
-    .build_dir_env = "ARMORED_CORE_GEN_1_BUILD_DIR",
-    .force_setup_env = "ARMORED_CORE_GEN_1_FORCE_SETUP",
+    .display_name = "ACG1PLUS",
+    .project_root_env = "ACG1PLUS_PROJECT_ROOT",
+    .build_dir_env = "ACG1PLUS_BUILD_DIR",
+    .force_setup_env = "ACG1PLUS_FORCE_SETUP",
     .psxrecomp_cli_relpath = "psxrecomp/psxrecomp_cli.py",
-#if defined(ACG_REGION_JP) && ACG_REGION_JP
-    /* The Japanese disc's program (CMakeLists.txt ACG_REGION=JP). */
-    .seed_cfg_relpath = "game-jp.toml",
-    .game_toml_relpath = "game-jp.toml",
-    .gen_marker_relpath = "generated-jp/SLPS_018.55_dispatch.c",
-    .build_dir_name = "build-release-jp",
-#else
+    /* Project Phantasma USA (SLUS-00670). The wizard itself is off in this
+     * build (CMakeLists.txt PSX_SETUP_WIZARD): scripts/windows/build.ps1 builds. */
     .seed_cfg_relpath = "game.toml",
     .game_toml_relpath = "game.toml",
-    .gen_marker_relpath = "generated/SLUS_010.30_dispatch.c",
+    .gen_marker_relpath = "generated/SLUS_006.70_dispatch.c",
     .build_dir_name = "build-release",
-#endif
     .cmake_target = "psx-runtime",
-    .exe_basename = "Armored_Core_Gen_1",
+    .exe_basename = "ACG1PLUS_Game",
     .prepare_note =
         "Uses your legal disc with the local psxrecomp SDK to generate "
         "BIOS + game C, then cmake --build. The product lives under "

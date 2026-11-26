@@ -48,8 +48,13 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 | 5 | Lane 2 | Kaze check (XCA-00 + AN-K1 + LN-1001, standing, Down + R1 without boost); hit stun with WG-RF/5 and WG-HG1; energy refill timing (`feel-diff.md` §7) | real PP, DuckStation |
 | 6 | Lane 7 | Test A: 2-minute VS fight on the existing MoA build (Deck + Windows), send `psx_last_run_report.json` and FPS. Test B: Deck FPS with `PSX_RENDER_THREAD=1 %command%` vs without | old MoA build |
 | 7 | Lane 7 | Test C: `host_profile.py` in VS and arena | **first PP build** |
+| 8 | Build chat (0.0.x) | **Deck build from an exFAT USB drive**: the portable folder on a USB stick (exFAT, no execute permission), started on the Steam Deck. Does the game start (through `bash`, or does it need a copy on the Deck's own disk)? Do saves, settings and caches stay on the stick? (`docs/building.md`) | first Deck build (0.1) + an exFAT USB drive |
+| 9 | Build chat (0.0.x) | **Load times from USB**: time boot to title, title to hub, and a VS and an arena fight load, with the folder on the USB drive vs on the internal disk (Windows and Deck) | first PP build + USB drive |
 
 ## Open questions left by the lanes
+- **Build chat (0.0.x), for the stages topic:** the arena stage code pieces FDAT 107, 112, 132, 137, 157 and 187 don't fit the
+  arena slot 0x800956F0: their handler tables and internal calls point near 0x801C9DD8 (static guess), and FDAT 192 holds
+  almost no code. Left out of the pre-compile list (`aot/overlays.json`) for now; where do they load, and why?
 - **Foundations:** menu module 201 header/entry; disc files 0 and 3; what the 72 PA archives hold (motion,
   skeleton?); seeds for the PP modules (only the boot exe has seeds); a −4 struct family in `fields.tsv`.
 - **Battle:** AC +0x3A, +0x60, +0x7C; match +0x16 / +0x1A; the wreck sequence and stagger installers; lock slots,

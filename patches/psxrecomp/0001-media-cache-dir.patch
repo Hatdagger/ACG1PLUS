@@ -1,0 +1,15 @@
+diff --git a/runtime/src/mod_runtime.cpp b/runtime/src/mod_runtime.cpp
+index 643d969..64d23a8 100644
+--- a/runtime/src/mod_runtime.cpp
++++ b/runtime/src/mod_runtime.cpp
+@@ -177,6 +177,10 @@ std::map<std::string, bool>& vsync_forced_features() {
+ }
+ 
+ std::filesystem::path media_cache_root() {
++    /* PSX_MEDIA_CACHE_DIR: a title (for example a portable install) can keep
++     * imported media inside its own folder, like PSX_RESIDENT_CACHE. */
++    if (const char* dir = std::getenv("PSX_MEDIA_CACHE_DIR"))
++        if (*dir) return std::filesystem::path(dir);
+     std::filesystem::path root;
+ #if defined(_WIN32)
+     if (const char* local = std::getenv("LOCALAPPDATA")) root = local;

@@ -1,4 +1,4 @@
-/* Armored Core Gen 1: update check and self-update from the project's GitHub
+/* ACG1PLUS: update check and self-update from the project's GitHub
  * releases, and (dev builds only) from the newest GitHub Actions build. Nothing
  * here runs by itself: the launcher calls check() or download_and_apply() when
  * the player asks.
