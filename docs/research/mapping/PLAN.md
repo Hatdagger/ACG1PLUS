@@ -11,6 +11,20 @@ Background and the first code comparison: project doc `claude/phantasma-base.md`
 Everything in `docs/research/` (MoA, ~5,000 lines) is **reference**: the addresses are MoA's. Each lane's first
 job is to find the same routines on Phantasma, then go further.
 
+## Aim of this round (owner, 2026-11-26)
+
+**Build a solid foundation of research and understanding first. No feature work, no "make it work by testing
+and guessing".** So in every lane:
+- Understand before changing: read the code until you can say *why* it does what it does. This round produces
+  notes and tables, not mods or hooks.
+- Every finding says **how we know** (which routine was read, what was seen running). A test confirms what the
+  code read predicts; it is never the way to find out in the first place.
+- Prefer one routine fully understood over ten half-named. Mark unknowns plainly instead of filling them in.
+- Lanes are allowed to be small and finish early; a finished lane just ends. Lanes are not refilled during
+  this round.
+- When all lanes are done, the owner and a fresh chat review the results together and decide the next round
+  of parallel work (features or more mapping).
+
 ## Rules for every lane chat
 
 1. **No game code or game data on GitHub** (`docs/no-game-code.md`). Generate C from the disc inside the chat
@@ -93,7 +107,7 @@ importing MoA content (parts, numbers, hooks) keeps Phantasma's feel. The base-g
   short plain summary for the owner.
 - Not in scope: AI (Lane 6), drawing (Lane 7). Field meanings belong to Lane 4; this lane compares.
 - **Done when:** every movement routine is paired PP↔MoA, every difference found is listed, and the owner has a
-  one-page "what MoA changed" summary.
+  one-page "what MoA changed" summary. Expected to be one of the smaller lanes and to finish early.
 
 ### Lane 3 — Boot, loads and mode launch
 **Goal:** know exactly what Phantasma loads and sets at each step, so the launcher can start any mode directly
