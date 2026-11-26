@@ -505,6 +505,10 @@ src = "mapping/battle-system.md"
 - **Lane 6:** arena hits feed a 20 × 28-byte table at `0x8008F014` (field +0x16) through `0x80083988` /
   `0x80083810`; the record index is the byte at `0x801DBA64`.
 
+### Handed over to Lane 4 (from other lanes)
+
+
+
 ---
 
 # Master of Arena (reference) — all addresses MoA-US (SLUS-01030 v1.0 disc 1)
