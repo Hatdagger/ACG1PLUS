@@ -1,6 +1,7 @@
 # ACG1PLUS — notes for Claude
 
-A fresh Master of Arena recomp on psxrecomp. Successor of Armored-Core-Gen-1 (same work, moved 2026-11-26
+An Armored Core recomp on psxrecomp, based on **Project Phantasma** (USA, SLUS-00670) since 2026-11-26, with
+Master of Arena (and later Armored Core 1) content brought in. Successor of Armored-Core-Gen-1 (same work, moved 2026-11-26
 so that no game code sits on GitHub).
 The owner is not a programmer: explain decisions in plain language, short, no jargon without a one-line meaning.
 
