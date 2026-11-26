@@ -53,6 +53,8 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 | 10 | R2 stages | AI markers: arena fight on stage 23 or 29, then on stage 20. On 23 / 29 the opponent should now and then run to a ledge and boost up onto it; never on 20 (`stages.md` §3) | any build, eyes only |
 | 11 | R2 screens | Garage TEST map: Garage → TEST → yes; the fight should be on mission map 19 (the test map), and byte `0x80042745` = 19 during it (`menus-screens.md` PP-2) | DuckStation memory view |
 | 12 | R2 screens | Card names: LOAD DATA with an Armored Core 1 (USA) save on the card → listed; LOAD EMBLEM with an AC1 emblem file → expected *not* listed (PP's emblem list says BASCPS-94182, `menus-screens.md` PP-4) | real PP or DuckStation, an AC1 card |
+| 13 | R2 missions | Placements past 64: play PP mission "Destroy Main Facility" (slot 7, its map has 93 placements). Byte `0x801E01E0` + 44 × 70 = `0x801E09A8` should turn 1 (spawned) or 3 (destroyed) at some point; MoA's engine would never touch it (`missions-import-pp.md` §1a) | DuckStation memory view |
+| 14 | R2 missions | Message set byte: byte `0x8004276A` before a mission, once per value of the COM / voice option in the options screen; it should be 0, 1, 2 and the mission's COM lines should change voice with it (`missions-import-pp.md` §1) | DuckStation memory view |
 
 ## Open questions left by the lanes
 - **Foundations:** menu module 201 header/entry; disc files 0 and 3; what the 72 PA archives hold (motion,

@@ -4739,3 +4739,170 @@ what = "[menu] Options rows (FDAT 201 +0x2B70), drawn by 0x800AA958: MASTER VOLU
 status = "data"
 src = "mapping/menus-screens.md PP-7"
 
+
+# ───────────── PP missions engine (round 2 topic 4, mapping/missions-import-pp.md) ─────────────
+
+[[var]]
+addr = 0x80097A18
+size = 32
+type = "struct"
+name = "mission_state"
+disc = "PP"
+moa = 0x800A0DB0
+what = "[missions] Mission state record M: +0 mission number (from player block +0x25D), +4 code base 0x80097A38, +8 load pointer, +0xC end result, +0x10 end countdown, +0x14 timer (engine BSS, not in the file)"
+status = "code"
+src = "mapping/missions-import-pp.md §1"
+
+[[var]]
+addr = 0x800A5238
+size = 4
+type = "bytes"
+name = "mission_engine_data"
+disc = "PP"
+moa = 0x800AE5D0
+what = "[missions] First engine data after the mission code area: room for a mission's code is 0x80097A38 … 0x800A5237 = 55,296 bytes (same as MoA)"
+status = "code"
+src = "mapping/missions-import-pp.md §1"
+
+[[var]]
+addr = 0x800A52F0
+size = 500
+type = "bytes"
+name = "mission_messages"
+disc = "PP"
+moa = 0x800AE688
+what = "[missions] Copy of the message table (common file FDAT 200 block 4, 5 or 6, picked by player block +0x282); message n shown by 0x80050ED0"
+status = "code"
+src = "mapping/missions-import-pp.md §4"
+
+[[var]]
+addr = 0x800BA5B0
+size = 4
+type = "bytes"
+name = "mission_load_buffer"
+disc = "PP"
+moa = 0x800C2D30
+what = "[missions] Start of the missions engine's load buffer (M+8 at start-up): RTIM, common file and map are read here"
+status = "code"
+src = "mapping/missions-import-pp.md §1"
+
+[[var]]
+addr = 0x801A15B8
+size = 1024
+type = "struct"
+name = "mission_model_table"
+disc = "PP"
+moa = 0x801B3D38
+what = "[missions] Model table: slot k pointer at +0x11C + 4k, filled by 0x80051D50(slot, list): common file at 0x28 (51 entries, 8–22 used), map at 0x104 / 0x80 / 0xA0. Slots 0x48–0x5A are free on PP (MoA maps put models there)"
+status = "code"
+src = "mapping/missions-import-pp.md §2"
+
+[[var]]
+addr = 0x801C4328
+size = 98304
+type = "bytes"
+name = "mission_section_heap"
+disc = "PP"
+moa = 0x801D7AB0
+what = "[missions] Data heap after the 512 map-section records (map block 7); 96 KB on PP, 64 KB on MoA"
+status = "code"
+src = "mapping/missions-import-pp.md §1a"
+
+[[var]]
+addr = 0x801D8F50
+size = 768
+type = "struct"
+name = "mission_point_classes"
+disc = "PP"
+moa = 0x801E46D8
+what = "[missions] Event point classes from map block 8: 32 × 24 bytes (flags, radius, height, class)"
+status = "code"
+src = "mapping/missions-import-pp.md §1a"
+
+[[var]]
+addr = 0x801DFA50
+size = 512
+type = "u16[]"
+name = "mission_touch_list"
+disc = "PP"
+moa = 0x801E63D8
+what = "[missions] List of touchable event points (no flag 0x4000); count u16 at 0x801DFC50"
+status = "code"
+src = "mapping/missions-import-pp.md §1a"
+
+[[var]]
+addr = 0x801DFC60
+size = 1408
+type = "struct"
+name = "mission_object_types"
+disc = "PP"
+moa = 0x801E65E8
+what = "[missions] Object type table from map block 11: 32 × 44 bytes (MoA 8)"
+status = "code"
+src = "mapping/missions-import-pp.md §1a"
+
+[[var]]
+addr = 0x801E2DE0
+size = 5888
+type = "struct"
+name = "mission_objects"
+disc = "PP"
+moa = 0x801E7248
+what = "[missions] Object pool: 16 × 368 bytes (MoA 376), slot 0 = player AC. Fields from MoA +0x43 sit 9 lower, from +0x50 8 lower; MoA +0x3A…+0x42 (smoke/burn) don't exist on PP"
+status = "code"
+src = "mapping/missions-import-pp.md §1b"
+
+[[var]]
+addr = 0x801E6500
+size = 64
+type = "bytes"
+name = "mission_active_sections"
+disc = "PP"
+moa = 0x801EA9E8
+what = "[missions] 512-bit set of map sections next to the player (rebuilt every frame); drives spawning"
+status = "code"
+src = "mapping/missions-import-pp.md §1a"
+
+[[var]]
+addr = 0x801F4588
+size = 44
+type = "struct"
+name = "mission_timer_end"
+disc = "PP"
+moa = 0x801F8E70
+what = "[missions] Timer end: +0 message (byte), +2 end code (u16); +0x24 / +0x28 tallies added on the results screen 0x80088E30"
+status = "code"
+src = "mapping/missions-import-pp.md §1c"
+
+[[var]]
+addr = 0x8008F874
+size = 80
+type = "u16[40]"
+name = "mission_number_table"
+disc = "PP"
+moa = 0x80098C9C
+what = "[missions] One u16 per mission number 0–39 (24 or 56), copied to 0x8008DE76 by 0x800810A4; meaning not read yet. FDAT 202 +0x467A4"
+status = "code"
+src = "mapping/missions-import-pp.md §1c"
+
+[[var]]
+addr = 0x8008D42C
+size = 28
+type = "struct"
+name = "mission_effect_table"
+disc = "PP"
+moa = 0x80096740
+what = "[missions] Table of 28-byte effect records whose address mission code takes (same bytes as MoA's). FDAT 202 +0x4435C"
+status = "data"
+src = "mapping/missions-import-pp.md §7b"
+
+[[var]]
+addr = 0x8004276A
+size = 1
+type = "u8"
+name = "com_voice"
+disc = "PP"
+moa = 0x80045412
+what = "Player block 1 +0x282: picks the missions engine's message set (common blocks 4–6) and the map's sound bank (0–2); likely the COM voice option"
+status = "guess"
+src = "mapping/missions-import-pp.md §1"
