@@ -53,6 +53,9 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 | 10 | R2 stages | AI markers: arena fight on stage 23 or 29, then on stage 20. On 23 / 29 the opponent should now and then run to a ledge and boost up onto it; never on 20 (`stages.md` §3) | any build, eyes only |
 | 11 | R2 screens | Garage TEST map: Garage → TEST → yes; the fight should be on mission map 19 (the test map), and byte `0x80042745` = 19 during it (`menus-screens.md` PP-2) | DuckStation memory view |
 | 12 | R2 screens | Card names: LOAD DATA with an Armored Core 1 (USA) save on the card → listed; LOAD EMBLEM with an AC1 emblem file → expected *not* listed (PP's emblem list says BASCPS-94182, `menus-screens.md` PP-4) | real PP or DuckStation, an AC1 card |
+| 13 | AC1 foundations | AC1 mode byte: `0x80039C5E` = 2 in a VS fight, 0 in a mission, 1 in a link fight (`../ac1/foundations.md` §3) | AC1 disc in DuckStation, memory view |
+| 14 | AC1 foundations | AC1 slots: in a VS fight `0x801AB678` is 80–84, in a mission `0x8019F518` is the mission's slot; write down which stage / mission name goes with which number (`../ac1/foundations.md` §4) | AC1 disc in DuckStation, memory view |
+| 15 | AC1 foundations | AC1 body number: `0x8004121B` = 0 with the starting AC and changes with core + arms + legs like PP's `0x80042769` (`../ac1/foundations.md` §4) | AC1 disc in DuckStation, memory view |
 
 ## Open questions left by the lanes
 - **Foundations:** menu module 201 header/entry; disc files 0 and 3; what the 72 PA archives hold (motion,
