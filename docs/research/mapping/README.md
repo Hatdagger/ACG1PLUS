@@ -13,7 +13,7 @@
 | 3 | Boot, loads and mode launch | `boot-loads.md` (PP sections) | open |
 | 4 | Battle system core | `battle-system.md` (PP sections) | open |
 | 5 | Data and content formats | `content-data.md` | open |
-| 6 | AI | `ai.md` | first pass done 2026-11-26, PR #1 (open items in its §6) |
+| 6 | AI | `ai.md` | done 2026-11-26, PR #1 (open items in its §6) |
 | 7 | Renderer and performance | `renderer.md` (PP sections), `performance.md` | open |
 | 8 | Scenario side: hub, menus, missions, mail, saves, sound | `scenario.md` | open |
 
