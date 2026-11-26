@@ -1,7 +1,7 @@
 # Builds the ACG1PLUS launcher (launcher2/) on GitHub and puts it on a TEST pre-release.
 #
-# Started by hand only (Actions -> "Launcher test release" -> Run workflow). The owner
-# approves each run: the old rule "don't start workflow runs unless asked" still holds.
+# Started by hand only (Actions -> "Launcher test release" -> Run workflow), by the owner or
+# by Claude (allowed to start workflow runs by itself since 2026-11-26, see CLAUDE.md).
 #
 # Only the launcher is built here. It has no game code in it; the game itself is never
 # built on GitHub (docs/no-game-code.md). The job stops if game code or disc files are

@@ -20,10 +20,12 @@ The owner is not a programmer: explain decisions in plain language, short, no ja
   record disc file + offset beside each RAM address, keep data and code findings apart, say which disc.
 - Versions: pass the version by hand to the "Release builds" workflow (auto-bump only understands 3 numbers).
   Builds raise the last number; fixes add a number at the end.
-- The owner wants changes reviewed before a build is pushed. Don't start workflow runs unless asked.
+- The owner wants changes reviewed before a build is pushed.
+- **Claude may start workflow runs by itself** when it judges one useful (owner decision 2026-11-26), and
+  says in the chat which one it started and why. Workflows must never build or publish game code.
 - The only workflow is `.github/workflows/launcher-test-release.yml` (owner decision 2026-11-26): it builds
-  the launcher (no game code) and makes a `test-*` pre-release, started by hand. This session type can't
-  create releases itself, so this is how test launchers get uploaded. Still: start it only when asked.
+  the launcher (no game code) and makes a `test-*` pre-release. This session type can't create releases
+  itself, so this is how test launchers get uploaded.
 - Release notes cover only that release's changes.
 
 ## Building
