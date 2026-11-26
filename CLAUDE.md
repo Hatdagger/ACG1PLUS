@@ -28,8 +28,12 @@ GitHub cannot build a playable game any more (no game code here). The old Action
 `packaging/old-ci/release.yml` for reference and does not run. Playable builds are made on the owner's PC:
 generate from the disc, then rebuild (see README). The target is a first-launch setup that does this for every
 player, with the compiler packed in so the result is portable. Plan: project docs `code-off-github-plan.md`
-and `cpu-offload-plan.md`. The sandbox can't link the runtime (no OpenGL/X11); launcher code can be
-syntax-checked against SDL3 headers only.
+and `cpu-offload-plan.md`. The sandbox can run the whole Linux (Steam Deck) route,
+`scripts/linux/build.sh`, with the compiler pack, and boot the game headless (`--headless`). Without the
+owner's full disc image, put a test image back together from the disc packs with
+`tools/build/packs_to_test_image.py` (its notes say how to use it in a throwaway copy of the source).
+The sandbox's network blocks codeload.github.com, so libwebp has to be fetched with git and named by
+`PSX_LIBWEBP_SOURCE_DIR`. The Windows scripts can only be read here, not run.
 
 ## Overnight runs
 Scheduled runs work only on the `nightly` branch, from the queue in `docs/nightly/QUEUE.md`, and log what they

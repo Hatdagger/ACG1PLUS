@@ -48,7 +48,7 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 | 5 | Lane 2 | Kaze check (XCA-00 + AN-K1 + LN-1001, standing, Down + R1 without boost); hit stun with WG-RF/5 and WG-HG1; energy refill timing (`feel-diff.md` §7) | real PP, DuckStation |
 | 6 | Lane 7 | Test A: 2-minute VS fight on the existing MoA build (Deck + Windows), send `psx_last_run_report.json` and FPS. Test B: Deck FPS with `PSX_RENDER_THREAD=1 %command%` vs without | old MoA build |
 | 7 | Lane 7 | Test C: `host_profile.py` in VS and arena | **first PP build** |
-| 8 | Build chat (0.0.x) | **Deck build from an exFAT USB drive**: the portable folder on a USB stick (exFAT, no execute permission), started on the Steam Deck. Does the game start (through `bash`, or does it need a copy on the Deck's own disk)? Do saves, settings and caches stay on the stick? (`docs/building.md`) | first Deck build (0.1) + an exFAT USB drive |
+| 8 | Build chat (0.0.x) | **Deck build from an exFAT USB drive**: the portable folder on a USB stick (exFAT), built with `bash "Build ACG1PLUS.sh"` and started with `bash "Start ACG1PLUS.sh"` on the Steam Deck, also from Game Mode. The build's step 0 says whether the drive lets programs run; if not, does it work from the Deck's own disk? Do saves, settings and caches stay on the stick? Time and size of the first build (`docs/building.md`) | first Deck build (0.1) + an exFAT USB drive |
 | 9 | Build chat (0.0.x) | **Load times from USB**: time boot to title, title to hub, and a VS and an arena fight load, with the folder on the USB drive vs on the internal disk (Windows and Deck) | first PP build + USB drive |
 
 ## Open questions left by the lanes

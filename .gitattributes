@@ -1,3 +1,5 @@
 # Windows batch files need CRLF line endings: stored byte for byte, so a raw download from GitHub keeps them.
 *.bat -text
 *.ps1 text eol=crlf
+# Shell scripts must keep LF line endings or bash on the Deck refuses them.
+*.sh text eol=lf
