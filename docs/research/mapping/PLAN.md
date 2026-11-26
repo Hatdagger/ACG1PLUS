@@ -3,10 +3,10 @@
 ACG1PLUS starts over. This plan splits the mapping into **8 lanes**, one chat each, running at the same time.
 A chat works only in its own lane, writes up what it found, pushes it, shares it in the Project, and ends.
 
-**Base game (pending the owner's OK):** Project Phantasma USA (SLUS-00670) is the base; Master of Arena
-(SLUS-01030 US, SLPS-01855 JP) and later Armored Core 1 are content sources to import from. Why: competitive
-players prefer Phantasma's feel (movement tricks that MoA removed, a stronger arena AI). Lane 2 checks that
-claim in the code. If the owner keeps MoA as the base, nothing below changes except which disc is "primary".
+**Base game (decided by the owner 2026-11-26):** Project Phantasma USA (SLUS-00670) is the base; Master of
+Arena (SLUS-01030) and later Armored Core 1 are content sources to import from. The MoA Japanese disc work is
+shelved. Why: competitive players prefer Phantasma's feel (movement tricks MoA lost, a stronger arena AI).
+Background and the first code comparison: project doc `claude/phantasma-base.md`.
 
 Everything in `docs/research/` (MoA, ~5,000 lines) is **reference**: the addresses are MoA's. Each lane's first
 job is to find the same routines on Phantasma, then go further.
@@ -32,13 +32,23 @@ job is to find the same routines on Phantasma, then go further.
 10. **Ending a chat**: push + PR, update the lane row in `README.md`, write a short project doc
     `claude/mapping-<lane>.md` (what was found, what's open, where it lives), then stop.
 
-## What a lane chat needs from the owner (work pack)
+## Work packs (already in the Project, nothing to upload)
 
-The sandbox has no disc. Each chat needs the files its lane reads, uploaded (≤ 60 MB per pack):
-- **PP pack** (`pp-work`): Phantasma boot EXE `SLUS_006.70` + its main archives (Lane 1 lists exactly which,
-  first thing). Until Lane 1 says otherwise: the boot EXE and the `COM/` style archive that holds the engines.
-- **MoA pack**: `ma-work.tar.xz` (already in the Project: `FDAT.T` + `SLUS_010.30`).
+- **`pp-work.tar.xz`** (25.8 MB): everything on the Phantasma disc except fight music and movies (boot EXE
+  `SLUS_006.70`, FDAT.T, RTIM.T, GG/MS, stages, voices), its tools, a disc table of contents, and
+  **`maps/moa-to-pp-functions.tsv`**: 5,024 MoA routines paired with their PP twin. Extract into one folder,
+  run `python3 -I pp-disc/tools/setup.py`. Extracted files stay in the sandbox, never in the repo.
+- **`ma-work.tar.xz`**: MoA `FDAT.T` + `SLUS_010.30`.
+- Music / movie packs exist (`pp-music-bgm00/01`, `pp-movies`, `pp-movie-demoplay`) but are only on the owner's
+  PC; ask for one only if the lane really needs it.
 - Lanes that need a running game (tested values) ask the owner for a short test with exact steps.
+
+Known from the first comparison (`claude/phantasma-base.md`), so no lane redoes it:
+- PP modules FDAT 201–206 = MoA FDAT 206–211 (menu, missions, ?, VS, arena, VS replay). **PP modules load at
+  `0x800490D0`** (MoA `0x80050DD8`). Boot EXE loads at `0x80011000`, entry `0x80011E94`.
+- **Struct fields moved**: AC object fields sit 8–9 bytes lower in PP (MoA +0xD4 = PP +0xCC), player block
+  fields 8 higher (MoA +0x20C = PP +0x214). Never reuse a MoA offset without checking.
+- The arena AI is different code, not different numbers.
 
 ## The 8 lanes
 
@@ -60,12 +70,11 @@ The sandbox has no disc. Each chat needs the files its lane reads, uploaded (≤
 - Phantasma disc layout: every file, archive format (entry counts, sector starts), which archive holds the
   menu, fight engines, missions, stages, textures, sound. Side-by-side with MoA's `GG/` layout.
 - Overlay table: which overlays exist on PP, where each loads, what it is (menu, VS, arena, missions, link, replay).
-- Function catalogue for PP: seeds for psxrecomp (like `seeds/` for MoA), named by matching MoA routines
-  (first-instruction patterns, `tools/engine_xlate.py` style, extended to work **across discs**).
-- A **cross-disc address table**: MoA address ↔ PP address for every named MoA routine and global, with match
-  confidence. This is what lets the other lanes reuse the old research.
+- Function catalogue for PP: seeds for psxrecomp (like `seeds/` for MoA), named by matching MoA routines.
+- Start from `maps/moa-to-pp-functions.tsv` (routines only, static, cut at each `jr ra`). Extend it to a
+  **cross-disc address table**: globals and data tables too, the struct field shifts as a list, fix the
+  data-table miscounts, and give each pair a confidence. Commit the tool and the address-only table (no code).
 - RAM map: bring `ram-map.toml` from branch `ram-map` to main, add a `disc` field, add PP rows.
-- Write the exact **PP work pack** file list for the owner (with sizes).
 - **Done when:** PP layout + overlay table written, catalogue/seeds for the PP boot EXE, cross-disc table for at
   least the boot EXE and the VS/arena engines, tool committed and documented.
 
@@ -73,8 +82,12 @@ The sandbox has no disc. Each chat needs the files its lane reads, uploaded (≤
 **Goal:** say in plain words what MoA changed in how an AC moves and fights, and where in the code. This is the
 evidence for the base-game choice and the list of what must survive when MoA content is imported.
 - Compare the movement code side by side: ground boost, jump, air boost, landing, turning, friction, energy
-  drain/recovery, stagger, overheat, blade lunge. Find the "movement tricks" players mention (ask the owner for
-  names/videos if needed) and the exact code difference that allows or blocks each.
+  drain/recovery, stagger, overheat, blade lunge. The changed routines are already listed in
+  `claude/phantasma-base.md` (air/rise, energy, stat scale-in, stagger, blade swing, stepper installer, recover turn).
+- Tie each trick from the owner's clips to code: **Kaze** (down + R1 + boost on one frame = full boost from
+  standing; lead: MoA only ground-boosts once already moving), **strafe dancing** / lock cancelling,
+  **heavy-biped high jump** (said to work in MoA too), **wall/floor clip** (lead: MoA's extra checks in the
+  stepper installer). Then a test on real PP the owner can run, with exact steps.
 - Compare constants and tables that shape feel: speeds, gravity, turn rates, damage factors, lock-on timing,
   missile tracking, frame/step timing.
 - Output: a difference table (what, PP value/behaviour, MoA value/behaviour, address on both, status), and a

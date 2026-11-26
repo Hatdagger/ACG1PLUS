@@ -1,7 +1,7 @@
 # Mapping — who is doing what
 
 > **Restart 2026-11-26:** mapping starts over on ACG1PLUS in 8 lanes, with Project Phantasma (PP) as the
-> planned base. Read **`PLAN.md`** first. The lane table below is the new one; everything after
+> base (decided 2026-11-26). Read **`PLAN.md`** first. The lane table below is the new one; everything after
 > "Earlier lanes (MoA)" is the old Master of Arena work, kept as reference (MoA addresses).
 
 ## Lanes (2026-11-26)
