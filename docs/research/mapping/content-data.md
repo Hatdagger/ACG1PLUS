@@ -321,3 +321,6 @@ To Lane 6 (AI):
 
 To Lane 8 (scenario):
 - PP owned-parts table `0x800342F0` (246 bytes), credits `0x8003BCD0`, arena opponent byte `0x8003BD2E`.
+
+From other lanes to Lane 5:
+
