@@ -1,0 +1,374 @@
+# Project Phantasma USA (SLUS-00670) RAM rows from mapping Lane 3 (boot, loads, mode launch), 2026-11-26.
+# Same fields as docs/research/ram-map.toml plus disc = "PP". For Lane 1 to merge into the shared map.
+# How we know: static read of the PP boot exe and FDAT 201-206 (details in mapping/boot-loads.md, PP sections).
+# Addresses below 0x800490D0 survive module loads; 0x8019CEA0 exists only while the menu (FDAT 201) is loaded.
+
+[[var]]
+addr = 0x800342B4
+size = 12
+type = "u8[12]"
+name = "pp_garage_parts"
+what = "Garage part ids (save +560)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x800342C0
+size = 48
+type = "bytes"
+name = "pp_garage_paint"
+what = "Garage paint (save +712)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x800342F0
+size = 256
+type = "u8[256]"
+name = "pp_owned_parts"
+what = "Owned parts (save +760)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x800343F0
+size = 256
+type = "u8[256]"
+name = "pp_shop_stock"
+what = "Save +1016; shop stock by MoA's order"
+status = "guess"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x800344F0
+size = 32
+type = "bytes"
+name = "pp_names"
+what = "Save +580; AC and pilot name by the VS menu's use"
+status = "guess"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BC85
+size = 1
+type = "u8"
+name = "pp_fight_music"
+what = "Fight music number set by every fight launch"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BC86
+size = 1
+type = "u8"
+name = "pp_mode"
+what = "Mode byte: 0 missions (and garage test fight), 1 link versus, 2 split-screen VS, 3 arena; the exe loads FDAT 202/203/204/205 (206 with the replay flag)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCCC
+size = 2
+type = "u16"
+name = "pp_garage_options"
+what = "Option parts of the garage AC (save +574)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCCE
+size = 1
+type = "u8"
+name = "pp_paint_pattern"
+what = "Paint pattern of the garage AC (save +572)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCCF
+size = 1
+type = "u8"
+name = "pp_paint_variant"
+what = "Paint variant of the garage AC (save +573)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCD0
+size = 4
+type = "s32"
+name = "pp_credits"
+what = "Credits, starts at 100,000 in the exe image (save +576)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCD5
+size = 1
+type = "u8"
+name = "pp_flag_bcd5"
+what = "Starts at 1, written at PRESS START; meaning unknown"
+status = "guess"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCD6
+size = 1
+type = "u8"
+name = "pp_go_to_title"
+what = "1 = the next menu start opens the title (exe image starts at 1; set when a link session ends)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCD7
+size = 1
+type = "u8"
+name = "pp_back_from_test_fight"
+what = "1 = back from the garage test fight (set 0x80070C40, the hub clears it)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCD8
+size = 1
+type = "u8"
+name = "pp_back_from_arena"
+what = "1 = back from an arena fight; the hub opens on entry 5 (set by arena launch 0x800B141C)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCD9
+size = 1
+type = "u8"
+name = "pp_return_to_vs"
+what = "1 = the menu reopens on the VS menu (set 0x800A5410, cleared on leaving VS 0x800A9670)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCDA
+size = 1
+type = "u8"
+name = "pp_title_skip_logos"
+what = "1 = the title opens without logos and intro movies (set only by the link engine FDAT 203)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCDB
+size = 1
+type = "u8"
+name = "pp_return_to_link"
+what = "1 = the menu reopens on the link-cable menu (set 0x800A08A0)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCDC
+size = 1
+type = "u8"
+name = "pp_vs_stage"
+what = "VS stage 20..29 chosen in the VS menu; VS START copies it to both player blocks +0x25D"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCDD
+size = 1
+type = "u8"
+name = "pp_flag_bcdd"
+what = "Tested after a mission; no code found that sets it"
+status = "guess"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCDE
+size = 1
+type = "u8"
+name = "pp_save_just_loaded"
+what = "Set to 1 by LOAD 0x80066C44; the hub reads it once"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCF2
+size = 1
+type = "u8"
+name = "pp_replay_flag"
+what = "Non-zero: VS loads the replay engine FDAT 206 and the load keeps 0x801F2000..0x801F8000"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BCF4
+size = 1
+type = "u8"
+name = "pp_flag_bcf4"
+what = "0xFF at SCENARIO, 0 at VS START and link launch; read by the VS engine"
+status = "guess"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BD20
+size = 4
+type = "u16[2]"
+name = "pp_vs_options"
+what = "VS staging: option parts per player"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BD24
+size = 7
+type = "u8[7]"
+name = "pp_ac_extras"
+what = "Per-AC extras (Human PLUS level and flags) of the AC being compiled"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BDF8
+size = 256
+type = "u8[256]"
+name = "pp_owned_parts_copy"
+what = "Copy of the owned parts made by the card finish after LOAD"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BF48
+size = 20480
+type = "bytes"
+name = "pp_archive_table_pool"
+what = "Pool for the archives' sector tables (mxt_head_work); cursor 0x8004144C; about 13 KB free"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8004135C
+size = 240
+type = "struct[20]"
+name = "pp_archive_table"
+what = "Archive records, 12 bytes each: +0 sector-table pointer, +4 disc position"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x800424E8
+size = 936
+type = "struct"
+name = "pp_player_block_1"
+what = "Player block 1; block 2 at 0x80042890 (+0x3A8); +0x25D stage, +0x281 body combination, +0x258 compiled stat block"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x80042C38
+size = 24
+type = "u8[24]"
+name = "pp_vs_parts"
+what = "VS staging: 12 part ids per player (also where the arena parks the player's build)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x80042C50
+size = 14
+type = "u8[14]"
+name = "pp_vs_extras"
+what = "VS staging: 7 extras per player"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x80043108
+size = 120
+type = "bytes"
+name = "pp_scenario_progress"
+what = "Scenario and mission progress (save +3352); +0 mission slot (-1 = none)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x80043180
+size = 2048
+type = "bytes"
+name = "pp_hub_tile_backup"
+what = "VRAM (448,192) 16x64 saved by the title and put back by the hub"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x800439E0
+size = 96
+type = "bytes"
+name = "pp_owned_part_masks"
+what = "Owned-part bitmasks (save +616; rebuilt by 0x800829A4)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x80043A40
+size = 56
+type = "bytes"
+name = "pp_settings"
+what = "Settings record (save +3472)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x80043B80
+size = 32
+type = "bytes"
+name = "pp_hub_clut_backup"
+what = "VRAM (368,225) 16x1 saved by the title and put back by the hub"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8019CEA0
+size = 2
+type = "u16"
+name = "pp_menu_start_fight"
+what = "Menu only: non-zero ends the menu frame loop and starts the fight"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"

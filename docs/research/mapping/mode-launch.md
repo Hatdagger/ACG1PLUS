@@ -1,5 +1,8 @@
 # Master of Arena — How the game starts Scenario and VS
 
+> **Master of Arena only (MoA-US addresses), reference.** Project Phantasma's boot and mode launch are in
+> `boot-loads.md` (PP sections, 2026-11-26).
+
 Goal: know exactly how the game goes from boot to the scenario hub and from the VS menu
 into a fight, so the launcher can jump straight there instead of tapping through menus.
 
