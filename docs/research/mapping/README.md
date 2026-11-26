@@ -14,7 +14,7 @@
 | 4 | Battle system core | `battle-system.md` (PP sections) | open |
 | 5 | Data and content formats | `content-data.md` | open |
 | 6 | AI | `ai.md` | open |
-| 7 | Renderer and performance | `renderer.md` (PP sections), `performance.md` | claimed 2026-11-26 |
+| 7 | Renderer and performance | `renderer.md` (PP sections), `performance.md` | done 2026-11-26 (static read; live tests A–C in `performance.md` §4 waiting), PR #4 |
 | 8 | Scenario side: hub, menus, missions, mail, saves, sound | `scenario.md` | open |
 
 A chat claims its lane by setting Status to "claimed <date>" (one commit), and sets it to "done <date>, PR #n"
