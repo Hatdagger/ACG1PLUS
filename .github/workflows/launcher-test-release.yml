@@ -1,0 +1,85 @@
+# Builds the ACG1PLUS launcher (launcher2/) on GitHub and puts it on a TEST pre-release.
+#
+# Started by hand only (Actions -> "Launcher test release" -> Run workflow). The owner
+# approves each run: the old rule "don't start workflow runs unless asked" still holds.
+#
+# Only the launcher is built here. It has no game code in it; the game itself is never
+# built on GitHub (docs/no-game-code.md). The job stops if game code or disc files are
+# found in the branch it builds.
+#
+# What it makes: a pre-release tagged test-launcher-<launcher2/VERSION> (or the tag typed
+# in) with ACG1PLUS.exe (Windows), ACG1PLUS (Steam Deck / Linux) and SHA256SUMS.txt.
+# Running it again for the same tag replaces the files. Release notes come from
+# launcher2/test-notes.md on that branch (only that build's changes).
+name: Launcher test release
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch to build (for example launcher/0.2)"
+        required: true
+        default: "launcher/0.2"
+      tag:
+        description: "Tag (leave empty for test-launcher-<launcher2/VERSION>)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: launcher-test-release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Get the branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          submodules: false
+
+      - name: No game code in the branch
+        run: |
+          bad="$(git ls-files | grep -E '(^|/)generated(-jp)?/|overlays_static|(^|/)(SLUS|SLPS|SCUS)_[0-9]|(^|/)SYSTEM\.CNF$|\.(bin|cue|iso|chd)$' || true)"
+          if [ -n "$bad" ]; then
+            echo "Game code or disc files found, stopping:"; echo "$bad"; exit 1
+          fi
+
+      - name: Get recomp-ui (Dear ImGui and the fonts)
+        run: git submodule update --init --depth 1 recomp-ui
+
+      - name: Build both launchers
+        run: launcher2/build.sh "$RUNNER_TEMP/launcher" both
+
+      - name: Make the pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_IN: ${{ inputs.tag }}
+          REF: ${{ inputs.ref }}
+        run: |
+          set -euo pipefail
+          version="$(tr -d ' \r\n' < launcher2/VERSION)"
+          tag="${TAG_IN:-test-launcher-$version}"
+          case "$tag" in test-*) ;; *) echo "Test tags must start with test-: $tag"; exit 1 ;; esac
+          out="$RUNNER_TEMP/launcher/out"
+          mkdir -p "$RUNNER_TEMP/files"
+          cp "$out/windows/ACG1PLUS.exe" "$out/linux/ACG1PLUS" "$RUNNER_TEMP/files/"
+          cd "$RUNNER_TEMP/files"
+          sha256sum ACG1PLUS ACG1PLUS.exe > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          notes="$GITHUB_WORKSPACE/launcher2/test-notes.md"
+          [ -f "$notes" ] || { echo "Test build of the launcher $version from $REF." > "$RUNNER_TEMP/notes.md"; notes="$RUNNER_TEMP/notes.md"; }
+          if gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$tag" ACG1PLUS.exe ACG1PLUS SHA256SUMS.txt --clobber -R "$GITHUB_REPOSITORY"
+            gh release edit "$tag" --notes-file "$notes" --prerelease -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$tag" ACG1PLUS.exe ACG1PLUS SHA256SUMS.txt -R "$GITHUB_REPOSITORY" \
+              --target "$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)" --prerelease \
+              --title "TEST: launcher $version" --notes-file "$notes"
+          fi
+          echo "Pre-release: https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag"
