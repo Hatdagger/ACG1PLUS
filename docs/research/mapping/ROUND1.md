@@ -63,6 +63,9 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 | 20 | R2 missions | Message set byte: byte `0x8004276A` before a mission, once per value of the COM / voice option in the options screen; it should be 0, 1, 2 and the mission's COM lines should change voice with it (`missions-import-pp.md` §1) | DuckStation memory view |
 | 21 | R2 leftovers | Volume and vibration bytes: in Options, turn the music volume down one step → `0x80041572` (default 62) changes; turn vibration off → `0x8004132C` = 0. In a VS fight `0x80041573` = the master value `0x80041570` (126) and `0x80041575` = the music value; when the match ends `0x80041573` falls to 0 in steps of 6 (`menus-screens.md` PP-1) | DuckStation memory view |
 | 22 | R2 leftovers | AC surface mask: in a VS fight, P1 AC +0x3A = `0x801D811A` reads 7; in an arena fight the player's `0x801D1D5A` reads 7 too (`battle-system.md`, AC object) | DuckStation memory view |
+| 23 | AC1 content | AC1 garage test: Garage → TEST → yes; during the fight `0x800411F8` = 70 and `0x8019F518` = 70 (`../ac1/content.md` §1) | AC1 disc in DuckStation, memory view |
+| 24 | AC1 content | AC1 new game: right after NEW GAME the 160 bytes at `0x80031B34` equal those at `0x800B7174`, and `0x80031A94` has 1 at index 0 and 10 (`../ac1/content.md` §3) | AC1 disc in DuckStation, memory view |
+| 25 | AC1 content | AC1 mail pictures: after "Exterminate Organisms" (slot 7) the mail "Giant Organisms" opens with 2 pictures (`../ac1/content.md` §2) | AC1 disc, a save near chapter 19 |
 
 ## Open questions left by the lanes
 - **Foundations:** menu module 201 header/entry; disc files 0 and 3; what the 72 PA archives hold (motion,
