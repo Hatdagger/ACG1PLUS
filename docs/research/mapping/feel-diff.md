@@ -132,7 +132,7 @@ PP's numbers (§5 lists every one MoA changed).
 | 11 | SP-JAM: missile lock on a jammer breaks per frame | rand < 0xCCD (10%) | rand < 0x667 (5%) | PP `0x80078720` (204+0x2F650); MoA `0x80080988` | code |
 | 12 | Generator output (refill) | GPS-VVA 4,728, GPS-V6 4,728, GRD-RX5 5,300, GRD-RX6 6,000, GRD-RX7 6,810 | 6,000, 6,000, 6,560, 6,800, 7,440 | generator record +0x2A; PP table `0x800B95C8` (201+0x704F8), stride 48 | data |
 | 13 | FCS lock box for class 2 (rifles, energy rifles, some back cannons; missiles are class 1, bazookas class 3 on PP) | e.g. COMDEX-C7 box 110 × 110, inner 85 × 85 | 160 × 160, inner 125 × 125 (all FCS about +45%) | FCS record +0x48 … +0x4E; PP table `0x800B8FC8` (201+0x6FEF8), stride 96 | data |
-| 14 | Lock class of weapons | WG-B2120, WG-B2180 class 3; WG-RFM118, WG-PB26 class 0 | all four class 2 | hand detail +0x06; PP `0x800B9D74` (201+0x70CA4) | data |
+| 14 | Lock class of weapons | WG-B2120, WG-B2180 class 3; WG-RFM118, WG-PB26 class 0 | all four class 2 | hand detail +0x06; PP `0x800B9D5C` (201+0x70C8C) | data |
 | 15 | Pad word in the player block | 32-bit at +0x08, bytes swapped (✕ 0x40, ○ 0x20, START 0x800) | 16-bit at +0x04 (✕ 0x4000, ○ 0x2000, START 0x08) | e.g. pause `0x80074BE0` vs `0x8007CA00` | code |
 | 16 | Wall notification from the walk stepper | none | +0x5C(ac, 5) on wall contact, ignored by ACs | MoA `0x8007B868` | code |
 | 17 | Hit-shape list, kind 0xC00 | not present | added | MoA `0x8007BED4` vs PP `0x80074124` | code |
@@ -328,7 +328,7 @@ The owner wants Kaze kept and turned into a feature, working **left as well as r
   `0x80091340`), body table (menu) `0x800BC7B8`, part tables (menu) head `0x800B64FC`, core `0x800B6934`,
   legs `0x800B6B9C`, arms `0x800B76DC`, hand `0x800B7BBC`, back `0x800B7F58`, blade `0x800B8B54`, booster
   `0x800B8D28`, FCS `0x800B8FC8`, generator `0x800B95C8`, options `0x800B9898`, weapon details hand
-  `0x800B9D74`, back `0x800B9F6C`, weapon arms `0x800B9BF4`. The pair table's "changed" verdicts are
+  `0x800B9D5C`, back `0x800B9F54`, weapon arms `0x800B9BDC` (as in Lane 5). The pair table's "changed" verdicts are
   mostly compiler noise; `ld.py`'s normalisation is a better test.
 - **Lane 4**: PP pad word is 32-bit at player block +0x08 with bytes swapped against MoA; PP stun
   timer is AC +0xD2; PP has no AC +0x3A/+0x3C/+0x3E/+0x16E (MoA-only fields); PP vibration port numbers
