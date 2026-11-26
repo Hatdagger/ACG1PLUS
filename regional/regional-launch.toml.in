@@ -1,0 +1,18 @@
+# Which program plays which Master of Arena disc 1 (psxrecomp
+# runtime/include/regional_launch.h). Shipped as RecompData/regional-launch.toml
+# in the Windows release; scripts/package_prebuilt_release.sh fills in the two
+# exe names. A disc is known by its serial and by the SHA-256 and size of the
+# image's data track (the .bin), so only these exact dumps are recognised.
+# See regional/README.md.
+
+[[profile]]
+id = "SLUS-01030"   # USA, Version 2.0 (2000, Agetec)
+sha256 = "9e18bb329c8c35555fafbefd2ef370c67fedec164497e5bf9f25c848a97b921e"
+size = 700507920
+backend = "@US_EXE@"
+
+[[profile]]
+id = "SLPS-01855"   # Japan, Version 1.1 (1998-12-23)
+sha256 = "bd15f6c94361d535e79d8783dd46d832403c8dea8396575318c2f4adf9de8574"
+size = 701578080
+backend = "@JP_EXE@"

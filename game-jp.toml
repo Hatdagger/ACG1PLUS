@@ -1,0 +1,65 @@
+# Japanese disc 1 (SLPS-01855, Version 1.1). Same as game.toml except the disc identity,
+# seeds and output folder. Probed from the owner's dump 2026-11-23 (probe_disc.py).
+# Review before shipping. Runtime quirks / overlay seeds still need hand work.
+
+[game]
+name = "Armored Core: Master of Arena"
+id = "SLPS-01855"
+players = 2
+exe = "disc/SLPS_018.55"
+disc = "disc/Armored Core - Master of Arena (Japan) (Disc 1).cue"
+load_address = "0x80011000"
+entry_pc = "0x80011DB4"
+text_size = "0x0002E000"
+stack_base = "0x801FFFF0"
+
+# Digests are for data Track 01 (first BINARY FILE / TRACK 01).
+[prepare_disc]
+out_dir = "disc"
+bin_name = "Armored Core - Master of Arena (Japan) (Disc 1).bin"
+cue_name = "Armored Core - Master of Arena (Japan) (Disc 1).cue"
+boot_exe = "SLPS_018.55"
+known_sizes = [701578080]
+known_md5 = [
+  "5c07199863f701838f9723536d44b922",
+]
+known_sha1 = [
+  "f28ac02b18d0caf915110cf18eeb4c85330324c4",
+]
+known_crc32 = [
+  "7edb80b5",
+]
+
+[recompiler]
+seeds = "seeds/ghidra_funcs_jp.txt"
+out_dir = "generated-jp"
+strict = true
+
+[runtime]
+window_title = "Armored Core: Master of Arena"
+memcard_dir = "saves"
+overlay_cache = true
+
+[video]
+renderer = "opengl"
+aspect_ratio = "4:3"
+# First-run look (the player's own settings.toml overrides each of these).
+# Borderless fullscreen and volume 100 are player-only settings: the custom
+# launcher writes them on first run (the framework never ships settings.toml).
+window_width = 1920            # 1920x1440 at 4:3
+internal_resolution = "1440p"
+texture_filtering = "nearest"
+vsync = "on"
+# The framework dithers like the console by default, which looks grainy at
+# high resolution; the old AC1Recomp build had none (true colour).
+dithering = "off"
+
+[controller]
+default_mode = "digital"
+
+# Online mount gate: digests + track count + optional TOC fingerprint
+# (see docs/NETPLAY.md).
+[netplay]
+require_cue = true
+required_tracks = 1
+required_disc_fp = "e4a7d2511466365cff557f60b6ac69780c2398c7d6089376f404f55e493044b7"

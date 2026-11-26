@@ -1,0 +1,78 @@
+# Function and hook addresses used by the old fork
+
+Lifted from the old AC1Recomp fork's `game.toml` (US v1.0 disc 1, same disc as this project). These are the function
+entries and instruction sites its mods hooked. Nothing here is wired up in this project yet: when a mod is ported,
+its addresses go into this project's `game.toml` (`mod_function_entry_funcs` / `mod_instruction_sites`).
+The comments say what each address is.
+
+```toml
+# Function entries the game's own hooks attach to (moa_link_netplay.c,
+# moa_ai_battle.c). Disc-loaded code that is compiled calls the hook check
+# only at the entries listed here; interpreted code checks every entry. All
+# engines load at the same address, so each hook verifies the code in memory.
+mod_function_entry_funcs = [
+    # menu
+    "0x800A69C8", "0x800B0CB4", "0x800B2D7C", "0x800639A4", "0x800AF590",
+    "0x800AB500", "0x80054B54", "0x800AAE94",
+    # link versus engine (netplay)
+    "0x80051F3C", "0x80055428", "0x80055578", "0x80067FE4", "0x80053FE4",
+    "0x80053808", "0x80053498", "0x80052C80", "0x80052EE4", "0x800532FC",
+    # arena engine (AI Battle)
+    "0x80055768", "0x8008DC98", "0x8008D4AC", "0x8007F69C",
+    # split-screen VS engine: controller sampler (VS AI, moa_vs_ai.c)
+    "0x8007DA4C",
+    # split-screen VS engine: render passes (mod_builtin_moa_frame_rate.c): scene
+    # render (the pass point), queued sounds, frame-begin sound upkeep, start a sound
+    "0x80067404", "0x800535F4", "0x80053DD0", "0x80053284",
+    # menu: save checksum (AI Battle keeps the settings on DATA LOAD)
+    "0x80070F1C",
+    # boot exe: archive sector read (instant loading, mod_builtin_moa_loading.c)
+    "0x800167A0",
+    # boot exe: loading screen before an engine, and SsUtKeyOn (Rogue Arena:
+    # the overlay is released at the loading screen; menu sounds muted while
+    # the run drives the menus behind a picture)
+    "0x80012348", "0x800227D4",
+    # menu: mission source picker (mod_builtin_moa_phantasma.c)
+    "0x80095058", "0x80056528", "0x80093CD8",
+    # Arena Run (moa_arena_run_boot.c): LOAD GAME menu, arena result, hub pick
+    "0x800AC4B4", "0x800BBEA8", "0x80056414", "0x800BC420",
+    # Arena Run: the run's opponents (per-opponent loaders, CD queue check)
+    "0x800BDE88", "0x800586A0", "0x800589DC",
+    # Rogue Arena overlay hub: hub input state, opponent panel, opponent list
+    "0x80055848", "0x800BED64", "0x800BD044",
+    # Rogue Arena boot trace (moa_boot_trace.c, diagnostic): menu routines
+    "0x800544A0", "0x80057CB0", "0x80057ED4", "0x80057B28", "0x80057554",
+    "0x80056DBC", "0x80056564", "0x800552C0", "0x800AC8E8", "0x80059554",
+    "0x800AC93C", "0x80072E54", "0x800B6A80", "0x80099098", "0x800941F4",
+    "0x80093BC4", "0x800A2318", "0x800A2020", "0x800631FC", "0x800BA854",
+    "0x800C566C", "0x800B69F8", "0x8007C6B0", "0x80090FD8", "0x80074DC0",
+    "0x800633A4", "0x800BA64C", "0x800C0E7C", "0x800822B0",
+    # boot trace, from the boot chat's boot-loads.md: model, sound bank, card screen's finish
+    "0x80057F74", "0x80058700", "0x8005CE68",
+    # Rogue Arena music (moa_music.cpp): the menu song's start
+    "0x80064F24",
+]
+
+# Instruction hooks of the game's plugins (psxrecomp/runtime/src/
+# mod_builtin_moa_*.c). Compiled disc-loaded code calls the instruction hook
+# check only at the addresses listed here (interpreted code checks them all),
+# so every hook address must be in this list or it never runs once its code
+# is compiled.
+mod_instruction_sites = [
+    # single disc
+    "0x800C4D50",
+    # Project Phantasma arena (menu)
+    "0x800BB93C", "0x800C01E8", "0x800C0460", "0x800BD5B8", "0x800BB9F4",
+    "0x800BBEE8", "0x800BA8AC",
+    # Project Phantasma missions: mission screen (menu), mission loads (engine)
+    "0x8009417C", "0x800943AC",
+    # mission source picker (menu)
+    "0x800954E4", "0x800955BC", "0x800955D0", "0x8009510C",
+    "0x800556B8", "0x800556D4", "0x80055874", "0x80055894",
+    # Arena Run: arena 0 as one 50-rank ladder (menu)
+    "0x800BBA98", "0x800BBFB4", "0x800BBFE0", "0x800BC110", "0x800BC274",
+    # Arena Run: arena 0's whole-arena reads (names, rewards, builds, AI)
+    "0x800BBB3C", "0x800BBCFC", "0x800C0250", "0x800C04FC", "0x800C01FC", "0x800C04A8",
+]
+
+```
