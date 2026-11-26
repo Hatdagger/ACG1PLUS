@@ -13,17 +13,18 @@ job is to find the same routines on Phantasma, then go further.
 
 ## Aim of this round (owner, 2026-11-26)
 
-**Build a solid foundation of research and understanding first. No feature work, no "make it work by testing
-and guessing".** So in every lane:
-- Understand before changing: read the code until you can say *why* it does what it does. This round produces
-  notes and tables, not mods or hooks.
+**Mapping is the early priority for this project: build a solid foundation of research and understanding,
+rather than chasing features and making them work by testing and guessing.** Building is fine (tools, test
+builds, small hooks or debug views that help understand or confirm something); it just follows understanding
+instead of replacing it. In every lane:
+- Understand before changing: read the code until you can say *why* it does what it does.
 - Every finding says **how we know** (which routine was read, what was seen running). A test confirms what the
-  code read predicts; it is never the way to find out in the first place.
+  code read predicts, rather than being the only way of finding out.
 - Prefer one routine fully understood over ten half-named. Mark unknowns plainly instead of filling them in.
 - Lanes are allowed to be small and finish early; a finished lane just ends. Lanes are not refilled during
   this round.
 - When all lanes are done, the owner and a fresh chat review the results together and decide the next round
-  of parallel work (features or more mapping).
+  of parallel work.
 
 ## Rules for every lane chat
 
@@ -40,7 +41,8 @@ and guessing".** So in every lane:
 6. **Stay in your lane.** Found something for another lane? Add one line to that lane's "Handed over" list at the
    bottom of its doc. Don't edit another lane's sections.
 7. **Git**: branch `mapping/<lane>`, commits `[skip ci]`, rebase on `main` before pushing, never force-push,
-   open a PR at the end. Docs only: no builds started.
+   open a PR at the end. Builds are fine when they help; the owner reviews changes before a build is pushed
+   (CLAUDE.md).
 8. **Old MoA code** in `reference/ac1recomp/` and old hooks are reference only (CLAUDE.md working rule).
 9. **Plain language** in summaries for the owner; detail belongs in the lane doc.
 10. **Ending a chat**: push + PR, update the lane row in `README.md`, write a short project doc
