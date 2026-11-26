@@ -26,7 +26,7 @@
 | 2 | Stages | `stages.md` | done 2026-11-26, PR #10 |
 | 3 | Hub screens in depth | `menus-screens.md` (PP sections) | done 2026-11-26 (§PP, `menus-screens-pp.tsv`, PR #12) |
 | 4 | Missions import plan | `missions-import-pp.md` | done 2026-11-26, PR #14 |
-| 5 | Small leftovers | owning lane docs (`feel-diff.md` §10, `scenario.md` §7a, `content-data.md` §1c, `foundations.md` §2–3, `battle-system.md` PP tables, `menus-screens.md` PP-1) | done 2026-11-26; paint / emblem layout still open. **Round 2 finished** |
+| 5 | Small leftovers | owning lane docs (`feel-diff.md` §10, `scenario.md` §7a, `content-data.md` §1c, `foundations.md` §2–3, `battle-system.md` PP tables, `menus-screens.md` PP-1) | done 2026-11-26, PR #18; paint / emblem layout still open. **Round 2 finished** |
 
 ## AC1 mapping (2026-11-26, one chat, topics in order; `PLAN-AC1.md`)
 
