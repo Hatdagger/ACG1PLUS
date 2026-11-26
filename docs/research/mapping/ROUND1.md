@@ -50,6 +50,7 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 | 7 | Lane 7 | Test C: `host_profile.py` in VS and arena | **first PP build** |
 | 8 | R2 PA | Hit size from the body file: plain VS; default AC, then XCA-00 + AN-K1 + LN-1001, then any caterpillar. Halfwords at `0x801D8030` / `0x801D8032` should read 100 / 212, 100 / 225, 112 / 150 (`pa-archives.md` §4) | DuckStation memory view |
 | 9 | R2 PA | Body number: in VS, byte `0x80042769` (player 1 block + 0x281) = 0 with the default AC, 11 with XCA-00 + AN-K1 + LN-1001 (`pa-archives.md` §1) | DuckStation memory view |
+| 10 | R2 stages | AI markers: arena fight on stage 23 or 29, then on stage 20. On 23 / 29 the opponent should now and then run to a ledge and boost up onto it; never on 20 (`stages.md` §3) | any build, eyes only |
 
 ## Open questions left by the lanes
 - **Foundations:** menu module 201 header/entry; disc files 0 and 3; what the 72 PA archives hold (motion,

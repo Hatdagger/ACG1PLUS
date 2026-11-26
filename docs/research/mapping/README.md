@@ -22,9 +22,9 @@
 
 | # | Topic | Doc | Status |
 |---|---|---|---|
-| 1 | PA body archives | `pa-archives.md` | done 2026-11-26 |
-| 2 | Stages | `stages.md` | next |
-| 3 | Hub screens in depth | `menus-screens.md` (PP sections) | |
+| 1 | PA body archives | `pa-archives.md` | done 2026-11-26, PR #9 |
+| 2 | Stages | `stages.md` | done 2026-11-26 |
+| 3 | Hub screens in depth | `menus-screens.md` (PP sections) | next |
 | 4 | Missions import plan | `missions-import-pp.md` | |
 | 5 | Small leftovers | owning lane docs | |
 
