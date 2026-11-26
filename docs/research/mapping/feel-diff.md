@@ -277,6 +277,27 @@ test (owner: they work on PP).
   growing PP's AC object (8 bytes MoA added) or finding room for them elsewhere.
 - Options the owner may want as settings later: MoA's hit stun, MoA's lock-drop after a blade swing.
 
+## 8b. Planned feature: Kaze as an option (owner, 2026-11-26)
+
+The owner wants Kaze kept and turned into a feature, working **left as well as right**.
+
+- **Setting:** "Kaze: Original / Both sides / Off" (a launcher toggle first; an option part such as
+  "SP-DASH" may follow later, using the same switch). Possibly also "Both sides on every two-legged
+  build". Default: Original.
+- **Original:** PP as shipped: anim 18 (Down + R1) of body sets 11, 13, 27 keeps its slide.
+- **Both sides:** also give anim 16 (back-left start, Down + L1) of the same sets the mirrored slide
+  (x sign flipped: set 11 (+747, 0, −600) over 8 frames, sets 13/27 (+999, 0, −700) over 10 frames, same key
+  frames as anim 18). The pad decider treats Down + L1 (state 7) and Down + R1 (state 8) alike, so the
+  rest should follow `guess`.
+- **Off:** load the normal tracks MoA uses (set 11 (−122, 0, 24); sets 13/27 (−149, 0, 150)).
+- **How:** the recomp picks which bytes of PA11/13/27 entry 1 to load; no code change. For the disc patch
+  track, the extra keys grow entry 1 by a few bytes (each entry 1 is one 2,048-byte sector; free room not
+  yet checked). An option part needs a new part entry, a free stat bit and a small hook (Lanes 5 and 8 first).
+- **Before building:** confirm the cause on PP: XCA-00 + AN-K1 + LN-1001, standing, Down + R1 without boost
+  should shoot forward-right; with AN-201 arms only a small back step. Then test Down + L1 once "Both sides"
+  exists.
+- The body animation stays the normal "step back" while sliding, as in today's Kaze.
+
 ## 9. Open
 
 - Nothing here is `tested` yet on PP; §7 lists two optional checks.
