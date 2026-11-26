@@ -11,6 +11,21 @@ Background and the first code comparison: project doc `claude/phantasma-base.md`
 Everything in `docs/research/` (MoA, ~5,000 lines) is **reference**: the addresses are MoA's. Each lane's first
 job is to find the same routines on Phantasma, then go further.
 
+## Aim of this round (owner, 2026-11-26)
+
+**Mapping is the early priority for this project: build a solid foundation of research and understanding,
+rather than chasing features and making them work by testing and guessing.** Building is fine (tools, test
+builds, small hooks or debug views that help understand or confirm something); it just follows understanding
+instead of replacing it. In every lane:
+- Understand before changing: read the code until you can say *why* it does what it does.
+- Every finding says **how we know** (which routine was read, what was seen running). A test confirms what the
+  code read predicts, rather than being the only way of finding out.
+- Prefer one routine fully understood over ten half-named. Mark unknowns plainly instead of filling them in.
+- Lanes are allowed to be small and finish early; a finished lane just ends. Lanes are not refilled during
+  this round.
+- When all lanes are done, the owner and a fresh chat review the results together and decide the next round
+  of parallel work.
+
 ## Rules for every lane chat
 
 1. **No game code or game data on GitHub** (`docs/no-game-code.md`). Generate C from the disc inside the chat
@@ -26,7 +41,8 @@ job is to find the same routines on Phantasma, then go further.
 6. **Stay in your lane.** Found something for another lane? Add one line to that lane's "Handed over" list at the
    bottom of its doc. Don't edit another lane's sections.
 7. **Git**: branch `mapping/<lane>`, commits `[skip ci]`, rebase on `main` before pushing, never force-push,
-   open a PR at the end. Docs only: no builds started.
+   open a PR at the end. Builds are fine when they help; the owner reviews changes before a build is pushed
+   (CLAUDE.md).
 8. **Old MoA code** in `reference/ac1recomp/` and old hooks are reference only (CLAUDE.md working rule).
 9. **Plain language** in summaries for the owner; detail belongs in the lane doc.
 10. **Ending a chat**: push + PR, update the lane row in `README.md`, write a short project doc
@@ -79,22 +95,21 @@ Known from the first comparison (`claude/phantasma-base.md`), so no lane redoes 
   least the boot EXE and the VS/arena engines, tool committed and documented.
 
 ### Lane 2 — Phantasma vs MoA: game feel
-**Goal:** say in plain words what MoA changed in how an AC moves and fights, and where in the code. This is the
-evidence for the base-game choice and the list of what must survive when MoA content is imported.
+**Goal:** say in plain words what MoA changed in how an AC moves and fights, and where in the code, so that
+importing MoA content (parts, numbers, hooks) keeps Phantasma's feel. The base-game choice is already made.
 - Compare the movement code side by side: ground boost, jump, air boost, landing, turning, friction, energy
   drain/recovery, stagger, overheat, blade lunge. The changed routines are already listed in
   `claude/phantasma-base.md` (air/rise, energy, stat scale-in, stagger, blade swing, stepper installer, recover turn).
-- Tie each trick from the owner's clips to code: **Kaze** (down + R1 + boost on one frame = full boost from
-  standing; lead: MoA only ground-boosts once already moving), **strafe dancing** / lock cancelling,
-  **heavy-biped high jump** (said to work in MoA too), **wall/floor clip** (lead: MoA's extra checks in the
-  stepper installer). Then a test on real PP the owner can run, with exact steps.
+- **The tricks are not to be investigated.** Kaze, strafe dancing / lock cancelling, the heavy-biped high jump
+  and the wall/floor clip all already work in Phantasma (owner, 2026-11-26). Only list them as a **keep-working
+  list**: anything we change later (imported MoA parts, hooks) must not break them.
 - Compare constants and tables that shape feel: speeds, gravity, turn rates, damage factors, lock-on timing,
   missile tracking, frame/step timing.
 - Output: a difference table (what, PP value/behaviour, MoA value/behaviour, address on both, status), and a
   short plain summary for the owner.
 - Not in scope: AI (Lane 6), drawing (Lane 7). Field meanings belong to Lane 4; this lane compares.
 - **Done when:** every movement routine is paired PP↔MoA, every difference found is listed, and the owner has a
-  one-page "what MoA changed" summary.
+  one-page "what MoA changed" summary. Expected to be one of the smaller lanes and to finish early.
 
 ### Lane 3 — Boot, loads and mode launch
 **Goal:** know exactly what Phantasma loads and sets at each step, so the launcher can start any mode directly
@@ -175,8 +190,8 @@ take over menus.
 
 All 8 can start now. Lane 1's cross-disc table speeds everyone up, so lanes 2–8 should pull `main` when they
 begin and again before pushing. If a lane needs a Lane 1 result that isn't there yet, it finds that one
-address itself and hands it to Lane 1. Lanes 2 and 6 are the ones that settle the base-game question; their
-plain summaries go to the owner first.
+address itself and hands it to Lane 1. The base game is settled; Lane 6's plain summary of the AI goes to
+the owner first.
 
 ## Starter prompt for a lane chat (copy, fill in the lane number)
 
