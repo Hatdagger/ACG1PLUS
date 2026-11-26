@@ -1,5 +1,29 @@
 # Mapping — who is doing what
 
+> **Restart 2026-11-26:** mapping starts over on ACG1PLUS in 8 lanes, with Project Phantasma (PP) as the
+> planned base. Read **`PLAN.md`** first. The lane table below is the new one; everything after
+> "Earlier lanes (MoA)" is the old Master of Arena work, kept as reference (MoA addresses).
+
+## Lanes (2026-11-26)
+
+| # | Lane | Doc | Status |
+|---|---|---|---|
+| 1 | Foundations: disc layouts, function catalogue, cross-disc tools | `foundations.md` | open |
+| 2 | Phantasma vs MoA: game feel | `feel-diff.md` | open |
+| 3 | Boot, loads and mode launch | `boot-loads.md` (PP sections) | open |
+| 4 | Battle system core | `battle-system.md` (PP sections) | open |
+| 5 | Data and content formats | `content-data.md` | open |
+| 6 | AI | `ai.md` | open |
+| 7 | Renderer and performance | `renderer.md` (PP sections), `performance.md` | open |
+| 8 | Scenario side: hub, menus, missions, mail, saves, sound | `scenario.md` | open |
+
+A chat claims its lane by setting Status to "claimed <date>" (one commit), and sets it to "done <date>, PR #n"
+at the end.
+
+---
+
+# Earlier lanes (MoA, reference)
+
 Several chats map Master of Arena at the same time. To avoid double work:
 
 1. **Before starting**, pull the latest master and read this table.
