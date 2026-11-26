@@ -28,6 +28,9 @@
 | 4 | Missions import plan | `missions-import-pp.md` | done 2026-11-26, PR #14 |
 | 5 | Small leftovers | owning lane docs (`feel-diff.md` §10, `scenario.md` §7a, `content-data.md` §1c, `foundations.md` §2–3, `battle-system.md` PP tables, `menus-screens.md` PP-1) | done 2026-11-26, PR #18; paint / emblem layout still open. **Round 2 finished** |
 
+Round 2 review (2026-11-26): copied PP rows in `ram-map.toml` may now be corrected in place (rule at the top of
+that file). Done once: 3 sizes fixed, the text of 103 copied rows put into PP terms (`tools/xdisc/ram_text_xlate.py`).
+
 ## AC1 mapping (2026-11-26, one chat, topics in order; `PLAN-AC1.md`)
 
 | # | Topic | Doc | Status |
