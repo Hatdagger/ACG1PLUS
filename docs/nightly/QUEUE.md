@@ -17,7 +17,7 @@ Work list for the scheduled overnight runs. The owner adds or reorders items by 
    with a `BLOCKED:` note, and move to the next item in the same run.
 
 ## Queue
-- [ ] **Check the hook list against the new code.** For every address in `docs/research/hook-addresses.md`,
+- [x] (2026-11-21) **Check the hook list against the new code.** For every address in `docs/research/hook-addresses.md`,
   check whether it is a function entry in this repo's `generated/` (dispatch table / function list) or sits in
   disc-loaded overlay code (outside the boot EXE range `0x80011000`–`0x8003F000`, see `game.toml`). Write the
   result as a table in `docs/research/mapping/hook-check.md`: address, old use, found in generated? (file),
