@@ -78,8 +78,24 @@ that wrote it. Details and the stretches no code was seen using: `mapping/scratc
 | Address | Size | Type | Name | What | Status | Exe refs | Module refs | Source |
 |---|---|---|---|---|---|---|---|---|
 | `8004ADA4` | 4 | u32 | `engine_entry_word` | [module header +4] Entry point of the fight engine just loaded (202: 0x8004C340, 203: 0x8004BF94, 204: 0x8004BF3C); the boot loop calls it at 0x8001251C and loops while it returns non-zero. The menu (201) is entered directly at 0x8009B414 instead | code | R1 in 1 fn: `800122A8` | — | ac1/foundations.md §3 |
+| `8004CC2C` | 20 | u16[10] | `ac1_owned_part_bases` | [menu] Owned-part index bases: head 0, core 10, arms 13, legs 29, generator 61, FCS 68, option 76, booster 87, back 93, hand 127 (blade 143 not stored) (FDAT 201 +0x1E8C) | data | — | menu RP 2 | ac1/content.md |
 | `8008C2B8` | 924 | struct | `vs_player_block_backup_p1` | [VS] VS engine's copy of player block 1 (P2 at 0x8008C654), set at run time | code | — | VS RWP 1 | ac1/records.md |
 | `8008D928` | 10 | char[] | `missions_body_archive_name` | [missions] Name string 'P0\PA00.T' (FDAT 202 +0x42B88); digits are written in before it is registered as archive 0. Link copy 0x800895D0 (FDAT 203 +0x3E830), VS copy 0x800893D4 (FDAT 204 +0x3E634) | data | — | missions WP 1 | ac1/foundations.md §4 |
+| `800B70D4` | 160 | u8[160] | `ac1_newgame_owned_counts` | [menu] New-game owned-part counts (11 parts = the starting AC), copied to 0x80031A94 by 0x8005AD34 (FDAT 201 +0x6C334) | data | — | menu RP 1 | ac1/content.md |
+| `800B7174` | 160 | u8[160] | `ac1_newgame_shop_stock` | [menu] New-game shop stock (85 × 1, 23 back weapons × 2, rest 0), copied to 0x80031B34 (FDAT 201 +0x6C3D4) | data | — | menu RP 1 | ac1/content.md |
+| `800B91F4` | 600 | struct[10] | `ac1_part_table_head` | [menu] Head part table, 10 × 60 B (PP layout; FDAT 201 +0x6E454) | data | — | menu RP 12 | ac1/content.md |
+| `800B944C` | 168 | struct[3] | `ac1_part_table_core` | [menu] Core part table, 3 × 56 B (FDAT 201 +0x6E6AC) | data | — | menu RP 15 | ac1/content.md |
+| `800B94F4` | 2304 | struct[32] | `ac1_part_table_legs` | [menu] Legs part table, 32 × 72 B, 8 DUMMY slots at PP's places (FDAT 201 +0x6E754) | data | — | menu RP 12 | ac1/content.md |
+| `800B9DF4` | 832 | struct[16] | `ac1_part_table_arms` | [menu] Arms part table, 16 × 52 B; weapon arms are ids 8-15 (PP 12-19) (FDAT 201 +0x6F054) | data | — | menu RP 12 | ac1/content.md |
+| `800BA134` | 704 | struct[16] | `ac1_part_table_hand` | [menu] Hand weapon table, 16 × 44 B, 0 = NO WEAPON; same ids as PP 0-15 (FDAT 201 +0x6F394) | data | — | menu RP 11 | ac1/content.md |
+| `800BA3F4` | 1768 | struct[34] | `ac1_part_table_back` | [menu] Back weapon table, 34 × 52 B; ids 12+ shift on PP by +5/+10/+15/+20 (ac1/content.md §3) (FDAT 201 +0x6F654) | data | — | menu RP 11 | ac1/content.md |
+| `800BAADC` | 208 | struct[4] | `ac1_part_table_blade` | [menu] Blade table, 4 × 52 B (FDAT 201 +0x6FD3C) | data | — | menu RP 11 | ac1/content.md |
+| `800BABAC` | 288 | struct[6] | `ac1_part_table_booster` | [menu] Booster table, 6 × 48 B (FDAT 201 +0x6FE0C) | data | — | menu RP 12 | ac1/content.md |
+| `800BACCC` | 768 | struct[8] | `ac1_part_table_fcs` | [menu] FCS table, 8 × 96 B (FDAT 201 +0x6FF2C) | data | — | menu RP 12 | ac1/content.md |
+| `800BAFCC` | 336 | struct[7] | `ac1_part_table_generator` | [menu] Generator table, 7 × 48 B (FDAT 201 +0x7022C) | data | — | menu RP 11 | ac1/content.md |
+| `800BB11C` | 484 | struct[11] | `ac1_part_table_option` | [menu] Optional part table, 11 × 44 B, no DUMMY rows (FDAT 201 +0x7037C) | data | — | menu RP 8 | ac1/content.md |
+| `800BB300` | 1392 | struct[58] | `ac1_weapon_detail_tables` | [menu] Weapon detail records, 24 B: weapon arms (arms id - 8) 8, hand 16, back 34, back to back (FDAT 201 +0x70560) | data | — | menu R 4 | ac1/content.md |
+| `800BD338` | 448 | char[28][16] | `ac1_weapon_type_names` | [menu] Weapon type names, same 28 as PP; index = weapon detail +7 (FDAT 201 +0x72598) | data | — | menu R 1 | ac1/content.md |
 | `8017F6D0` | 4496 | struct | `mail_block` | [menu] Mail block S, PP's layout: flags, 64 triggers at +0x40, count +0xC0, MIS.T 818 copied to S+0x110 (callback 0x800963A0) | code | — | menu RWP 23 | ac1/records.md |
 | `8019B480` | 1 | u8 | `link_stage_slot` | [link] Stage slot n (90-94): RTIM n, FDAT 2n (stage code, to 0x801B80C8), FDAT 2n+1 (stage data, to the buffer at 0x8019B488) | code | — | link RW 2 | ac1/foundations.md §4 |
 | `8019B488` | 4 | u32 | `link_stage_buf` | [link] Pointer to the link engine's work buffer (body archive entry 1, RTIM 100, RTIM n, FDAT 200, stage data) | code | — | link RWP 2 | ac1/foundations.md §4 |
@@ -309,4 +325,4 @@ engines read or write, not covered by any entry. Sorted by how many routines use
 
 ## Counts
 
-42 named entries (code 39). Exe scan: 3139 references to 796 addresses.
+58 named entries (code 39). Exe scan: 3139 references to 796 addresses.

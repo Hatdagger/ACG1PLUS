@@ -34,7 +34,7 @@
 |---|---|---|---|
 | 1 | Foundations + AC1 ↔ PP tables | `../ac1/foundations.md`, `../xdisc/ac1-pp/` | done 2026-11-26, PR #13 (static; tests 13–15 in `ROUND1.md`) |
 | 2 | Main records on AC1 | `../ac1/records.md` | done 2026-11-26, PR #15 (static; tests 16–18 in `ROUND1.md`) |
-| 3 | Content inventory | `../ac1/content.md` | |
+| 3 | Content inventory | `../ac1/content.md` | done 2026-11-26, PR #? (static; tests 23–25 in `ROUND1.md`) |
 | 4 | Import outlook | `../ac1/import-outlook.md` | |
 
 A chat claims its lane by setting Status to "claimed <date>" (one commit), and sets it to "done <date>, PR #n"

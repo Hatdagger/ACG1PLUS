@@ -5424,3 +5424,179 @@ disc = "PP"
 what = "[VS] Results of a stage hit query, 28-byte records ending with a 0 pointer; +0 polygon pointer (its +0x0E bits 0-2 = surface flags), +0x0E distance. 0x8006E958(mask) returns the nearest result whose flags do not share a bit with the mask (AC +0x3A)"
 status = "code"
 src = "mapping/battle-system.md (AC object +0x3A)"
+
+# ---- AC1 topic 3 (content inventory), ac1/content.md ----
+
+[[var]]
+addr = 0x800B91F4
+size = 600
+type = "struct[10]"
+name = "ac1_part_table_head"
+disc = "AC1"
+what = "[menu] Head part table, 10 × 60 B (PP layout; FDAT 201 +0x6E454)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800B64FC
+
+[[var]]
+addr = 0x800B944C
+size = 168
+type = "struct[3]"
+name = "ac1_part_table_core"
+disc = "AC1"
+what = "[menu] Core part table, 3 × 56 B (FDAT 201 +0x6E6AC)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800B6934
+
+[[var]]
+addr = 0x800B94F4
+size = 2304
+type = "struct[32]"
+name = "ac1_part_table_legs"
+disc = "AC1"
+what = "[menu] Legs part table, 32 × 72 B, 8 DUMMY slots at PP's places (FDAT 201 +0x6E754)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800B6B9C
+
+[[var]]
+addr = 0x800B9DF4
+size = 832
+type = "struct[16]"
+name = "ac1_part_table_arms"
+disc = "AC1"
+what = "[menu] Arms part table, 16 × 52 B; weapon arms are ids 8-15 (PP 12-19) (FDAT 201 +0x6F054)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800B76DC
+
+[[var]]
+addr = 0x800BA134
+size = 704
+type = "struct[16]"
+name = "ac1_part_table_hand"
+disc = "AC1"
+what = "[menu] Hand weapon table, 16 × 44 B, 0 = NO WEAPON; same ids as PP 0-15 (FDAT 201 +0x6F394)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800B7BBC
+
+[[var]]
+addr = 0x800BA3F4
+size = 1768
+type = "struct[34]"
+name = "ac1_part_table_back"
+disc = "AC1"
+what = "[menu] Back weapon table, 34 × 52 B; ids 12+ shift on PP by +5/+10/+15/+20 (ac1/content.md §3) (FDAT 201 +0x6F654)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800B7F58
+
+[[var]]
+addr = 0x800BAADC
+size = 208
+type = "struct[4]"
+name = "ac1_part_table_blade"
+disc = "AC1"
+what = "[menu] Blade table, 4 × 52 B (FDAT 201 +0x6FD3C)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800B8B54
+
+[[var]]
+addr = 0x800BABAC
+size = 288
+type = "struct[6]"
+name = "ac1_part_table_booster"
+disc = "AC1"
+what = "[menu] Booster table, 6 × 48 B (FDAT 201 +0x6FE0C)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800B8D28
+
+[[var]]
+addr = 0x800BACCC
+size = 768
+type = "struct[8]"
+name = "ac1_part_table_fcs"
+disc = "AC1"
+what = "[menu] FCS table, 8 × 96 B (FDAT 201 +0x6FF2C)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800B8FC8
+
+[[var]]
+addr = 0x800BAFCC
+size = 336
+type = "struct[7]"
+name = "ac1_part_table_generator"
+disc = "AC1"
+what = "[menu] Generator table, 7 × 48 B (FDAT 201 +0x7022C)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800B95C8
+
+[[var]]
+addr = 0x800BB11C
+size = 484
+type = "struct[11]"
+name = "ac1_part_table_option"
+disc = "AC1"
+what = "[menu] Optional part table, 11 × 44 B, no DUMMY rows (FDAT 201 +0x7037C)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800B9898
+
+[[var]]
+addr = 0x800BB300
+size = 1392
+type = "struct[58]"
+name = "ac1_weapon_detail_tables"
+disc = "AC1"
+what = "[menu] Weapon detail records, 24 B: weapon arms (arms id - 8) 8, hand 16, back 34, back to back (FDAT 201 +0x70560)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800B9BDC
+
+[[var]]
+addr = 0x800BD338
+size = 448
+type = "char[28][16]"
+name = "ac1_weapon_type_names"
+disc = "AC1"
+what = "[menu] Weapon type names, same 28 as PP; index = weapon detail +7 (FDAT 201 +0x72598)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800BCB18
+
+[[var]]
+addr = 0x8004CC2C
+size = 20
+type = "u16[10]"
+name = "ac1_owned_part_bases"
+disc = "AC1"
+what = "[menu] Owned-part index bases: head 0, core 10, arms 13, legs 29, generator 61, FCS 68, option 76, booster 87, back 93, hand 127 (blade 143 not stored) (FDAT 201 +0x1E8C)"
+status = "data"
+src = "ac1/content.md"
+pp = 0x800B5094
+
+[[var]]
+addr = 0x800B70D4
+size = 160
+type = "u8[160]"
+name = "ac1_newgame_owned_counts"
+disc = "AC1"
+what = "[menu] New-game owned-part counts (11 parts = the starting AC), copied to 0x80031A94 by 0x8005AD34 (FDAT 201 +0x6C334)"
+status = "data"
+src = "ac1/content.md"
+
+[[var]]
+addr = 0x800B7174
+size = 160
+type = "u8[160]"
+name = "ac1_newgame_shop_stock"
+disc = "AC1"
+what = "[menu] New-game shop stock (85 × 1, 23 back weapons × 2, rest 0), copied to 0x80031B34 (FDAT 201 +0x6C3D4)"
+status = "data"
+src = "ac1/content.md"
