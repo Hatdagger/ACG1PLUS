@@ -6,6 +6,9 @@ address − `0x80050DD8`) and the boot exe. Addresses are measured from the code
 Related: `menus-hub.md` (the hub ring and its 8 entries), `boot-loads.md` (what each step loads,
 LOAD / SAVE, arena launch), `mode-launch.md` (title, VS START).
 
+**Project Phantasma (PP):** the PP side of every screen is in **§PP at the end** (round 2, topic 3,
+2026-11-26), and `menus-screens-pp.tsv` gives the PP twin of every MoA routine named in this doc.
+
 Goal: know how every screen behind the hub opens, what it loads, how it runs and how it closes,
 so a mod can replace a screen with an overlay, reuse the game's windows and sounds, or move a
 screen into the launcher.
@@ -1087,3 +1090,249 @@ the volumes and the VS time limit for both players**).
   pad word, so with the swap on it follows player 2. Also open: the VS-only checks before AC
   SETUP's ASSEMBLY (a core is always there in VS?); the sprite `0x801FBEB8` +22 toggle on the VS
   START row (blink `?`).
+
+
+---
+
+# §PP. Project Phantasma — the screens behind the hub (round 2, topic 3, 2026-11-26)
+
+Disc: **Project Phantasma USA (SLUS-00670)**. Read statically from **FDAT 201** (the menu module, loads at
+**`0x800490D0`**; file offset = address − `0x800490D0`, so `0x8004A140` is FDAT 201 +0x1070) and the boot exe.
+Nothing here was seen running yet. Status words as in the rest of the doc: everything is `code` (read from the
+instructions) or `data` (read from the disc files) unless marked `?`.
+
+**How this was done.** The MoA sections above stay the model. Every MoA routine they name was looked up in the
+round-1 pair table (`pp-disc/maps/moa-to-pp-functions.tsv`, module 206 → 201); the result is
+**`menus-screens-pp.tsv`** (450 addresses: 180 identical or "same" twins, 93 changed twins, 85 MoA-only). Then
+each screen was checked on PP by its **texts**: every string in FDAT 201 was matched to the code that loads its
+address (lui + addiu), which confirms the routine and shows what PP added or dropped. Where the twin and the
+texts agree, the PP address below is `code`. Read the MoA section for how a screen works; read this one for
+PP's addresses and differences.
+
+**In plain words:** PP's menus are built the same way as MoA's (same tasks, windows, prompts, sounds, same garage
+pages and shop), shifted to other addresses. PP is missing everything that came with MoA's extra arenas (Ex
+Arena, Arena Maker, the ranker rows in the garage, the arena file on the card) and has a few things of its own:
+"COAM" for money, a RANKING report, AC1 save import on LOAD, a garage TEST that runs on a mission map.
+
+## PP-1. Building blocks
+
+Already mapped in round 1: `scenario.md` §2 (tasks, pad words `0x8019CE90`, windows, text, yes / no prompt,
+message box, menu heap, loaders, frame loop `0x80098640`). Two things to remember:
+
+- **Task records are 4 bytes shorter at the head**: +0x6C parent, +0x70 opener, **+0x74 state**, +0x78 destructor,
+  own data from **+0x7C** (MoA +0x70 / +0x74 / +0x78 / +0x7C / +0x80). Every "+0x80 …" field in the MoA sections
+  is "+0x7C …" on PP until checked (code: hub open, arena open `0x800AE330`, garage open `0x80070038`).
+- **PP's usual message box is `0x8005B884(task, next state, text, group)`** (59 callers); MoA's usual one
+  (`0x80066C08`) has a PP twin that is never called.
+
+**Menu sounds** (`SsUtKeyOn` = exe `0x80022F98`, bank s16 `0x8019CC58`): same tone meanings as MoA (§1d). Counted
+over FDAT 201's calls with a fixed tone: 1 cursor × 95, 2 confirm × 47, 6 window × 96, 7 question / message × 16,
+8 × 1 (hub ring rebuilt, `0x8004C234`), 9 × 2 (missions / mail page), 12 × 4 (ASSEMBLY cursor, `0x80078004`),
+10 × 1 (`0x80079B1C`, part equipped; it picks 10 or 11 at run time as on MoA). 56 calls pass the tone in a
+register (tone 0 "back" is among them). (code)
+
+**Token tasks** (empty tasks that say "this page is open", §1a): `0x8005DE8C` ASSEMBLY, `0x8005DEDC` OPTIONAL
+PARTS, `0x8005DF2C` PERFORMANCE, `0x8005DF7C` CHANGE COLOR, `0x8005DFCC` EDIT EMBLEM, `0x8005E01C` NAME ENTRY
+(same shape as MoA; matched to their pages by the garage menu below). (code)
+
+### Where each screen's code is in FDAT 201 (code, from the pair table and the texts)
+
+| Range | What | MoA FDAT 206 |
+|---|---|---|
+| `0x800490D0` … `0x8004BF9F` | header, jump tables, strings | `0x80050DD8` … |
+| `0x8004BFA0` … `0x8004E25F` | hub ring (`scenario.md` §3) | `0x800552C0` … |
+| `0x8004E260` … | tasks, disc loads, menu heap | `0x80057470` … |
+| `0x800501DC` … `0x80055060` | **System / card screen** | `0x80059554` … |
+| `0x80057834` … | shared UI: windows, text, sprites, prompts, draw routines | `0x800620D4` … |
+| `0x800654D0` … | memory card files (list, LOAD `0x80066C44`) | `0x80070120` … |
+| `0x8006844C` … `0x80070037` | screen reset, **emblem editor** | `0x80074DC0` … |
+| `0x80070038` … `0x800856AB` | **garage and its pages** | `0x8007C6B0` … |
+| `0x800856AC` … `0x8008A917` | missions | `0x80093B18` … |
+| `0x8008A960` … `0x8009380F` | **shop** | `0x80099048` … |
+| `0x80093830` … | mail | `0x800A2020` … |
+| `0x80098640` / `0x80098EF0` | frame loop / menu entry | `0x800A69C8` |
+| `0x8009E308` … `0x800A0493` | title, NEW GAME / LOAD GAME | `0x800AA000` … |
+| `0x800A04A8` … `0x800A42DB` | link-cable versus menu | `0x800ACE14` … |
+| `0x800A42DC` … `0x800AA427` | **VS menu** | `0x800B0CB4` … |
+| `0x800AA428` … `0x800AE03B` | settings defaults, **Options**, key assign | `0x800B69F8` … |
+| `0x800AE044` … `0x800B20D7` | **Arena** (one arena) | `0x800BA64C` … |
+| `0x800B20D8` … `0x800B367F` | card files for emblems | `0x800C1A78` … (emblems + Arena Maker) |
+| `0x800B3738` … | movie decoder, then data tables (to `0x800CF0D0`) | `0x800CAEB8` … |
+
+No Arena Maker block: PP's module is 0x6000 bytes shorter around there.
+
+## PP-2. Garage (`0x80070038(page)`, hub entry 0)
+
+| State | Does | MoA |
+|---|---|---|
+| `0x80070038` | task (group 0), opener = itself, draws the frame (`0x800700D8`: two windows through `0x80059658`, tone 6) | `0x8007C6B0` |
+| `0x8007017C` | waits for the windows, draws the menu (`0x80085400`), → input | `0x8007C8F4` … |
+| **`0x800701E4`** | **input**: ✕ → row through the **jump table `0x8004A140`** (FDAT 201 +0x1070, 7 words), ○ → close | `0x8007CAC8` |
+| `0x80071D50` | **exit**: waits for the closing window, then **`0x8004D28C` (back to hub)** — always; no Arena Maker roads | `0x80080AA8` |
+
+**The menu has 7 rows** (names at `0x8004AF28` … `0x8004AF84`; drawn by `0x80085400`): ASSEMBLY, OPTIONAL PARTS,
+PERFORMANCE, CHANGE COLOR, EDIT EMBLEM, NAME ENTRY, **TEST**. No RANKER LOGIC / RANKER TEST. Each case was matched
+by the token task it makes (code):
+
+| Row | Case | Opens |
+|---|---|---|
+| 0 ASSEMBLY | `0x80070404` | owned-part bitmasks `0x800829A4`, checks, page `0x80071A8C` → `0x800739E8` (§2h's `0x80082BEC`) |
+| 1 OPTIONAL PARTS | `0x80070800` | "You don't have an OPTIONAL part." or page `0x80082BD0` (§2j) |
+| 2 PERFORMANCE | `0x80070530` | `0x80084444` → `0x800845C4` (PRICE … GRADE, §2k) |
+| 3 CHANGE COLOR | `0x800706AC` | `0x80071C70` → `0x8007BB1C` (CHANGE PATTERN, EDIT COLOR, §2l; same code as MoA, "identical") |
+| 4 EDIT EMBLEM | `0x80070614` | `0x800717BC` → emblem editor `0x80068488` (§2m) |
+| 5 NAME ENTRY | `0x80070754` | `0x8007192C` → A.C. NAME / PILOT NAME, name entry `0x80080210` |
+| 6 TEST | `0x800707DC` | "Launch a test sortie?" (yes / no) → build check → launch |
+
+**TEST** (code): the build check `0x80070C5C` (twin of `0x8007E164`) refuses with "Your equipment is
+incomplete." or **"Illegal machine."** (PP's own text; it compares the build with the stand-in parts AN-101,
+NO WEAPON, LS-2001, XCA-00 …). The launch **`0x80070BC8`** (twin of `0x8007DB44`) writes **stage 19** to
+`0x80042745` (player 1 block +0x25D), −1 to the mission slot `0x80043108`, music 255 to `0x8003BC85`, compiles the
+AC (`0x8009A238`), sets "back from AC TEST" `0x8003BCD7` = 1 and starts the fight with `0x8005C5E4` (the same
+starter the missions screen and the link menu use). Stage 19 is the last mission-map number (`stages.md` §1),
+so the test runs in the **missions engine** on the test map — this settles MoA's `?` for PP. MoA used stage 40.
+
+"Now Loading" while models load: `0x80071E48` (twin of `0x80080C60`). Garage pages in depth (§2h–§2m) are twins
+with similarity 0.8–1.0; their PP addresses are in `menus-screens-pp.tsv`. The ASSEMBLY fix-up texts are at
+`0x80078004` ("Can't equip without an ARM part" …) and `0x8007ADA8` ("Unequipped the radar." …).
+
+## PP-3. Shop (`0x8008A9C4()`, hub entry 1)
+
+Same states as §2b / §2i, every one paired at 0.87–1.0 (`0x8008ADB0` BUY / SELL window, **`0x8008B590` input**,
+`0x8008BC2C` exit → `0x8004D28C`, part kinds `0x8008BCC0`, part list `0x8008C4EC` / input `0x8008D710`, side panel
+with the 3D preview `0x8008DEC0`, detail page `0x8008E7C4`, buy / sell window `0x80091784` → deal `0x80091940`).
+Messages by number: `0x800A9FAC` (texts at `0x800AA0B4`: CAN NOT BUY, CAN NOT SELL, GENERATOR FIRST …). CREDITS
+window `0x80092520` → `0x800925D8`.
+
+**Part descriptions** (code + data): before the shop opens, the hub runs `0x80058CAC` and **`0x8008A960`**: wait for
+the disc, set the loading flag `0x80188438` = 1, queue **`MIS.T` entry 817** (file 19, entry 0x331) with callback
+`0x8008A90C`, which copies it into **`0x801887C8`** (`0x80015E78(dest, buffer, 0x1381)`; what the 0x1381 means
+`?`) and clears the flag. MoA reads entry 385 into `0x801A0390`; both destinations are the shop work area + 0x3B0.
+The entry holds **246 lines of 76 characters** + CR LF (MoA: 256 lines), first line "Head unit with built-in bio
+sensor.". Owned counts: `0x800342F0` (+ part id); credits `0x8003BCD0`.
+
+## PP-4. System / card screen (`0x800501DC(task, callback)`, hub entry 3)
+
+| State | Does | MoA |
+|---|---|---|
+| `0x800501DC` | task (group 0); from the title's LOAD GAME it goes straight to the slot window `0x80051058` | `0x80059554` |
+| `0x800503D4` | menu window: **SAVE DATA, LOAD DATA, SAVE EMBLEM, LOAD EMBLEM, OPTIONS, EXIT GAME** (names `0x800492D0` …) | `0x800597E4` |
+| `0x80050608` | left window, the reports: **COAM** (money), **RANKING**, MISSION REPORT (Sorties / Success / Failure / Overall). Reads the mission progress `0x80043108` | `0x80059A70` (CREDITS, MISSION REPORT, ARENA REPORT 1 / 2) |
+| **`0x80050A9C`** | **input** (EXIT GAME → `0x80050E14`: yes / no, then back to the title `0x8009E308`) | `0x8005A280` |
+| `0x80051058` → `0x800510E8` | SLOT 1 / SLOT 2 | `0x8005A90C` |
+| `0x80051208` | card checks (adds "Memory Card is corrupt.") | `0x8005AAC4` |
+| `0x8005197C` → `0x80051A14` | "Searching for saved data." | `0x8005B2B0` |
+| `0x80051C48` → `0x80051D60` → `0x80052398` | save list "NO. A.C. NAME SORTIES …", overwrite / create / load prompts | `0x8005B684` … |
+| `0x80052C68` → `0x80052D68` | save | `0x8005C820` |
+| `0x800530B0` → `0x800531B0` | load (LOAD `0x80066C44`, finish `boot-loads.md` PP-5e) | `0x8005CD34` |
+| `0x80053704` … `0x80053B4C` | FORMAT the card ("Format Memory card?", "Formatting completed.") | — |
+| `0x80053EC4` … `0x80054BB8` | SAVE / LOAD EMBLEM | `0x8005DD48` … |
+| `0x80054D54` | OPTIONS → `0x800AA758` | `0x8005EC98` |
+
+No ARENA SAVE / LOAD (no Arena Maker). What RANKING shows (the arena rank `?`) is not read yet.
+
+**Card file names** (data, FDAT 201): game saves list `bu00:BASLUS-00670*` and **`bu00:BASCUS-94182*`** (both
+ports, `0x80049A24` …): **PP's LOAD accepts Armored Core 1 (USA) saves** — the list routines `0x800654D0`,
+`0x80065948` and LOAD `0x80066C44` all carry both names; save `0x80065ECC` writes only BASLUS-00670. MoA lists its
+own name, PP's and AC1's. The emblem files (`0x8004BEA0` …, routines `0x800B20D8` … `0x800B30F4`) list
+BASLUS-00670 and **BASCPS-94182** — "CPS", not AC1's "CUS", so PP probably cannot see AC1 emblem files (a typo in
+PP `?`; MoA's emblem list has BASCUS). Test 12.
+
+## PP-5. Arena (`0x800AE330()`, hub entry 5)
+
+One arena, no picker and no lock argument. The open routine (code):
+
+- task (group 0), opener `0x800AE330`, first state `0x800AE4F0`, destructor `0x8004EA1C`;
+- reads **`MENU_TIM` entry 482** (4,096 bytes: **100 names × 24 bytes**, "Necron", "Black Dragon" …; data) into a
+  heap buffer at task +0x7C+0x30, and **entry 483** (2,048 bytes: the **prize table, 50 × 8 bytes**: u32 money,
+  then the prize part or −1; rank 1 = 3,000,000, data) at +0x2C; a third 600-byte buffer at +0x34 `?`. MoA keeps
+  the same 8-byte prize record per arena (`arena-prizes.md` §1); PP's entries carry no `0x12345678` seal;
+- header `0x800AE1DC` (RANK, PILOT, CHALLENGE); **mode byte `0x8003BC86` = 3** (arena engine) set already on open.
+
+| State | Does | MoA |
+|---|---|---|
+| `0x800AE4F0` → `0x800AE59C` | start; books a fight that just ended (`0x8003BCD8`) → payout or list | `0x800BB12C`, `0x800BBEA8` |
+| `0x800AE84C` → `0x800AE940` → `0x800AEA00` | prize money ("C", "Acquired.") → prize part → "Special parts obtained." | `0x800BC420` … `0x800BC690` |
+| `0x800AEBCC` | list drawing (PP's own) | — |
+| **`0x800AEEA8`** | **list input**; ○ → `0x800AF418` → **`0x8004D28C`** (hub) | `0x800BD044` |
+| `0x800AF4C4` … `0x800AF864` | opponent detail (RANK, PILOT, A.C.) | `0x800BDEE0` … |
+| `0x800AFCB4` | a task that reads the opponent tables (`0x800BB6F4` …) — the opponent panel `?` | `0x800BDB4C` area |
+| **`0x800B0360`** | **challenge**: build check `0x80070C5C` → "Incompletely equipped.", else "Do you want to challenge?" (yes / no) | `0x800BED64` |
+| `0x800B064C` → `0x800B0728` | reads the **arena stage table `0x800BD6D4`** (`boot-loads.md` PP-7) | `0x800BF6A4` |
+| `0x800B0D84` → `0x800B0DF0` → `0x800B0EFC` → `0x800B0F7C` → `0x800B13C0` | "Data loading.", textures, compile, launch | `0x800C00B4` … `0x800C0878` |
+
+PP has none of MoA's arena refusals ("license suspended", "Requires a specific leg type." …) — only the
+equipment check.
+
+## PP-6. VS menu (`0x800A42DC`) and the link menu (`0x800A04A8`)
+
+**VS menu**: all states pair at 0.73–1.0 (`boot-loads.md` PP-6 has the loads). Rows (`0x800A5564`, names
+`0x8004B760`): VS START, 1P A.C. SETUP, 2P A.C. SETUP, SELECT MAP, and the win / lose counts. **Input
+`0x800A594C`** (twin of `0x800B22D8`). AC SETUP `0x800A77D4` → `0x800A79A0` (ASSEMBLY, OPTIONAL PARTS, CHANGE
+PATTERN, EDIT COLOR, SYSTEM; `0x800A7830`), SELECT MAP `0x800A744C`, "Exit VS Mode?" → `0x800A95B8`.
+**SELECT MAP is refused unless VS STAGE = SELECT**: the input reads settings +0x33 (`0x80043A73`) and, when it is
+not 0, shows **"Cannot select due to option setup."** (`0x8004B7AC`) (code). The AC SETUP pages call the garage's
+own pages (as on MoA, §2f).
+
+**Link menu** (`0x800A04A8`, the link-cable versus): one menu `0x800A0A08` (names `0x8004B5AC`): VS START,
+ASSEMBLY, OPTIONAL PARTS, CHANGE PATTERN, EDIT COLOR, SELECT MAP, SYSTEM (LOAD DATA, OPTIONS `0x800A1EE0`), with
+"Waiting for opponent." `0x800A2B30`, "Communicating data." `0x800A2E64` and three "Communication error." states.
+Its fight start goes through `0x8005C5E4` (`0x800A3EE0`). (code)
+
+## PP-7. Options (`0x800AA758`)
+
+| State | Does | MoA |
+|---|---|---|
+| `0x800AA958` | rows (`0x8004BC40` …): MASTER VOLUME, BGM VOLUME, TEXT MESSAGE, VS STAGE, **CONTROL CONFIG**, VS TIME LIMIT, VIBRATION (MoA calls the 5th row KEY ASSIGN) | `0x800B6F4C` |
+| **`0x800AADE0`** | input; ○ → `0x800AB368` / `0x800AB414` close (back to the card screen `0x800501DC`) | `0x800B7388` |
+| `0x800AB48C` → `0x800AB514` | ON / OFF | `0x800B7A34` |
+| `0x800AB8C8` → `0x800AB94C` | VS STAGE: SELECT (0), RANDOM (1), TURN (2) | `0x800B7E70` |
+| `0x800ABCF0` | volume slider | `0x800B8298` |
+| `0x800AC2D8` → `0x800AC3B8` → `0x800ACAD4` | CONTROL CONFIG (GO FORWARD …; "Overlapping key assignments.") | `0x800B8880` … |
+| `0x800AD868` → `0x800AD8EC` | VS TIME LIMIT | `0x800B9E2C` |
+
+**Settings defaults `0x800AA428`** (code): the 12 key masks are copied from **`0x800BD568`** (48 bytes, FDAT 201
++0x74498) into the settings record **`0x80043A40`**, then +0x30 TEXT MESSAGE = 1, +0x31 master volume = 63,
++0x32 BGM = 31, +0x33 VS STAGE = 0 (SELECT), +0x34 VS TIME LIMIT = 0, +0x35 VIBRATION = 1; it also writes
+`0x80041570` = 126, `0x80041572` = 62 and `0x8004132C` = 1 (what those are `?`). Same layout as MoA's record
+(§2o).
+
+## PP-8. What this means (overlays, launcher, MoA content)
+
+- **Every MoA trick in §3 carries over** with the PP addresses: hook a state routine, wait on a window with
+  `0x8004E260(0x80059658)`, open message boxes with `0x8005B884`, go home with `0x8004D28C`.
+- **Adding MoA's Ex Arena / Arena Maker** means bringing whole screens, not switching them on: PP has no code for
+  either (no twins, no texts, no card file). The PP arena screen reads its names and prizes from two `MENU_TIM`
+  entries, so a second arena could be served from our own pack by hooking the two reads in `0x800AE330`
+  (`0x800168A0` / `0x800167A0`, archive 4, entries 482 / 483).
+- **Garage rows**: the 7-word jump table `0x8004A140` is the place to add a row (RANKER-style pages, a Rogue
+  Arena page); the names are drawn one by one in `0x80085400`, so a new row needs that routine changed too.
+- **The garage TEST** already runs on mission map 19 in the missions engine; a launcher "test fight" can reuse
+  `0x80070BC8`'s five writes.
+- **Saves**: PP already imports AC1 saves; a MoA save import is a third name in the lists (`0x80049A24` …).
+
+## PP-9. Open
+
+- RANKING report: what it shows. The third arena buffer (600 bytes).
+- The 100 names in `MENU_TIM` 482: AC names and pilot names (50 + 50) `?`; the arena list's page layout.
+- The `0x1381` in the part-description copy.
+- The opponent panel state `0x800AFCB4` (`?`); the three draw kinds with no MoA twin (`scenario.md` §2).
+- `0x80041570` / `0x80041572` / `0x8004132C` in the settings defaults.
+- The in-depth sections §2h–§2p are only paired, not re-read on PP; numbers inside them (window sizes, table
+  offsets) may differ. Read each one on PP before building on it.
+
+## Tests (added to `ROUND1.md`)
+
+- **#11** Garage TEST map: Garage → TEST → yes. The fight should be on mission map 19 (the test map), in the
+  missions engine; byte `0x80042745` = 19 during the fight.
+- **#12** Card file names: on the card screen, LOAD DATA with an Armored Core 1 (USA) save on the card → it
+  should be listed. LOAD EMBLEM with an AC1 emblem file → expected *not* listed (BASCPS typo).
+
+## Handed over to the build chat (routine starts for FDAT 201 seeds; all `code`)
+
+`0x80070038`, `0x800700D8`, `0x8007017C`, `0x800701E4`, `0x80070AA8`, `0x80070BC8`, `0x80070C5C`, `0x80071D50`,
+`0x80085400`, `0x8008A90C`, `0x8008A960`, `0x800501DC`, `0x800503D4`, `0x80050608`, `0x80050A9C`, `0x80050E14`,
+`0x800A04A8`, `0x800A0A08`, `0x800A594C`, `0x800AA428`, `0x800AA758`, `0x800AA958`, `0x800AE330`, `0x800AE4F0`,
+`0x800AE59C`, `0x800AEBCC`, `0x800AEEA8`, `0x800AF418`, `0x800AFCB4`, `0x800B0360`, `0x800B064C`, `0x800B0D30`,
+`0x800B0D84`. The rest of the screens' starts: the `pp` column of `menus-screens-pp.tsv` (rows marked identical
+or same).

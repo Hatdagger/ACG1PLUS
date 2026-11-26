@@ -4635,3 +4635,107 @@ disc = "PP"
 what = "[VS] Two model pointers just below vs_model_table (0x80199C90 + 0x28C + 4i); stage data chunk 3 goes to [0] (0x80054D78), one model without a list header (sky / backdrop `guess`)"
 status = "code"
 src = "mapping/stages.md §2"
+
+[[var]]
+addr = 0x8004A140
+size = 28
+type = "ptr[7]"
+name = "garage_menu_jump"
+disc = "PP"
+what = "[menu] Garage menu row jump table (FDAT 201 +0x1070), read by the input state 0x800701E4: 0 ASSEMBLY 0x80070404, 1 OPTIONAL PARTS 0x80070800, 2 PERFORMANCE 0x80070530, 3 CHANGE COLOR 0x800706AC, 4 EDIT EMBLEM 0x80070614, 5 NAME ENTRY 0x80070754, 6 TEST 0x800707DC"
+status = "code"
+src = "mapping/menus-screens.md PP-2"
+moa = 0x80052030
+
+[[var]]
+addr = 0x8004AF28
+size = 96
+type = "char[]"
+name = "garage_menu_names"
+disc = "PP"
+what = "[menu] Garage row names (FDAT 201 +0x1E58): ASSEMBLY, OPTIONAL PARTS, PERFORMANCE, CHANGE COLOR, EDIT EMBLEM, NAME ENTRY (0x8004AF78), TEST (0x8004AF84); drawn one by one by 0x80085400"
+status = "data"
+src = "mapping/menus-screens.md PP-2"
+
+[[var]]
+addr = 0x800492D0
+size = 68
+type = "char[]"
+name = "card_menu_names"
+disc = "PP"
+what = "[menu] System / card screen rows (FDAT 201 +0x200): SAVE DATA, LOAD DATA, SAVE EMBLEM, LOAD EMBLEM, OPTIONS, EXIT GAME; then the report labels COAM, RANKING, MISSION REPORT … (0x80049314 …), drawn by 0x800503D4 / 0x80050608"
+status = "data"
+src = "mapping/menus-screens.md PP-4"
+
+[[var]]
+addr = 0x80049A24
+size = 192
+type = "char[]"
+name = "save_file_names"
+disc = "PP"
+what = "[menu] Memory card name patterns for game saves (FDAT 201 +0x954): bu00/bu10 BASLUS-00670 and BASCUS-94182 (Armored Core 1 USA: PP's LOAD 0x80066C44 accepts AC1 saves); save 0x80065ECC writes BASLUS-00670 only"
+status = "data"
+src = "mapping/menus-screens.md PP-4"
+
+[[var]]
+addr = 0x8004BEA0
+size = 176
+type = "char[]"
+name = "emblem_file_names"
+disc = "PP"
+what = "[menu] Memory card name patterns for emblem files (FDAT 201 +0x2DD0), used by 0x800B20D8 … 0x800B30F4: BASLUS-00670 and BASCPS-94182 ('CPS', not AC1's 'CUS': AC1 emblems probably not found `guess`; test 12)"
+status = "data"
+src = "mapping/menus-screens.md PP-4"
+
+[[var]]
+addr = 0x801887C8
+size = 4993
+type = "bytes"
+name = "shop_part_descriptions"
+disc = "PP"
+what = "[menu] Part description lines for the shop (shop work 0x80188418 + 0x3B0): MIS.T entry 817 (246 lines x 76 chars + CR LF), queued by 0x8008A960 and copied here by its callback 0x8008A90C (0x80015E78 with 0x1381 `guess` size); loading flag 0x80188438"
+status = "code"
+src = "mapping/menus-screens.md PP-3"
+moa = 0x801A0390
+
+[[var]]
+addr = 0x800BD568
+size = 48
+type = "u32[12]"
+name = "settings_key_defaults"
+disc = "PP"
+what = "[menu] Default key masks (FDAT 201 +0x74498), copied into settings 0x80043A40 by the defaults routine 0x800AA428, which also sets TEXT MESSAGE 1, master volume 63, BGM 31, VS STAGE 0 (SELECT), VS TIME LIMIT 0, VIBRATION 1"
+status = "code"
+src = "mapping/menus-screens.md PP-7"
+moa = 0x800D5860
+
+[[var]]
+addr = 0x8004B760
+size = 76
+type = "char[]"
+name = "vs_menu_names"
+disc = "PP"
+what = "[menu] VS menu rows (FDAT 201 +0x2690): VS START, 1P A.C. SETUP, 2P A.C. SETUP, SELECT MAP, … LOSE; then 'Cannot select due to option setup.' (0x8004B7AC, SELECT MAP when settings +0x33 != 0) and 'Exit VS Mode?'"
+status = "data"
+src = "mapping/menus-screens.md PP-6"
+
+[[var]]
+addr = 0x8004B5AC
+size = 96
+type = "char[]"
+name = "link_menu_names"
+disc = "PP"
+what = "[menu] Link-cable versus menu rows (FDAT 201 +0x24DC), drawn by 0x800A0A08: VS START, ASSEMBLY, OPTIONAL PARTS, CHANGE PATTERN, EDIT COLOR, SELECT MAP, SYSTEM"
+status = "data"
+src = "mapping/menus-screens.md PP-6"
+
+[[var]]
+addr = 0x8004BC40
+size = 100
+type = "char[]"
+name = "options_row_names"
+disc = "PP"
+what = "[menu] Options rows (FDAT 201 +0x2B70), drawn by 0x800AA958: MASTER VOLUME, BGM VOLUME, TEXT MESSAGE, VS STAGE, CONTROL CONFIG, VS TIME LIMIT, VIBRATION"
+status = "data"
+src = "mapping/menus-screens.md PP-7"
+

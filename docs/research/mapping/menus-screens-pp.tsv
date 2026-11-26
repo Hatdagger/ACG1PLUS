@@ -1,0 +1,451 @@
+# MoA-US FDAT 206 / exe routine in menus-screens.md -> PP twin, from docs/research/xdisc pair table (pp-disc/maps/moa-to-pp-functions.tsv).
+# offset > 0: the address is inside a routine; PP address = twin start + offset (check it). match: same = only numbers/field offsets differ.
+# Not read one by one unless menus-screens.md PP section says so. MoA-only = no PP twin (PP lacks the feature or the code changed too much).
+moa	section	pp	offset	match	similarity
+8004A7D0	2p	?		not in pair table	
+8004A7D8	2p	?		not in pair table	
+8004A7E0	2p	?		not in pair table	
+8004A9E0	2p	?		not in pair table	
+8004AB18	2p	?		not in pair table	
+8004AB60	2p	?		not in pair table	
+8004AC58	2n	?		not in pair table	
+8004AC5C	2n	?		not in pair table	
+8004AC60	2n	?		not in pair table	
+8004B4A8	2p	?		not in pair table	
+8004B4D8	2p	?		not in pair table	
+8004B520	2j	?		not in pair table	
+8004B528	2j	?		not in pair table	
+8004B558	2j	?		not in pair table	
+8004B568	2g	?		not in pair table	
+8004B598	2o	?		not in pair table	
+8004B599	2o	?		not in pair table	
+8004B59A	2o	?		not in pair table	
+8004B59B	2o	?		not in pair table	
+8004B59C	2o	?		not in pair table	
+8004B59D	2o	?		not in pair table	
+8004B5A0	2n	?		not in pair table	
+8004B5B2	2n	?		not in pair table	
+8004B5C4	2n	?		not in pair table	
+8004B5D7	2n	?		not in pair table	
+8004B606	2n	?		not in pair table	
+8004B608	2n	?		not in pair table	
+8004B67C	2n	?		not in pair table	
+8004B686	2d	?		not in pair table	
+8004B710	2h	?		not in pair table	
+8004B730	2p	?		not in pair table	
+80050DD8		800490D0		changed	0.560
+800510F0	2n	?		inside a data block or a changed routine: no safe twin	
+80052030	2a	?		inside a data block or a changed routine: no safe twin	
+800522A0	2h	?		inside a data block or a changed routine: no safe twin	
+80052358	2h	?		inside a data block or a changed routine: no safe twin	
+80052460	2h	?		inside a data block or a changed routine: no safe twin	
+800527B0	2h	?		inside a data block or a changed routine: no safe twin	
+80052820	2h	?		inside a data block or a changed routine: no safe twin	
+8005295C	2l	?		inside a data block or a changed routine: no safe twin	
+80052EDC	2k	?		inside a data block or a changed routine: no safe twin	
+800530D8	2i	?		inside a data block or a changed routine: no safe twin	
+800531D4	2i	?		inside a data block or a changed routine: no safe twin	
+80053808	2p	?		inside a data block or a changed routine: no safe twin	
+8005383C	2p	?		inside a data block or a changed routine: no safe twin	
+8005396C	2p	?		inside a data block or a changed routine: no safe twin	
+80053D2C	2o	?		inside a data block or a changed routine: no safe twin	
+800544A0	1e	?		inside a data block or a changed routine: no safe twin	
+800552C0	1e	-		MoA-only	
+8005557C	1d	?		inside a data block or a changed routine: no safe twin	
+80056528	1a	8004D28C		same	1.000
+800572FF	1e	?		inside a data block or a changed routine: no safe twin	
+80057470	1a	8004E260		same	1.000
+80057554	1a	8004E344		same	1.000
+800575B8	1a	8004E3A8		same	1.000
+800579A0	1a	8004E790		same	1.000
+80057B28	1a	8004E91C		changed	0.961
+80057C24	1a	8004EA1C		identical	1.000
+80057C2C	1a	8004EA24		identical	1.000
+80058178	2n	8004EE9C		identical	1.000
+800583A0	1e	-		MoA-only	
+800583F8	1e	8004F114		identical	1.000
+80058864	2j	-		MoA-only	
+80058B04	1e	-		MoA-only	
+80059554	1e	800501DC		changed	0.848
+800597E4	2c	800503D4		changed	0.737
+80059A70	2c	-		MoA-only	
+8005A280	2c	80050A9C		changed	0.846
+8005A6C0	2c	80050E14		changed	0.980
+8005A854	2n	80050FB0		changed	0.955
+8005A90C	2c	80051058		same	1.000
+8005A99C	2c	800510E8		same	1.000
+8005AAC4	2c	?		inside a data block or a changed routine: no safe twin	
+8005B250	2n	8005191C		same	1.000
+8005B2B0	2c	8005197C		same	1.000
+8005B348	2c	-		MoA-only	
+8005B684	2c	80051C48		changed	0.926
+8005B7C0	2c	80051D60		same	1.000
+8005BF38	2c	80052398		changed	0.971
+8005C820	2c	80052C68		same	1.000
+8005C94C	2c	80052D68		changed	0.679
+8005CD34	2c	800530B0		same	1.000
+8005CE68	2c	800531B0		changed	0.747
+8005D464	2n	80053704		changed	0.680
+8005D928	2n	80053AEC		changed	0.561
+8005DA2C	2c	80053BCC		same	1.000
+8005DD48	2c	80053EC4		same	1.000
+8005EAB4	2c	80054BB8		changed	0.821
+8005EC98	2c	80054D54		same	1.000
+8005EDAC	2n	80054E68		changed	0.950
+8005F140	2c	-		MoA-only	
+8005F674	2c	-		MoA-only	
+8005F8FF	1e	8005505F	135	identical	1.000
+800620D4	1a	80057834		identical	1.000
+800633A4	2p	80058B04		identical	1.000
+8006354C	2b	80058CAC		identical	1.000
+80063634	2b	80058D94		identical	1.000
+800639A4	1b	80059104		changed	0.977
+80063B54	1c	800592B8		same	1.000
+80063EF4	1c	80059658		changed	0.837
+800642B0	1c	-		MoA-only	
+80064348	1a	80059E94		changed	0.953
+800647B8	1c	8005A63C		same	1.000
+80064CC0	2i	8005AB44		identical	1.000
+8006527C	1c	8005B100		same	1.000
+80065330	1c	8005B1B4		same	1.000
+80065858	1c	-		MoA-only	
+80065D00	1c	8005B6DC		identical	1.000
+80065DD4	1c	8005B7B0		identical	1.000
+80066C08	1c	-		MoA-only	
+80067000	2a	8005C5E4		same	1.000
+80067244	2f	8005C828		same	1.000
+80068038	1b	8005D350		same	1.000
+80068BEC	1a	8005DE8C		same	1.000
+80068C3C	1a	8005DEDC		same	1.000
+80068C8C	1a	8005DF2C		same	1.000
+80068CDC	1a	8005DF7C		same	1.000
+80068D2C	1a	8005DFCC		same	1.000
+80068D7C	1a	8005E01C		same	1.000
+80068DCC	1a	8005E06C		same	1.000
+80068EBC	1a	8005E15C		same	1.000
+80068F5C	1a	-		MoA-only	
+80068FFC	1a	-		MoA-only	
+8006909C	1a	8005E1FC		changed	0.999
+8006E230	1a	-		MoA-only	
+8006E5B4	1a	800639BC		changed	0.914
+8006EAEC	1a	80063ED8		changed	0.938
+8006EE14	1a	800641C8		same	1.000
+8006F104	1a	-		MoA-only	
+8006F6D4	1a	-		MoA-only	
+8006FFFF	1e	-		MoA-only	
+80070120	1e	800654D0		changed	0.708
+8007155C	1e	-		MoA-only	
+80073424	1e	-		MoA-only	
+80073E28	1e	-		MoA-only	
+80074840	2n	-		MoA-only	
+80074994	2n	80068020		identical	1.000
+80074DC0	1e	8006844C		identical	1.000
+80074DFC	2a	80068488		changed	0.986
+80074FD4	2a	8006866C		changed	0.724
+800751AC	2a	80068860		same	1.000
+80075354	2a	80068A08		changed	0.909
+80076064	2a	-		MoA-only	
+8007646C	2a	80069E64		changed	0.963
+80077204	2a	8006AB88		same	1.000
+80077270	2m	8006ABF4		same	1.000
+800779A0	2a	8006B324		same	1.000
+80077EAC	2m	8006B830		identical	1.000
+80079080	2m	8006CA04		changed	0.983
+80079B70	2m	8006D4F8		same	1.000
+80079BE0	2m	8006D568		changed	0.943
+80079E14	2m	8006D79C		same	1.000
+80079F4C	2m	8006D8D4		same	1.000
+8007A338	2m	8006DCC0		same	1.000
+8007A7BC	2m	8006E144		same	1.000
+8007AAD0	2m	8006E458		same	1.000
+8007ADD8	2m	8006E760		same	1.000
+8007B094	2m	8006EA1C		same	1.000
+8007B3C0	2m	8006ED48		identical	1.000
+8007B3F4	2m	8006ED7C		same	1.000
+8007C6AF	1e	80070037	91	identical	1.000
+8007C6B0	1e	-		MoA-only	
+8007C8F4	2a	-		MoA-only	
+8007C9E4	2a	-		MoA-only	
+8007CAC8	1a	800701E4		changed	0.507
+8007DA68	2a	80070AA8		changed	0.835
+8007DB44	2a	80070BC8		same	1.000
+8007DBD8	2a	-		MoA-only	
+8007DE4C	2a	-		MoA-only	
+8007E164	2a	80070C5C		changed	0.871
+8007E730	2h	80071178		same	1.000
+8007ED74	2a	800717BC		same	1.000
+8007EEAC	2m	800718F4		changed	0.966
+8007EEE8	2a	-		MoA-only	
+8007F038	2a	-		MoA-only	
+8007F0CC	2a	-		MoA-only	
+8007F6C4	2a	800719EC		changed	0.633
+8007F8A8	2a	-		MoA-only	
+800800DC	2a	-		MoA-only	
+800806B0	2a	-		MoA-only	
+800807E4	2a	80071A8C		same	1.000
+800808A0	2a	80071B48		same	1.000
+800809C8	2a	80071C70		same	1.000
+80080AA8	2a	-		MoA-only	
+80080C60	1a	80071E48		changed	0.609
+80080D90	2a	-		MoA-only	
+80081E48	2f	80072C3C		same	1.000
+80082014	2f	80072E08		same	1.000
+800822B0	2h	800730A4		same	1.000
+80082530	2l	80073324		identical	1.000
+8008284C	2h	80073640		changed	0.784
+80082BEC	2a	800739E8		changed	0.908
+80083130	2f	80073F08		changed	0.908
+80083AA8	2h	80074870		identical	1.000
+80083E7C	2h	-		MoA-only	
+800860D8	2h	80077B28		identical	1.000
+80086260	2a	80077CB0		same	1.000
+800862DC	2a	80077D2C		same	1.000
+800865B4	1d	80078004		changed	0.912
+80088340	1d	?		inside a data block or a changed routine: no safe twin	
+800887E0	2a	80079F98		same	1.000
+80088924	2a	8007A080		changed	0.869
+8008935C	2a	8007ABF0		same	1.000
+80089514	2a	8007ADA8		changed	0.828
+80089750	2a	8007AF9C		changed	0.585
+800897E4	2a	8007B09C		changed	0.774
+80089E4C	2h	8007B714		same	1.000
+8008A254	2a	8007BB1C		identical	1.000
+8008A32C	2a	8007BBF4		same	1.000
+8008A748	2a	8007C0A8		same	1.000
+8008A82C	2l	8007C18C		same	1.000
+8008A910	2a	8007C270		same	1.000
+8008A9F4	2l	8007C354		same	1.000
+8008AC78	2a	8007C5D8		same	1.000
+8008B110	2a	8007CA70		same	1.000
+8008B304	2a	8007CC64		changed	0.932
+8008B900	2a	8007D218		same	1.000
+8008B9BC	2a	8007D2D4		same	1.000
+8008BDF0	2a	8007D708		same	1.000
+8008CDF4	2a	8007E70C		same	1.000
+8008DCC8	2a	8007F610		same	1.000
+8008DFA4	2l	8007F8EC		changed	0.975
+8008E70C	2l	80080044		same	1.000
+8008E8D8	2a	80080210		changed	0.837
+80090FD8	2a	800829A4		changed	0.991
+80091204	2a	80082BD0		changed	0.754
+80091504	2j	80082E98		same	1.000
+80091558	2j	80082EEC		same	1.000
+80091610	2a	80082FA4		same	1.000
+800919F8	2j	800833AC		same	1.000
+80091B78	2j	8008352C		same	1.000
+80091BF0	2j	-		MoA-only	
+80091C7C	2a	8008367C		same	1.000
+80091DB0	2j	800837B0		identical	1.000
+80091FB8	2j	800839B8		changed	0.542
+80092020	2a	80083A10		changed	0.872
+80092550	1d	?		inside a data block or a changed routine: no safe twin	
+80092794	2a	800841A8		changed	0.927
+800927E8	2j	800841F8		same	1.000
+80092A34	2a	80084444		same	1.000
+80092B44	2k	80084554		same	1.000
+80092BB4	2a	800845C4		changed	0.636
+800936A8	2a	800851E8		same	1.000
+8009379C	2k	-		MoA-only	
+80093808	2a	-		MoA-only	
+800939FF	1e	-		MoA-only	
+80093B18	1e	800856AC		same	1.000
+80093C7C	2n	800857F8		same	1.000
+80096288	2i	80087B90		identical	1.000
+8009632C	2i	80087C34		identical	1.000
+800965B8	2i	80087EC0		identical	1.000
+800967C4	2i	800880CC		changed	0.977
+80098FF4	2b	8008A90C		same	1.000
+80098FFF	1e	8008A917	11	same	1.000
+80099048	1e	8008A960		same	1.000
+800990AC	2b	8008A9C4		same	1.000
+80099498	2b	8008ADB0		same	1.000
+80099524	2b	8008AE3C		changed	0.649
+80099734	2i	8008B0D8		same	1.000
+80099990	2i	8008B334		same	1.000
+80099BEC	2b	8008B590		changed	0.964
+80099EAC	2b	8008B86C		same	1.000
+8009A26C	2b	8008BC2C		changed	0.883
+8009A314	2b	8008BCB8		identical	1.000
+8009A31C	2b	8008BCC0		same	1.000
+8009A3FC	2b	8008BDA0		identical	1.000
+8009A738	2b	8008C0DC		changed	0.980
+8009AB48	2b	8008C4EC		same	1.000
+8009B488	2i	8008CE2C		identical	1.000
+8009B750	2b	8008D0F4		same	1.000
+8009BD6C	2b	8008D710		changed	0.874
+8009C4EC	2b	8008DEC0		same	1.000
+8009CD38	2b	-		MoA-only	
+8009CED4	2b	8008E764		changed	0.545
+8009CF4C	2b	8008E7C4		same	1.000
+8009D148	2b	8008E9C0		changed	0.964
+8009FBB8	2b	80091388		same	1.000
+8009FCA4	2i	80091474		same	1.000
+8009FFE8	2b	80091784		same	1.000
+800A003C	2b	800917D8		same	1.000
+800A00C8	2b	80091864		changed	0.767
+800A01B4	2b	80091940		changed	0.936
+800A0D54	2b	80092520		same	1.000
+800A0E0C	2b	800925D8		same	1.000
+800A1FFF	1e	8009380F	151	same	1.000
+800A2020	1e	80093830		same	1.000
+800A69C8	1a	80098640		changed	0.600
+800A69FF	1e	?		inside a data block or a changed routine: no safe twin	
+800A6C70	2p	?		inside a data block or a changed routine: no safe twin	
+800A7104	1a	?		inside a data block or a changed routine: no safe twin	
+800A7634	1a	?		inside a data block or a changed routine: no safe twin	
+800A7BB4	1e	-		MoA-only	
+800AA000	1e	-		MoA-only	
+800AAE94	2c	-		MoA-only	
+800AC93C	2c	8009F274		same	1.000
+800ACDFF	1e	800A0493	19	identical	1.000
+800ACE14	1e	800A04A8		same	1.000
+800B0CB3	1e	800A42DB	463	same	1.000
+800B0CB4	1e	800A42DC		same	1.000
+800B0FE4	2p	800A460C		changed	0.812
+800B1658	2f	800A4CD4		same	1.000
+800B1CA4	2f	800A5320		same	1.000
+800B1DC4	2p	800A5438		identical	1.000
+800B1E98	2f	800A550C		same	1.000
+800B1EF0	2f	800A5564		changed	0.990
+800B22D8	2f	?		inside a data block or a changed routine: no safe twin	
+800B2748	2p	?		inside a data block or a changed routine: no safe twin	
+800B2D7C	2f	800A6360		changed	0.733
+800B3584	2p	800A6AE0		changed	0.960
+800B38C0	2f	800A744C		changed	0.889
+800B3BA4	2f	800A777C		changed	0.816
+800B3C10	2f	800A77D4		same	1.000
+800B3C6C	2f	800A7830		same	1.000
+800B3DDC	2f	800A79A0		changed	0.854
+800B4408	2p	800A7F18		same	1.000
+800B47D4	4	800A82E4	972	same	1.000
+800B48E4	2f	800A83F4		same	1.000
+800B49BC	2l	800A84CC		changed	0.977
+800B4A68	2f	800A8578		same	1.000
+800B4C18	2f	800A8728		changed	0.754
+800B4F18	2f	800A89F0		same	1.000
+800B4F78	2f	800A8A50		same	1.000
+800B4FF0	2f	800A8AC8		same	1.000
+800B53C8	2f	800A8EA0		same	1.000
+800B541C	2f	800A8EF4		same	1.000
+800B5470	2p	800A8F48		changed	0.825
+800B56B4	2f	800A9180		same	1.000
+800B5798	2f	800A9264		changed	0.993
+800B5AEC	2f	800A95B8		same	1.000
+800B5BF8	2p	800A96C4		changed	0.942
+800B6430	2p	-		MoA-only	
+800B6550	1c	800A9FAC		same	1.000
+800B6658	1c	800AA0B4		changed	0.749
+800B69F8	1e	800AA428		changed	0.943
+800B6A7F	1e	?		inside a data block or a changed routine: no safe twin	
+800B6A80	2g	-		MoA-only	
+800B6D48	2c	800AA758		same	1.000
+800B6F4C	2g	800AA958		changed	0.699
+800B7290	2o	800AACE8		same	1.000
+800B730C	2o	800AAD64		same	1.000
+800B7388	2g	800AADE0		same	1.000
+800B7910	2g	800AB368		same	1.000
+800B79BC	2g	800AB414		same	1.000
+800B7A34	2g	800AB48C		same	1.000
+800B7ABC	2g	800AB514		same	1.000
+800B7E70	2g	800AB8C8		same	1.000
+800B7EF4	2g	800AB94C		same	1.000
+800B8298	2g	800ABCF0		same	1.000
+800B8684	2o	800AC0DC		same	1.000
+800B8880	2g	800AC2D8		same	1.000
+800B8960	2g	800AC3B8		changed	0.912
+800B9074	2g	800ACAD4		changed	0.954
+800B97E8	2o	800AD224		changed	0.993
+800B9CB0	2o	800AD6EC		same	1.000
+800B9E2C	2g	800AD868		same	1.000
+800B9EB0	2g	800AD8EC		same	1.000
+800BA5FF	1e	800AE03B	595	same	1.000
+800BA64C	1e	-		MoA-only	
+800BA9B8	2d	800AE1DC		changed	0.508
+800BACE8	2d	-		MoA-only	
+800BB12C	2d	800AE4F0		changed	0.688
+800BB1F4	2d	-		MoA-only	
+800BB660	2d	-		MoA-only	
+800BB730	2d	-		MoA-only	
+800BB8AC	2d	-		MoA-only	
+800BB93C	2d	-		MoA-only	
+800BBDC8	2d	-		MoA-only	
+800BBEA8	2d	-		MoA-only	
+800BC420	2d	800AE84C		same	1.000
+800BC514	2d	800AE940		changed	0.559
+800BC690	2d	800AEA00		changed	0.613
+800BD044	2d	800AEEA8		changed	0.598
+800BDAA8	2d	-		MoA-only	
+800BDB4C	2d	-		MoA-only	
+800BDC54	2d	-		MoA-only	
+800BDE88	2d	800AF46C		identical	1.000
+800BDEE0	2d	800AF4C4		same	1.000
+800BE340	2d	800AF864		changed	0.895
+800BED64	2d	-		MoA-only	
+800BF43C	2d	-		MoA-only	
+800C00B4	2d	800B0D84		same	1.000
+800C0120	2d	800B0DF0		changed	0.582
+800C028C	2d	800B0EFC		same	1.000
+800C030C	2d	800B0F7C		changed	0.661
+800C0878	2d	800B13C0		changed	0.550
+800C0E7C	2p	800B16A0		changed	0.997
+800C19FF	1e	-		MoA-only	
+800C1A78	1e	800B20D8		changed	0.779
+800C2048	2n	800B27B4		identical	1.000
+800C2070	2n	-		MoA-only	
+800C209C	2n	800B27DC		changed	0.561
+800C276C	2n	800B2DCC		changed	0.575
+800C413C	2n	-		MoA-only	
+800C4970	2n	-		MoA-only	
+800C4E74	2e	-		MoA-only	
+800C5498	2e	-		MoA-only	
+800C54FF	1e	-		MoA-only	
+800C5514	2e	-		MoA-only	
+800C5580	1e	-		MoA-only	
+800C55D4	2e	-		MoA-only	
+800C5C3C	2a	-		MoA-only	
+800C6480	2a	-		MoA-only	
+800C6B78	2e	-		MoA-only	
+800C6E4C	2e	-		MoA-only	
+800C71DC	2e	-		MoA-only	
+800C7748	2e	-		MoA-only	
+800C7B20	2e	-		MoA-only	
+800C8E2C	2e	-		MoA-only	
+800C8F58	2e	-		MoA-only	
+800C97DC	2e	-		MoA-only	
+800C98FC	2e	-		MoA-only	
+800C9D48	2e	-		MoA-only	
+800CA4C8	2e	-		MoA-only	
+800CA7BC	2e	-		MoA-only	
+800CA87C	2e	-		MoA-only	
+800CADFF	1e	800B367F	7	identical	1.000
+800CAEB8	1e	800B3738		identical	1.000
+800CB74C	1a	?		inside a data block or a changed routine: no safe twin	
+800CB7A8	2n	?		inside a data block or a changed routine: no safe twin	
+800CB7B4	2n	?		inside a data block or a changed routine: no safe twin	
+800CB844	2c	?		inside a data block or a changed routine: no safe twin	
+800CD3DC	2m	?		inside a data block or a changed routine: no safe twin	
+800CD45C	2m	?		inside a data block or a changed routine: no safe twin	
+800CD618	2h	?		inside a data block or a changed routine: no safe twin	
+800CD66C	2l	?		inside a data block or a changed routine: no safe twin	
+800CD6AC	2l	?		inside a data block or a changed routine: no safe twin	
+800CD82C	2h	?		inside a data block or a changed routine: no safe twin	
+800CD970	2j	?		inside a data block or a changed routine: no safe twin	
+800CD9F8	2l	?		inside a data block or a changed routine: no safe twin	
+800CDE44	2j	?		inside a data block or a changed routine: no safe twin	
+800CDE6C	2j	?		inside a data block or a changed routine: no safe twin	
+800CDE8C	2j	?		inside a data block or a changed routine: no safe twin	
+800CE660	2p	?		inside a data block or a changed routine: no safe twin	
+800CE66C	2p	?		inside a data block or a changed routine: no safe twin	
+800CEAC8	2j	?		inside a data block or a changed routine: no safe twin	
+800D1AA0	2j	?		inside a data block or a changed routine: no safe twin	
+800D375C	2j	?		inside a data block or a changed routine: no safe twin	
+800D4544	2h	?		inside a data block or a changed routine: no safe twin	
+800D5800	2p	?		inside a data block or a changed routine: no safe twin	
+800D5860	2g	?		inside a data block or a changed routine: no safe twin	
+800D58CC	2o	?		inside a data block or a changed routine: no safe twin	
+800D595C	2o	?		inside a data block or a changed routine: no safe twin	
+800D5A20	2d	?		inside a data block or a changed routine: no safe twin	
+800D5CF0	2n	?		inside a data block or a changed routine: no safe twin	
+800D5D70	2n	?		inside a data block or a changed routine: no safe twin	
+800D5E30	2n	?		inside a data block or a changed routine: no safe twin	
+800D6130	2n	?		inside a data block or a changed routine: no safe twin	

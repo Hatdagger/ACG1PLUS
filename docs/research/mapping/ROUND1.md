@@ -51,6 +51,8 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 | 8 | R2 PA | Hit size from the body file: plain VS; default AC, then XCA-00 + AN-K1 + LN-1001, then any caterpillar. Halfwords at `0x801D8030` / `0x801D8032` should read 100 / 212, 100 / 225, 112 / 150 (`pa-archives.md` §4) | DuckStation memory view |
 | 9 | R2 PA | Body number: in VS, byte `0x80042769` (player 1 block + 0x281) = 0 with the default AC, 11 with XCA-00 + AN-K1 + LN-1001 (`pa-archives.md` §1) | DuckStation memory view |
 | 10 | R2 stages | AI markers: arena fight on stage 23 or 29, then on stage 20. On 23 / 29 the opponent should now and then run to a ledge and boost up onto it; never on 20 (`stages.md` §3) | any build, eyes only |
+| 11 | R2 screens | Garage TEST map: Garage → TEST → yes; the fight should be on mission map 19 (the test map), and byte `0x80042745` = 19 during it (`menus-screens.md` PP-2) | DuckStation memory view |
+| 12 | R2 screens | Card names: LOAD DATA with an Armored Core 1 (USA) save on the card → listed; LOAD EMBLEM with an AC1 emblem file → expected *not* listed (PP's emblem list says BASCPS-94182, `menus-screens.md` PP-4) | real PP or DuckStation, an AC1 card |
 
 ## Open questions left by the lanes
 - **Foundations:** menu module 201 header/entry; disc files 0 and 3; what the 72 PA archives hold (motion,
@@ -63,5 +65,5 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 - **AI:** stage-object kinds 0x0A / 0x14 and which stages have them; which AI record each arena rank gets.
 - **Boot:** peak menu heap use (live); which side the link engine treats as "me".
 - **Renderer:** stage geometry format; arena HUD and screen-edge sites.
-- **Scenario:** the screens behind each hub entry in depth (garage pages, shop, card screen, arena list, options,
+- **Scenario:** ~~the screens behind each hub entry in depth~~ (round 2 topic 3: `menus-screens.md` §PP) (garage pages, shop, card screen, arena list, options,
   VS menu); which draw kind each menu draw routine serves.
