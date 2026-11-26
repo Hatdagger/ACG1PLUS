@@ -1,4 +1,520 @@
-# Master of Arena — Battle System Mapping
+# Battle System Mapping
+
+**Lane 4 of the 2026-11-26 mapping restart** (`PLAN.md`). The base game is **Project Phantasma USA
+(SLUS-00670, "Version 1.0")**, so the first part of this file is Phantasma (tag `PP`). The second part,
+"Master of Arena (reference)", is the earlier MoA work and is entirely **MoA-US** (SLUS-01030 v1.0 disc 1).
+
+## Phantasma (PP) — battle system core (Lane 4, 2026-11-26)
+
+Read from the disc's code only (static, nothing run yet). Status tags used below:
+
+| Tag | Meaning |
+|---|---|
+| `code` | read in Phantasma's own code: the instruction that reads or writes it was looked at, and the meaning follows from what that code does |
+| `moved` | Phantasma offset found by pairing a MoA routine with its Phantasma twin and seeing the same instruction with a different offset. The **meaning** is carried over from the MoA notes (second part of this file) and has not been re-proven on PP |
+| `guess` | unproven |
+
+Nothing here is `tested` yet; the live test list at the end says what to check first.
+
+### How this was done
+
+- Phantasma's modules were paired with MoA's using `pp-disc/maps/moa-to-pp-functions.tsv` (pp-work pack), then
+  each paired routine was disassembled side by side: same instruction, different offset → the field moved.
+  Doing that over all 1,000+ paired VS-engine routines, while tracking which register holds the player block
+  (loaded from the "current player block" global) and which holds an AC object (loaded from player block
+  +0x3A0, or the first argument of the AC routines), gives the field shift tables below with hit counts.
+- Phantasma's VS engine and arena engine were then paired with each other (`mipscmp.py`, PP FDAT 204 vs 205):
+  543 routines are byte-identical and 61 differ only in numbers, so almost all fight code is shared and
+  the arena addresses below come from that pairing.
+- The sandbox helper scripts (disassembler wrapper, pairing, field statistics) are not committed: they are
+  small and Lane 1 owns the shared tools. They read the pp-work / ma-work packs only.
+
+### Where things are on the disc
+
+| What | Disc file | RAM | Disc position of an address |
+|---|---|---|---|
+| Boot program | `SLUS_006.70` | loads at `0x80011000` | file offset = addr − 0x80011000 + 0x800 |
+| VS engine | `GG/COM/FDAT.T` entry **204** (sector 9,089, 132 sectors) | `0x800490D0` … | `FDAT 204 +(addr − 0x800490D0)` |
+| Arena engine | FDAT.T entry **205** (sector 9,221, 144 sectors) | `0x800490D0` … | `FDAT 205 +(addr − 0x800490D0)` |
+| Fight stage code | FDAT.T entries 100+ (e.g. **100**), one per stage | `0x8008F5D0` (match struct +0x20) | `FDAT n +(addr − 0x8008F5D0)` |
+
+Every address below without a file is code or data in the module named in its section heading (VS = FDAT 204,
+arena = FDAT 205). Addresses `0x8003xxxx`–`0x8004xxxx` below `0x800490D0` are boot-program RAM (no disc copy:
+they are set at run time). Addresses `0x801Dxxxx` are run-time RAM only.
+
+### Globals (PP, data)
+
+| PP address | Size | Meaning | MoA-US twin | Status |
+|---|---|---|---|---|
+| `0x800424E8` | 936 (0x3A8) | **Player block P1** | `0x80045198` (928) | code (VS entry `0x8004A228`, hit routine) |
+| `0x80042890` | 936 | **Player block P2** (= P1 + 0x3A8) | `0x80045538` | code |
+| `0x8003BD00` | u32 | **Current player block** pointer (set before each per-player routine) | `0x8003EAA0` | code |
+| `0x8003BD04` / `0x8003BD08` | u32 | Pointers to P1 / P2 player block (set by VS load) | `0x8003EAA4` / `A8` | code (`0x8004DECC`) |
+| `0x8003BCF1` | u8 | Set to 1 just before the main loop starts `?` | `0x8003EA91` | code, meaning guess |
+| `0x8003BCF2` | u8 | **Replay flag** (VS: 1 = START at CONTINUE?, replay next; arena: 2 = this fight is a replay, see Arena) | `0x8003EA92` | code |
+| `0x8003BCF4` | u8 | **Round number** (+1 per decided round; its low bit picks whose stage is used) | `0x8003EA94` | code |
+| `0x8003BD10` / `12` / `14` / `16` | u16 ×4 | **VS win/loss counters**: 1P wins, 1P losses, 2P wins, 2P losses (cap 999) | `0x8003EAB0` … `B6` | code |
+| `0x8008F5B0` | 0x20 + | **VS match struct** (table below) | `0x80097EA0` | code |
+| `0x8008AE40` / `0x8008B1F0` | 936 ×2 | VS engine's backup of P1 / P2 player block (copied in at entry, copied back at exit) | `0x80093750` / `0x80093AF0` | code |
+| `0x801D80E0` / `0x801D8250` | 368 ×2 | **VS AC objects** P1 / P2 | `0x801D4BC0` / `0x801D4D38` (376) | code (VS load, hit routine) |
+| `0x801D8088` / `0x801D80B4` | 44 ×2 | Object-type records passed to AC setup for P1 / P2 | MoA "44-byte object-type record" | code (address), moved (meaning) |
+| `0x801DA408` / `0x801DA440` | 56 ×2 | VS camera records P1 / P2 (player block +0x3A4 points to them) | `0x801D6EF8` / `0x801D6F30` | code |
+| `0x801DA3E0` | 0x10 ×2 | Two records set up by `0x800756C0` at match start, reset by `0x80075730` before a rematch / replay `?` | `0x801D6ED0` | code, meaning guess |
+| `0x801DA47C` | 256 × **224** | **Object pool** (shots, missiles, effects) | `0x801D6F6C` (256 × 228) | code (`0x8007FCF8`) |
+
+### VS match struct `0x8008F5B0` (PP)
+
+| Off | Size | Meaning | Status |
+|---|---|---|---|
+| +0x00 | u8 | **Stage number** for this round: P1's choice (player block +0x25D) on even rounds, P2's on odd rounds | code (`0x8004DECC`) |
+| +0x04 | u32 | Stage code table pointer = `0x8008F5D0` (+0 = per-step routine, +4 = init) | code |
+| +0x08 | u32 | Load buffer pointer, starts `0x800A2C88`, moved along as the fight data is unpacked | code |
+| +0x0C | u32 | Flags: 0x40 = time up, 0x80 = draw, 0x30 = result shown, **0x400 = inputs ignored and hits undo their damage** (pad reader writes 0; on-hit adds the damage back) | code |
+| +0x10 | u16 | **End countdown** (0 = fighting; 30 at time up, +90 when the result is decided; waits at 30 for CONTINUE?) | code |
+| +0x12 | u16 | Steps elapsed (capped 0x4000); the clock only runs once it is ≥ 16 | code |
+| +0x14 | u16 | **Time left in steps** = the larger of the two players' time setting (player block +0x258) × 22 | code |
+| +0x16 / +0x1A | u16 | Set to 0x80 / 0x40 at load `?` | code, meaning guess |
+| +0x18 | u16 | Cleared at load `?` | code |
+| +0x20 … | | Stage code loaded here (see "Stage area boxes") | code |
+
+### Player block (PP, 936 bytes, `0x800424E8` / `0x80042890`)
+
+**Rule:** every MoA player-block field from MoA +0x08 upward sits **exactly 8 bytes higher** in Phantasma.
+Found 136 fields this way with no exception except one (below). The 8 bytes come from the pad words at the
+start being 32-bit in Phantasma (16-bit in MoA).
+
+Fields read on PP itself (`code`):
+
+| PP off | Size | Meaning | MoA-US off |
+|---|---|---|---|
+| +0x000 | u32 | Pad this step, **byte-swapped bit layout** (✕ 0x40, ○ 0x20, △ 0x10, □ 0x80, L2 0x01, R2 0x02, L1 0x04, R1 0x08, SELECT 0x100, START 0x800, Up 0x1000, Right 0x2000, Down 0x4000, Left 0x8000). Read by `0x80075958` (called from `0x800759D4`) for both pads at once (P1 low half, P2 high half) | +0x000 (u16, raw layout) |
+| +0x004 | u32 | +0x000 of the step before | +0x002 |
+| +0x008 | u32 | **Pad the AC acts on** (= +0x000, or 0 while match flag 0x400 is set) | +0x004 |
+| +0x00C | u32 | +0x008 of the step before | +0x006 |
+| +0x010 | u16 | **Fight flags**: bits 0–2 = stage area bits (cleared each step, set by the stage's box test), 0x10 = won, 0x20 = lost | +0x008 |
+| +0x018 | u8 | Selected weapon slot (cleared at match start) | +0x010 |
+| +0x019 | u8 | Weapon change request (cleared at match start) | +0x011 |
+| +0x01E | u16 | **Energy** (set to capacity +0x26A at match start) | +0x016 |
+| +0x020 | u16 | Bit 0 = booster lock (cleared at match start) | +0x018 |
+| +0x048 | u8 | Blade wave fired this swing (set to 1 on swing frame 0) | +0x040 |
+| +0x04C | u32 | `0x80088B24` + body combination × 20 (table pointer, see Lane 5) | +0x044 |
+| +0x084 | u32 | **Lock target** (lock slot 0's target object; also the blade lunge target) | +0x07C |
+| +0x204 | u32 | Radar range² | +0x1FC |
+| +0x208 … +0x21E | u16 | Movement values scaled in at match start (`0x8007AFD0`, same formulas as MoA: rise, boost, turn, friction) | +0x200 … +0x216 |
+| +0x220 | u16 | Missile cursor rest pitch (copied to the AC on a non-locking shot) | +0x218 |
+| +0x254 | u16 | "HIT" blink, 40 when this player lands a hit | +0x24C |
+| +0x256 | u16 | Set to 40 when this player is hit (damage indicator `?`) | +0x24E |
+| +0x258 … +0x39B | 324 | **Compiled stat block** — Lane 5's. Readers named in this file | +0x250 … +0x393 |
+| +0x25D | u8 | VS stage choice (compiled +5) | +0x255 |
+| +0x27A / +0x27B | u8 | Shell / energy **damage factor** (×/64) | +0x272 / +0x273 |
+| +0x27C | u8 | Stability (AC +0x164 = this × 25 ÷ 4) | +0x274 |
+| +0x28C | u16 | Stat flags (bits 0–1 dropped into AC +0x38; bit 3 cleared here at match start) | +0x284 |
+| +0x2A2 | u16 | **Fire button** mask (tested against +0x008) | +0x29A |
+| +0x2BE | | **Blade hit record** (flags; attack at +0x2C0) | +0x2B6 |
+| +0x2B0 / +0x2B1 | u8 | Blade line joints (hand, tip) | +0x2A8 / +0x2A9 |
+| +0x28B | u8 | Blade wave type | +0x283 |
+| +0x2DE | u8 | Weapon slot count | **+0x2D7 (shift +7)** |
+| +0x2E0 + slot × 62 | 62 | **Weapon slots** (+0x10 ammo, copied from +0x0E max at match start; +0x01 model ID; +0x09 shots / lock bits; +0x0C flags) | +0x2D8 + slot × 62 |
+| +0x39C | u8 | Round history (bit n = won round n) | +0x394 |
+| +0x3A0 | u32 | **Pointer to this player's AC object** | +0x398 |
+| +0x3A4 | u32 | Pointer to this player's camera record | +0x39C |
+
+The exception: MoA's stealth byte (MoA +0x2D6, read at match start into AC +0x16E) **does not exist in PP**:
+PP's match start has no stealth read and its AC object has no stealth field. So PP's stat block is laid out
+one byte tighter around there (+0x2DE = MoA +0x2D7), then back to +8 from the weapon slots on. (Lane 5 owns
+the stat block; handed over.)
+
+All other MoA player-block fields in the second part of this file (lock slots +0x7C…+0x1FB → PP +0x84…+0x203,
+missile cursor +0x20/+0x22 → +0x28/+0x2A, boost mask +0x298 → +0x2A0, …) are `moved` by the +8 rule; the full
+list with hit counts is in "Field shift list" below.
+
+### AC object (PP, **368 bytes**; MoA 376)
+
+**Rule:** MoA +0x00 … +0x38 unchanged; MoA +0x43 … +0x4A sit **9 lower**; MoA +0x50 up to +0x16C sit
+**8 lower**. MoA's +0x3A … +0x42 (hit stagger timer, hit flash) and +0x16E (stealth) have no PP counterpart:
+MoA added them.
+
+| PP off | Size | Meaning | MoA-US off | Status |
+|---|---|---|---|---|
+| +0x08 / +0x0A / +0x0C | s16 | Position x / y / z (y negative = up) | same | code (box test, stage) |
+| +0x12 | u16 | Facing (4,096 = full turn) | same | moved (unchanged offset, 29 hits) |
+| +0x28 / +0x2A | u16 | Width / body height (step-size limit, hit cylinder centre) | same | moved |
+| +0x36 | u16 | Flags; **0x10 = busy** (set on hit stagger, blade swing). VS load writes 1 for P1, 2 for P2 on top of match start's 1 `?` | same | code |
+| +0x38 | u16 | Stat flags from match start (+0x28C minus bits 0–1) | same | code |
+| +0x3A | u8 | 7 at match start `?` (MoA's +0x43 = 5) | +0x43 | code (value), meaning unknown |
+| +0x3C | u8 | **State** (0x80 / 0x81 = hit stagger, 0x20 / 0x21 blade, 0x22 cannon stance …) | +0x45 | code |
+| +0x3D | u8 | **Movement class** (0xC0 airborne) | +0x46 | code (on-hit) |
+| +0x3E | u8 | Missile volley counter | +0x47 | moved |
+| +0x3F | u8 | **Refire cooldown** (gun fires only at 0) | +0x48 | code (gun fire) |
+| +0x40 | u8 | **Alive byte**: 255 fighting; drops when AP reaches 0; 0xFE = wrecked (0 also counts as out) | +0x49 | code (end rules, on-hit) |
+| +0x41 | u8 | State when the animation started | +0x4A | moved (state setter `0x80077D94`) |
+| +0x50 | u32 | Animation-finished callback (ACs: `0x8007B42C`) | +0x58 | moved |
+| +0x54 / +0x58 | u32 | Two more callbacks | +0x5C / +0x60 | moved |
+| +0x5C | u32 | **On-hit callback**, called after the AP write (ACs: `0x80079FE8`) | +0x64 | code |
+| +0x60 | | Animation player argument / model data `?` | +0x68 | moved |
+| +0x64 / +0x65 | u8 | Animation player (+0x64 = 255 while staggered; gun fire needs +0x65 = 255) | +0x6C / +0x6D | code |
+| +0x68 | u8 | 2 from match start `?` | +0x70 | code (value) |
+| +0x6A / +0x6C | u16 | Hit cylinder radius / height | +0x72 / +0x74 | moved |
+| +0x6E | s16 | **Frame counter of the current state** (blade hit window 7–11) | +0x76 | code (blade) |
+| +0x76 / +0x78 / +0x7A | s16 | Missile cursor pitch etc. reset on a non-locking shot | +0x7E / +0x80 / +0x82 | code (gun fire) |
+| +0x7C | s16 | From weapon slot +0x0A on each shot `?` | +0x84 | code |
+| +0xCC / +0xCE / +0xD0 | s16 | **Velocity x / y / z** (1/64 units per step) | +0xD4 … +0xD8 | code (on-hit knock-back) |
+| +0x110 | | Missile interceptor burst counter (0 at match start) | +0x118 | code (value), moved |
+| +0x148 | u16 | Cleared on stagger; gun fire clears bits 4–7 | +0x150 | code |
+| +0x15C | u32 | Cleared on stagger; gun fire sets / clears one bit per weapon side (slot +0x03 / +0x05) — likely muzzle-flash or arm-pose bits `?` | +0x164 | code, meaning guess |
+| +0x160 | u16 | **AP × 4** | +0x168 | code |
+| +0x162 | u16 | Max AP × 4 | +0x16A | code |
+| +0x164 | u16 | **Stability** = stat +0x27C × 25 ÷ 4 | +0x16C | code |
+
+### Match flow (VS engine, PP, code)
+
+**Engine entry `0x8004A228`** (FDAT 204 +0x1158; MoA `0x80051F4C`):
+1. Backs up both player blocks (936 bytes each) to `0x8008AE40` / `0x8008B1F0`; copies them back on exit.
+2. VS load **`0x8004DECC`**: match struct reset, stage and fight data loads (Lane 3), then for P1 and P2:
+   current player block = that player, `0x8004D820`, AC setup **`0x80075144(ac, type record)`**,
+   per-AC match start **`0x8007AFD0(ac)`**, then player block +0x3A0 = the AC object.
+3. Object pool clear `0x8007FCF8`, cameras `0x8007F1CC` ×2, `0x800756C0` ×2, `0x8004AE38`.
+4. **Main loop** (from `0x8004A42C`), one game step per pass:
+   - clear player block +0x10 bits 0–2 on both;
+   - `0x800873F0` (start / end texts `?`), `0x8006FD10`, `0x800702CC`, `0x80075AF8`, `0x80084118` (between
+     them the pad reader, object and AC updates; not split up yet), then the stage's per-step routine
+     (match +0x04 → +0);
+   - end checks (below) while +0x10 = 0, else the CONTINUE? / countdown handling;
+   - draw both views (`0x8007F704` with the current player block set to P1, then P2), `0x8005F838`, `0x8004B668`;
+   - steps elapsed +0x12 += 1.
+5. Exit: sound and vibration off, player blocks restored, returns 2 (rematch or replay) or 0 (back to the
+   VS menu).
+
+**End rules** (identical in effect to MoA, except the clock):
+
+| Way | Check (PP) |
+|---|---|
+| Time up | time left (+0x14) reaches 1 → countdown 30, flag 0x40; the higher **AC +0x160** wins; equal = draw (flag 0x80) |
+| Knock-out | a side's **AC +0x40** is 0 or 0xFE → wait 12 steps; one out → the other wins, both out → draw |
+| Out of the area | player block **+0x10 & 7 = exactly 1** → that player loses (both → draw) |
+
+**The clock:** −1 per step once 16 steps have passed and while it is ≥ 2. **Unlike MoA, it does not stop while
+player 1's AC is being wrecked** (MoA tests P1's alive byte = 255 first, `0x800523A8`). Handed to Lane 2.
+
+**Result writes:** winner's +0x10 |= 0x10, loser's |= 0x20; winner's +0x39C |= 1 << round; counters at
+`0x8003BD10` (P1 wins + P2 losses, or P1 losses + P2 wins); round `0x8003BCF4` += 1.
+
+**CONTINUE?** (P1's pad first, then P2's): ✕ (0x40) = rematch, return 2, replay flag 0; START (0x800) = replay,
+return 2, replay flag `0x8003BCF2` = 1, the two `0x801DA3E0` records reset; ○ (0x20) = no, sound 0x36, the
+countdown runs out, return 0.
+
+### Damage and hits (VS engine, PP, code)
+
+**Hit routine `0x800718D0(target, hit record, a2, a3)`** (MoA `0x800795DC`):
+1. Target is P1's or P2's AC object → current player block = that player, damage = **`0x800717F4(hit)`**;
+   other objects → `0x80071874(armour class, hit)`.
+2. `0x800717F4` is the same formula as MoA: shell hits (flags & 0x30 = 0x10) attack × player block **+0x27A**
+   >> 6, energy hits (0x20) × **+0x27B** >> 6, then × 2 ÷ 3.
+3. AP (AC +0x160) −= damage × 4, floored at 0.
+4. The AC's on-hit callback (+0x5C) is called with the damage.
+
+**What Phantasma does not have:** MoA's hit routine also sets a stagger timer (AC +0x3A, from the hit's
+attack, halved unless stat flag bit 0) and a hit flash (AC +0x3C / +0x3E). Neither exists in PP.
+
+**On-hit callback `0x80079FE8`** (MoA `0x80082430`):
+- Vibration on that player's pad (unless replaying).
+- Match flag 0x400 → the damage is added back (no damage while inputs are frozen).
+- Sets the hit player's +0x256 = 40.
+- AP = 0 and not yet wrecked → the wreck sequence `0x800719DC`.
+- **Any hit whose impact byte (hit record +4) is not 0 staggers the AC**: state 0x80 (ground) or 0x81
+  (cannon stance 0x22 → a different recovery, or airborne / steep hits), +0x36 |= 0x10, knock-back added to
+  the velocity, and the stagger strength from **`0x80071D0C(ac, impact)` = impact × 50 ÷ stability (AC
+  +0x164), clamped 1 … 30**. Direction picks one of four hit animations (0x25–0x28 ground, 0x29–0x2C air).
+- **MoA instead** first computes impact × 256 ÷ stability clamped 0 … 5 (`0x80079AA4`) and **does not
+  stagger at all when that is 0** (light hits on a stable AC). Handed to Lane 2: in PP every hit that carries
+  impact staggers.
+
+**Hit dispatcher `0x8007FD44`** (MoA `0x8008821C`): sets the attacker's +0x254 "HIT" blink, then calls the hit
+routine. The P1/P2 checks use the VS AC addresses above.
+
+### Weapons in flight (VS engine, PP, code)
+
+**Fire selection** in the AC update `0x8007A48C` (around `0x8007AD14`): weapon slot +0x00 = kind →
+**gun `0x80078B8C`**, **missile `0x80079444`**, **cannon `0x800796D4`**.
+
+**Gun fire `0x80078B8C`** (MoA `0x80080DF4`, rewritten): needs AC +0x65 = 255, refire **AC +0x3F = 0**, the
+fire button (+0x2A2) in the pad +0x008, and ammo (slot +0x10) > 0. Slot +0x09 bits 0–1 = shots per trigger
+(1 → 2, 2 → 4). Model ID (slot +0x01) families: **0–19, 20–39, 40–59, 60+** (MoA has five: 0–19, 20–39,
+40–59, 60–89, 90+). Shot tables: `0x800889A0` (0–19, 28 bytes each), `0x8008A0F4` (20–39), `0x8008A394`
+(40–59), `0x8008A004` (60+). Lock bit: slot +0x0C bit 2 → no lock-on use; otherwise `0x80077E84` lock logic.
+
+**Object pool record** (224 bytes): MoA +0x00 … +0x0F unchanged; from MoA +0x16 on, **4 bytes lower**
+(code: pool alloc `0x8008203C`, rifle spawner `0x80082740`, rifle update `0x800801A4`):
+
+| PP off | Meaning | MoA-US off |
+|---|---|---|
+| +0x00 / +0x02 / +0x04 | Position | same |
+| +0x06 | −1 = free, 0 = in use | same |
+| +0x08 | Owner object | same |
+| +0x0C / +0x0E | −1 / model or sprite id | same |
+| +0x10 / +0x11 | 0 / 255 (bytes) | +0x10 / +0x12 |
+| +0x12 | Life left | +0x16 |
+| +0x14 | **Update routine** | +0x18 |
+| +0x18 … | **Hit record** (+0x18 flags, +0x1A attack, +0x1C impact) | +0x1C … |
+| +0x20 / +0x22 / +0x24 | Velocity | +0x24 … |
+| +0xB8 / +0xBC / +0xC0 | Position one step earlier etc. | +0xBC … |
+
+| Shot kind | Spawner | Update routine |
+|---|---|---|
+| Bullets, model 0–19 | `0x80082740` | `0x800801A4` |
+| Missiles | (via `0x80079158`) | `0x80080BAC` |
+
+**Missile tables** (data, same bytes in VS and arena):
+
+| Table | VS (FDAT 204) | Arena (FDAT 205) | Notes |
+|---|---|---|---|
+| Launcher table, 8 bytes per model ID | `0x80088A9C` (FDAT 204 +0x3F9CC) | `0x8008DE0C` (FDAT 205 +0x44D3C) | models 0–10, **same values as MoA**; MoA adds model 11 |
+| Flight table, 40 bytes per kind | `0x8008A888` (FDAT 204 +0x417B8) | `0x800909A4` (FDAT 205 +0x478D4) | kinds 0–10 same as MoA except +0x16 (PP 1–3, MoA 0x3002–0x3004: extra flag bits `?`); MoA adds kinds 11 and 12 |
+
+### Blade (VS engine, PP, code where marked)
+
+Swing routine `0x80076A54` (MoA `0x8007EB48`, only 62 % alike — the differences are Lane 2's):
+the frame counter is AC +0x6E; frame 0 sets player block +0x48; **frames 7–11 are the hit window** with the
+blade sweep `0x800768F8(ac, player block +0x2BE)`; the blade line uses joints +0x2B0 / +0x2B1; waves by
++0x28B through `0x800858EC`. Code.
+
+### Stage area boxes (stage code, PP, code)
+
+Fight stage code is loaded at `0x8008F5D0`. In **FDAT 100** (the first fight stage file):
+- Box handler **`0x80090070`** (FDAT 100 +0xAA0): box = centre (record +0 / +2 / +4) plus signed bytes × 256
+  (+0x22 … +0x27), bit number from the record — the same scheme as MoA.
+- Box test **`0x8008FF2C(player block, box, bit)`** (FDAT 100 +0x95C): if the AC (player block +0x3A0) is
+  inside min/max on all three axes, player block **+0x10 |= 1 << bit**. For bits 1 and 2 it also copies the
+  box (16 bytes) to player block **+0x226** / **+0x236** (likely for the area display / radar `?`).
+- Other stage files carry the same routine at other offsets (found by code shape: its final store is at
+  +0x9F0 in FDAT 100–103, +0x774 in FDAT 110–111, …).
+
+### Movement and energy (PP, moved)
+
+The handlers pair one to one with MoA (table in `claude/phantasma-base.md`). PP addresses: state setter
+`0x80077D94`, turning `0x800760E8`, ground boost `0x80077560`, rise / air `0x80077950` (changed logic),
+recover turn `0x800762EC`, step-size cap `0x8004C730` (identical), animation stepper `0x8004D640` (identical),
+AC update `0x8007A48C` (energy around `0x8007A960`, interceptor around `0x8007A5B4`, blade start around
+`0x8007ADF4`), weapon scale-in `0x8007A404`, lock drop `0x80077E28`, lock build-up `0x800783D0`, sight sweep
+`0x80070524`. Fields they use follow the +8 / −8 / −9 rules. What changed in their logic is Lane 2's.
+
+### Arena engine (PP, FDAT 205)
+
+Same player blocks and globals as VS. Arena-specific:
+
+| What | PP arena | Status |
+|---|---|---|
+| Engine entry | `0x8004A654` | code |
+| Player block backups | `0x80090F60` / `0x80091310` | code |
+| Match struct | `0x800956D0` (same layout as VS) | code |
+| AC objects | **`0x801D1D20`** (player) / **`0x801D1E90`** (opponent) | code (hit routine) |
+| Object pool | `0x801DBAF4`, 256 × 224 | code (`0x80085068`) |
+| Hit routine | `0x800734A0` (as VS, plus a call after each hit: `0x80083988(damage)` when the player is hit, `0x80083810(damage)` when the opponent is) | code |
+| Shared fight code | damage formula `0x800733C4`, on-hit `0x8007BC08`, gun `0x8007A7BC`, missile `0x8007B074`, cannon `0x8007B304`, AC update `0x8007C09C`, match start `0x8007CBE0`, AC setup `0x80076C4C`, blade swing `0x80078684` | code (pairing: byte-identical or numbers only) |
+
+In the arena the main loop runs a separate update set when the replay flag `0x8003BCF2` = 2 (`0x800774CC`
+instead of the normal AI / AC / object updates) `?`. After a result the arena asks CONTINUE? only of player 1.
+
+### Field shift list (PP vs MoA)
+
+Player block (MoA → PP): +0x0A … +0x2D6: +8 · +0x2D7 → +0x2DE (+7) · +0x2D8 … +0x39C: +8.
+AC object (MoA → PP): +0x00 … +0x38: +0 · +0x43 … +0x4A: −9 · +0x50 … +0x16C: −8 · +0x3A … +0x42, +0x16E: none.
+Pool record (MoA → PP): +0x00 … +0x0F: +0 · +0x12 → +0x11 · +0x16 on: −4.
+Counts per field (how many paired instructions showed the shift) were collected; the lowest-count fields
+(1 hit) are the least sure and are marked `moved` anyway.
+
+### Live tests to confirm (owner, plain VS, unlimited time)
+
+Not run yet. Each is one value to watch in a debug build (or an emulator's memory viewer) on **Phantasma**:
+1. AP: P2's AC +0x160 at `0x801D83B0` drops by 4 × damage when P1's rifle hits (default AC: expect 60 AP).
+2. State: `0x801D811C` (P1 AC +0x3C) = 0 standing, 1 walking, 0x80 after a hit.
+3. Energy: `0x80042506` (P1 player block +0x1E) falls while boosting.
+4. Clock: `0x8008F5C4` counts down ~22 per second.
+5. Stagger: a light weapon on a heavy AC still staggers in PP (it would not in MoA).
+
+### Open
+
+- The meaning of AC +0x3A (7), +0x60, +0x7C; match struct +0x16 / +0x1A; `0x8003BCF1`; the two
+  `0x801DA3E0` records.
+- The wreck sequence (`0x800719DC`) and the stagger installers (`0x80073E6C`, `0x80073EBC`) not read in full.
+- The arena's extra hit calls (`0x80083988`, `0x80083810`) update a 20 × 28-byte table at `0x8008F014`
+  (+0x16): handed to Lane 6.
+- The lock slots, missile steering and energy rules are `moved` from MoA, not re-read on PP.
+
+### RAM-map rows (PP) for `ram-map.toml`
+
+Ready to paste once Lane 1 has the `disc` field on main:
+
+```toml
+[[var]]
+addr = 0x800424E8
+size = 936
+type = "struct"
+name = "pp_player_block_p1"
+what = "Player block P1 (P2 at +0x3A8)"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+
+[[var]]
+addr = 0x80042890
+size = 936
+type = "struct"
+name = "pp_player_block_p2"
+what = "Player block P2"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+
+[[var]]
+addr = 0x8003BD00
+size = 4
+type = "ptr"
+name = "pp_cur_player_block"
+what = "Current player block pointer"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+
+[[var]]
+addr = 0x8003BCF2
+size = 1
+type = "u8"
+name = "pp_replay_flag"
+what = "VS: 1 = replay requested at CONTINUE?; arena: 2 = replaying"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+
+[[var]]
+addr = 0x8003BCF4
+size = 1
+type = "u8"
+name = "pp_vs_round"
+what = "VS round number"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+
+[[var]]
+addr = 0x8003BD10
+size = 8
+type = "u16[4]"
+name = "pp_vs_win_loss"
+what = "1P wins, 1P losses, 2P wins, 2P losses (cap 999)"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+
+[[var]]
+addr = 0x8008F5B0
+size = 32
+type = "struct"
+name = "pp_vs_match"
+what = "VS match struct (stage, flags, end countdown, steps, time left at +0x14); FDAT 204 loaded"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+
+[[var]]
+addr = 0x801D80E0
+size = 368
+type = "struct"
+name = "pp_vs_ac_p1"
+what = "VS AC object P1 (AP x4 at +0x160)"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+
+[[var]]
+addr = 0x801D8250
+size = 368
+type = "struct"
+name = "pp_vs_ac_p2"
+what = "VS AC object P2"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+
+[[var]]
+addr = 0x801DA47C
+size = 57344
+type = "struct[256]"
+name = "pp_vs_pool"
+what = "VS object pool, 256 x 224 bytes"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+
+[[var]]
+addr = 0x800956D0
+size = 32
+type = "struct"
+name = "pp_arena_match"
+what = "Arena match struct (same layout as VS); FDAT 205 loaded"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+
+[[var]]
+addr = 0x801D1D20
+size = 368
+type = "struct"
+name = "pp_arena_ac_player"
+what = "Arena AC object, player"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+
+[[var]]
+addr = 0x801D1E90
+size = 368
+type = "struct"
+name = "pp_arena_ac_opponent"
+what = "Arena AC object, opponent"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+
+[[var]]
+addr = 0x801DBAF4
+size = 57344
+type = "struct[256]"
+name = "pp_arena_pool"
+what = "Arena object pool, 256 x 224 bytes"
+disc = "PP"
+status = "code"
+src = "mapping/battle-system.md"
+```
+
+### Handed over (from Lane 4 to other lanes)
+
+- **Lane 1:** PP globals and object addresses for the cross-disc table: player blocks `0x800424E8` / `0x80042890`
+  (936 B), current player block `0x8003BD00`, VS AC objects `0x801D80E0` / `0x801D8250` (368 B), arena AC
+  objects `0x801D1D20` / `0x801D1E90`, pools `0x801DA47C` (VS) / `0x801DBAF4` (arena), 224-byte records, match
+  structs `0x8008F5B0` (VS) / `0x800956D0` (arena). Field shift rules above. The RAM-map rows for these are in
+  this file (ram-map.toml is not on main yet).
+- **Lane 2:** (a) PP has no per-hit stagger timer or hit flash (MoA AC +0x3A … +0x3E); (b) PP staggers on every
+  hit with impact > 0, strength impact × 50 ÷ stability clamped 1–30, where MoA skips the stagger when
+  impact × 256 ÷ stability < 1; (c) PP's clock keeps running while P1 is being wrecked, MoA's stops; (d) PP gun
+  fire has 4 model families, MoA 5; (e) missile flight table +0x16 differs (PP 1–3, MoA 0x3002–0x3004).
+- **Lane 3:** fight stage code loads from FDAT 100+ to `0x8008F5D0` through `0x800171B4(2, stage × 5 + 1, dest)`
+  — which archive "2" is, and the stage-number → entry rule, are yours.
+- **Lane 5:** PP's stat block has no stealth byte (MoA +0x2D6); weapon count is +0x2DE, slots from +0x2E0
+  (62 bytes). The time setting is +0x258 (compiled +0x00), the stage choice +0x25D.
+- **Lane 6:** arena hits feed a 20 × 28-byte table at `0x8008F014` (field +0x16) through `0x80083988` /
+  `0x80083810`; the record index is the byte at `0x801DBA64`.
+
+### Handed over to Lane 4 (from other lanes)
+
+
+
+---
+
+# Master of Arena (reference) — all addresses MoA-US (SLUS-01030 v1.0 disc 1)
+
+Kept as it was written for the earlier MoA mapping. Do not use these addresses on Phantasma: translate them
+with the rules in "Field shift list" above or the cross-disc table.
 
 Goal: decode the battle engine (bucket 3 of the system map) well enough to read, change and
 eventually replace how an AC moves, fights and takes damage. Status today: ~10%.
