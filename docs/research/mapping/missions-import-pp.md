@@ -103,6 +103,7 @@ differs only in bases and heap size). **Only the object record changed shape** (
 **Corrections for existing PP rows in `ram-map.toml`** (rows were carried over from MoA by tool; not edited here
 because that file is append-only for the mapping chats): `mission_placements` is 256 × 44 = 11,264 bytes, not
 64 × 44; `mission_trigger_zones` = the event points, 512 × 52 = 26,624 bytes; `mission_code` room is 55,296.
+*Fixed in `ram-map.toml` 2026-11-26 (round 2 review, copied rows may now be corrected).*
 
 ### 1b. The object record: MoA 376 bytes, PP 368 (code)
 

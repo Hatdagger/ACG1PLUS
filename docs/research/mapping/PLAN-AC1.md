@@ -28,7 +28,8 @@ and **AC1's `MIS.T` writes its entry count one higher** (the pack's `tarc.py` ac
   gives it. No AC1 seeds or build files: AC1 is never built on its own.
 - **Shared files, append only:** `docs/research/ram-map.toml` (rows with `disc = "AC1"`, added as one block at the
   end), `ROUND1.md`'s test table (new rows at the end), this plan's row in `README.md`. Rebase on `main` right
-  before each push; if a shared file clashes, keep both sides' rows.
+  before each push; if a shared file clashes, keep both sides' rows. Exception (2026-11-26): PP rows copied
+  from MoA may be corrected in place, one mapping chat at a time (rule at the top of `ram-map.toml`).
 - Old notes worth a look: old AC1Recomp had an `armored-core` game folder; our own leftovers from it are in
   `reference/ac1recomp/` (reference only, CLAUDE.md).
 
