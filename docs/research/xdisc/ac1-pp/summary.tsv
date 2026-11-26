@@ -1,0 +1,63 @@
+# counts from the last run of ac1_xdisc.py
+what	kind	conf	count
+VS	changed	data	1
+VS	changed	high	174
+VS	changed	low	96
+VS	changed	medium	194
+VS	only_ac1	-	20
+VS	only_pp	-	95
+VS	only_pp	data	3
+VS	same	data	1
+VS	same	high	71
+VS	values	high	23
+VS	via_calls	medium	3
+boot exe	changed	data	2
+boot exe	changed	high	84
+boot exe	changed	low	101
+boot exe	changed	medium	158
+boot exe	only_ac1	-	106
+boot exe	only_pp	-	234
+boot exe	only_pp	data	1
+boot exe	same	data	2
+boot exe	same	high	134
+boot exe	same	medium	2
+boot exe	values	high	11
+boot exe	via_calls	low	3
+boot exe	via_calls	medium	30
+globals	high		1095
+globals	low		3078
+globals	medium		895
+link	changed	data	1
+link	changed	high	169
+link	changed	low	97
+link	changed	medium	195
+link	only_ac1	-	19
+link	only_pp	-	100
+link	only_pp	data	3
+link	same	data	1
+link	same	high	71
+link	values	high	23
+link	via_calls	medium	4
+menu	changed	data	2
+menu	changed	high	99
+menu	changed	low	270
+menu	changed	medium	324
+menu	only_ac1	-	245
+menu	only_pp	-	364
+menu	only_pp	data	2
+menu	same	high	112
+menu	values	high	11
+menu	via_calls	low	5
+menu	via_calls	medium	27
+missions	changed	data	1
+missions	changed	high	180
+missions	changed	low	108
+missions	changed	medium	212
+missions	only_ac1	-	15
+missions	only_pp	-	87
+missions	only_pp	data	3
+missions	same	high	76
+missions	values	high	24
+missions	via_calls	low	1
+missions	via_calls	medium	3
+runs			225

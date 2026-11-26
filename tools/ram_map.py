@@ -44,6 +44,12 @@ DISCS = {
                cache="ram-xref-modules-pp.json", gp=0x8003BC7C, module_base=0x800490D0,
                lib_code=0x80017FC4, image_end=0x8003C000, prefix="PP_RAM_",
                modules={201: "menu", 202: "missions", 203: "link", 204: "VS", 205: "arena", 206: "replay"}),
+    # AC1: gp, module base and image end from the code (docs/research/ac1/foundations.md); the game/library
+    # border is PP's carried over by the AC1<->PP table (approximate). No arena engine, no VS replay.
+    "AC1": dict(title="Armored Core — RAM map (US, SCUS-94182 v1.0)", out="ram-map-ac1.md",
+                cache="ram-xref-modules-ac1.json", gp=0x80039C5C, module_base=0x8004ADA0,
+                lib_code=0x80016F7C, image_end=0x8003A000, prefix="AC1_RAM_",
+                modules={201: "menu", 202: "missions", 203: "link", 204: "VS"}),
 }
 
 
