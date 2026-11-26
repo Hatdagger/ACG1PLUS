@@ -426,6 +426,32 @@ The owned-part index uses the same category bases on both discs (head 0, core 18
 So the menu side's sounds carry over as they are; MoA-US fight music (BGM02/03 and the songs it uses) and its
 seventh TALK file don't exist on the PP disc and would have to be read from the MoA disc.
 
+### 7a. Fight sound bank and sound ids, PP vs MoA (round 2 topic 5)
+
+**FDAT 200 blocks** (each block = u32 size + data; PP / MoA-US FDAT 205, same order): 0 a list of 51 / 32 items
+(not sound), **1 fight-bank VAB header** (4,640 B both; 4 programs, 51 tones, 38 samples), **2 VAB body**
+(212,368 / 204,080), **3 sound-id table** (3,008 B), 4–6 the three message sets, 7 a 1,408-byte block. (data)
+
+**RAM (PP, all five fight engines, code):** block 3 is copied to **`0x80041908`** (MoA `0x80044598`); the id
+records start 448 bytes in at **`0x80041AC8` + 10 × id** (MoA `0x80044758`): s16 bank slot, s16 program, s16
+tone, s16 note, u16 weight. Bank slots at **`0x80041588` + 8 × slot** (MoA `0x80044218`), 22 voice records at
+**`0x80041798`** (MoA `0x80044428`). Play routine VS **`0x8004B8D0`** (MoA `0x80053284`; id 255 = none), voice
+picker `0x8004B7E0` …. Sound control block **`0x80041548`** (master and music volume, current song;
+`menus-screens.md` PP-1).
+
+**Do MoA and PP sound ids agree? Yes, for 250 of 256** (record by record compare, data):
+
+| Id | PP | MoA-US | What it means for imports |
+|---|---|---|---|
+| 0–58, 60–187, 193–255 | same records | same | MoA code that plays these ids plays the same tone on PP |
+| 59 | slot 0, program 0, tone 0, note 60 (the filler like 24–29) | slot 0, program 2, **tone 6, note 50** (the lock-tick sample at a lower pitch) | MoA's warning sound 59 (`../sound-map.md` §3) plays PP's tone 0 instead; fix by patching record 59 |
+| 188–192 | one enemy bank: slot **58**, tones 0–4 | five banks: slots **23, 24, 25, 27, 26**, tone 0 | enemy sounds: an imported MoA mission's map must fill the slots its ids name, so keep MoA's records for MoA maps or remap |
+
+**Fight bank contents:** program table identical; **37 of 38 samples byte-identical**. Sample 34 differs (PP
+27,456 B, MoA 19,168 B: a longer, different recording) and so does its tone (program 0 tone 7: volume, pitch and envelope):
+ids 7 (wreck) and 23 use it. Program 0 tone 5 (ids 5, 204, 210, 216, 222, 228) has centre note 0x48 on PP and
+0x46 on MoA, so it plays 2 semitones apart. Everything else in the bank is the same sound. (data)
+
 ## 8. Plain summary for the owner
 
 - Phantasma's hub has **6 icons** (Garage, Shop, Missions, System, Mail, Arena). MoA's Ex Arena and Arena Maker

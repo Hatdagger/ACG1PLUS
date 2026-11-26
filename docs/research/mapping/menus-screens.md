@@ -1161,6 +1161,25 @@ PARTS, `0x8005DF2C` PERFORMANCE, `0x8005DF7C` CHANGE COLOR, `0x8005DFCC` EDIT EM
 
 No Arena Maker block: PP's module is 0x6000 bytes shorter around there.
 
+### Module header and settings defaults (round 2 topic 5, code)
+
+- **Header** `0x800490D0`: word 5, then four VRAM rectangles (x, y, w, h) (448, 192, 16, 64), (368, 225, 16, 1),
+  (768, 448, 64, 64), (0, 493, 256, 1) copied by the hub ring (`0x8004C018`, `0x8004E084`), then the hub texts from
+  `0x800490F4` ("You have new mail." …). The menu's entry is **`0x80098EF0`**, called directly by the exe
+  (`0x80012E2C`), not through the header (`foundations.md` §3).
+- **Settings defaults `0x800AA428`** (FDAT 201 +0x61358; also the reset at `0x800AA55C` …) write, besides the
+  options block, three bytes outside it:
+
+| RAM | Default | What (code) |
+|---|---|---|
+| `0x80041570` (sound block `0x80041548` +0x28) | 126 | **Master volume**. Each fight engine copies it to +0x2B at start (VS `0x8004AE38`); +0x2B goes to the SPU master volume `0x80020578(v, v)` (mask 3, × 129) every step and falls by 6 per step while the match ends (VS `0x8004A610`) |
+| `0x80041572` (+0x2A) | 62 | **Music (XA) volume**. Copied to +0x2D at start; `0x8004C06C` passes +0x2D to `0x80021968(0, v, v)` (CD-input volume) when a song starts (`0x8004C198`; +0x2E = XA song id, 0xFFFF none; +0x34 = when it ends). When bit 0x2000 of a flag word is set (source not read) the engine uses 127 instead (`0x8004C35C`) |
+| `0x8004132C` | 1 | **Vibration on / off**: the exe's vibration routine `0x800179B0(port, strength, time)` does nothing when it is 0 |
+
+The exe's sound reset `0x80017D2C` sets +0x28 … +0x2D to 127, +0x2E to 0xFFFF and +0x30 to 0 before the menu
+writes its defaults. Same block in every fight engine (PP 202–206 all read +0x28 / +0x2A). MoA's twin block is
+not checked here.
+
 ## PP-2. Garage (`0x80070038(page)`, hub entry 0)
 
 | State | Does | MoA |

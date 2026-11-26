@@ -158,6 +158,10 @@ V0, V2, V3, V16, V37, V38, V39, V43 are used (messages 151–158).
 
 ## 9. Open items
 
+- **Phantasma (PP):** the same layout holds; ids, RAM and the PP vs MoA differences are in
+  `mapping/scenario.md` §7a (round 2 topic 5). Note this file's block numbers count from the VAB header: its
+  "blocks 0 + 1" / "block 2" are the size-prefixed blocks 1 + 2 / 3 there.
+
 - Name the samples by ear (listening pack `moa-sound-pack.zip`, made in chat, not in the repo).
 - What `0x8005675C` plays ids 8, 9, 40, 41, 59 for; ids 54/55 in the VS loop.
 - Confirm nothing plays slot 2 or the unused COM / radio clips.
