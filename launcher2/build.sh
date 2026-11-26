@@ -38,7 +38,7 @@ fail() { echo "build.sh: $*" >&2; exit 1; }
 fetch() {   # url file sha256
     local url="$1" file="$2" sha="$3"
     if [ -f "$file" ] && [ "$(sha256sum "$file" | cut -d' ' -f1)" = "$sha" ]; then return; fi
-    echo "Downloading $url"
+    echo "Downloading $url" >&2   # stderr: linux_pack() returns its path on stdout
     curl -L --fail --retry 3 -o "$file.part" "$url" || fail "download failed: $url"
     local got
     got="$(sha256sum "$file.part" | cut -d' ' -f1)"
@@ -54,7 +54,7 @@ linux_pack() {
     if [ ! -f "$pack/.version" ] || [ "$(cat "$pack/.version")" != "$PACK_VERSION" ]; then
         fetch "$PACK_BASE/cmake-clang-v1-linux-x64.zip" "$DL/cmake-clang-v1-linux-x64-$PACK_VERSION.zip" "$LINUX_PACK_SHA256"
         rm -rf "$pack"; mkdir -p "$pack"
-        unzip -q "$DL/cmake-clang-v1-linux-x64-$PACK_VERSION.zip" -d "$pack"
+        unzip -q "$DL/cmake-clang-v1-linux-x64-$PACK_VERSION.zip" -d "$pack" >&2
         echo "$PACK_VERSION" > "$pack/.version"
     fi
     echo "$pack"
