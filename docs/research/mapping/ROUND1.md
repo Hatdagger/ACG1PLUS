@@ -59,6 +59,8 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 | 16 | AC1 records | AC1 AC object: in a VS fight, P1 velocity at `0x801AB748` + 0xCC changes while boosting (same place as PP; `../ac1/records.md` §1) | AC1 disc in DuckStation, memory view |
 | 17 | AC1 records | AC1 stat block: in a mission `0x800411F8` = the engine mission number (1 for "Stop Terrorist Threat"); in VS P1 energy `0x80040FBE` starts at the capacity `0x80041204` (`../ac1/records.md` §3) | AC1 disc in DuckStation, memory view |
 | 18 | AC1 records | AC1 save: in a real AC1 save file, the byte sum of +0x230 … +0xE13 equals the word at +0x200 (`../ac1/records.md` §4) | an AC1 save file (card image) |
+| 19 | R2 missions | Placements past 64: play PP mission "Destroy Main Facility" (slot 7, its map has 93 placements). Byte `0x801E01E0` + 44 × 70 = `0x801E09A8` should turn 1 (spawned) or 3 (destroyed) at some point; MoA's engine would never touch it (`missions-import-pp.md` §1a) | DuckStation memory view |
+| 20 | R2 missions | Message set byte: byte `0x8004276A` before a mission, once per value of the COM / voice option in the options screen; it should be 0, 1, 2 and the mission's COM lines should change voice with it (`missions-import-pp.md` §1) | DuckStation memory view |
 
 ## Open questions left by the lanes
 - **Foundations:** menu module 201 header/entry; disc files 0 and 3; what the 72 PA archives hold (motion,

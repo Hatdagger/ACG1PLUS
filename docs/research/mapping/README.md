@@ -24,8 +24,8 @@
 |---|---|---|---|
 | 1 | PA body archives | `pa-archives.md` | done 2026-11-26, PR #9 |
 | 2 | Stages | `stages.md` | done 2026-11-26, PR #10 |
-| 3 | Hub screens in depth | `menus-screens.md` (PP sections) | done 2026-11-26 (§PP, `menus-screens-pp.tsv`) |
-| 4 | Missions import plan | `missions-import-pp.md` | |
+| 3 | Hub screens in depth | `menus-screens.md` (PP sections) | done 2026-11-26 (§PP, `menus-screens-pp.tsv`, PR #12) |
+| 4 | Missions import plan | `missions-import-pp.md` | done 2026-11-26, PR #14 |
 | 5 | Small leftovers | owning lane docs | |
 
 ## AC1 mapping (2026-11-26, one chat, topics in order; `PLAN-AC1.md`)
