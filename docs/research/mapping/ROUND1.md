@@ -56,6 +56,9 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 | 13 | AC1 foundations | AC1 mode byte: `0x80039C5E` = 2 in a VS fight, 0 in a mission, 1 in a link fight (`../ac1/foundations.md` §3) | AC1 disc in DuckStation, memory view |
 | 14 | AC1 foundations | AC1 slots: in a VS fight `0x801AB678` is 80–84, in a mission `0x8019F518` is the mission's slot; write down which stage / mission name goes with which number (`../ac1/foundations.md` §4) | AC1 disc in DuckStation, memory view |
 | 15 | AC1 foundations | AC1 body number: `0x8004121B` = 0 with the starting AC and changes with core + arms + legs like PP's `0x80042769` (`../ac1/foundations.md` §4) | AC1 disc in DuckStation, memory view |
+| 16 | AC1 records | AC1 AC object: in a VS fight, P1 velocity at `0x801AB748` + 0xCC changes while boosting (same place as PP; `../ac1/records.md` §1) | AC1 disc in DuckStation, memory view |
+| 17 | AC1 records | AC1 stat block: in a mission `0x800411F8` = the engine mission number (1 for "Stop Terrorist Threat"); in VS P1 energy `0x80040FBE` starts at the capacity `0x80041204` (`../ac1/records.md` §3) | AC1 disc in DuckStation, memory view |
+| 18 | AC1 records | AC1 save: in a real AC1 save file, the byte sum of +0x230 … +0xE13 equals the word at +0x200 (`../ac1/records.md` §4) | an AC1 save file (card image) |
 
 ## Open questions left by the lanes
 - **Foundations:** menu module 201 header/entry; disc files 0 and 3; what the 72 PA archives hold (motion,

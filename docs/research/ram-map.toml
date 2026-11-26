@@ -4949,3 +4949,256 @@ what = "[VS] Per-stage code (FDAT 160-168, 4-6 KB), loaded at 0x8004FB7C (FDAT 2
 status = "code"
 src = "ac1/foundations.md §4"
 pp = 0x8008F5D0
+
+[[var]]
+addr = 0x800411F4
+size = 316
+type = "struct"
+name = "p1_stat_block"
+disc = "AC1"
+what = "[exe bss] Player 1 compiled stat block = player block +0x254 (player 2 at +924), written by the compile routine 0x8009C964 (FDAT 201) at VS START / launch. 8 bytes shorter than PP's (records.md §3)"
+status = "code"
+src = "ac1/records.md"
+pp = 0x80042740
+
+[[var]]
+addr = 0x800411F8
+size = 1
+type = "u8"
+name = "p1_stage_number"
+disc = "AC1"
+what = "[exe bss] Stat +0x04: stage / engine mission number; the boot loop tests it for 21-22, 47-48, 49 after a mission (endings, guess)"
+status = "code"
+src = "ac1/records.md"
+pp = 0x80042745
+
+[[var]]
+addr = 0x801AB748
+size = 368
+type = "struct"
+name = "vs_ac_object_p1"
+disc = "AC1"
+what = "[VS] Player 1 AC object (P2 at 0x801AB8B8); same 368-byte layout as PP except +0xF2..+0xF6 (PP +0xF0..+0xF4)"
+status = "code"
+src = "ac1/records.md"
+pp = 0x801D80E0
+
+[[var]]
+addr = 0x801AB8B8
+size = 368
+type = "struct"
+name = "vs_ac_object_p2"
+disc = "AC1"
+what = "[VS] Player 2 AC object (see vs_ac_object_p1)"
+status = "code"
+src = "ac1/records.md"
+pp = 0x801D8250
+
+[[var]]
+addr = 0x801B645C
+size = 57344
+type = "struct[256]"
+name = "vs_object_pool"
+disc = "AC1"
+what = "[VS] Object pool, 256 x 224 bytes (shots, missiles, effects), cleared by 0x80081FD0; same size as PP's"
+status = "code"
+src = "ac1/records.md"
+pp = 0x801DA47C
+
+[[var]]
+addr = 0x8008C2B8
+size = 924
+type = "struct"
+name = "vs_player_block_backup_p1"
+disc = "AC1"
+what = "[VS] VS engine's copy of player block 1 (P2 at 0x8008C654), set at run time"
+status = "code"
+src = "ac1/records.md"
+pp = 0x8008AE40
+
+[[var]]
+addr = 0x80039D18
+size = 4
+type = "u32"
+name = "cur_player_block"
+disc = "AC1"
+what = "[exe bss] Pointer to the player block being worked on"
+status = "code"
+src = "ac1/records.md"
+pp = 0x8003BD00
+
+[[var]]
+addr = 0x80039D2A
+size = 1
+type = "u8"
+name = "round_number"
+disc = "AC1"
+what = "[exe bss] Round number (PP's twin: +1 per decided round)"
+status = "code"
+src = "ac1/records.md"
+pp = 0x8003BCF4
+
+[[var]]
+addr = 0x80031A58
+size = 12
+type = "u8[12]"
+name = "garage_loadout"
+disc = "AC1"
+what = "[exe data] Equipped part ids (SCUS_941.82 +0x21258), saved at card +0x230"
+status = "code"
+src = "ac1/records.md"
+pp = 0x800342B4
+
+[[var]]
+addr = 0x80031A64
+size = 48
+type = "u8[48]"
+name = "garage_paint"
+disc = "AC1"
+what = "[exe data] Paint (SCUS_941.82 +0x21264), saved at card +0x2C8"
+status = "code"
+src = "ac1/records.md"
+pp = 0x800342C0
+
+[[var]]
+addr = 0x80031A94
+size = 160
+type = "u8[160]"
+name = "owned_part_counts"
+disc = "AC1"
+what = "[exe data] Owned-part counts, 160 entries (PP 256), SCUS_941.82 +0x21294; saved at card +0x2F8"
+status = "code"
+src = "ac1/records.md"
+pp = 0x800342F0
+
+[[var]]
+addr = 0x80031B34
+size = 160
+type = "u8[160]"
+name = "shop_stock"
+disc = "AC1"
+what = "[exe data] Shop stock per part, 160 entries (PP 256), SCUS_941.82 +0x21334; saved at card +0x398"
+status = "code"
+src = "ac1/records.md"
+pp = 0x800343F0
+
+[[var]]
+addr = 0x80031BD4
+size = 36
+type = "char[36]"
+name = "ac_pilot_names"
+disc = "AC1"
+what = "[exe data] AC and pilot names (SCUS_941.82 +0x213D4), saved at card +0x204 and +0x244"
+status = "code"
+src = "ac1/records.md"
+pp = 0x800344F0
+
+[[var]]
+addr = 0x80039CA0
+size = 2
+type = "u16"
+name = "option_mask"
+disc = "AC1"
+what = "[exe bss] Option parts mask, saved at card +0x23E"
+status = "code"
+src = "ac1/records.md"
+pp = 0x8003BCCC
+
+[[var]]
+addr = 0x80039CA4
+size = 4
+type = "u32"
+name = "credits"
+disc = "AC1"
+what = "[exe bss] Credits, saved at card +0x22C and +0x240"
+status = "code"
+src = "ac1/records.md"
+pp = 0x8003BCD0
+
+[[var]]
+addr = 0x80039D20
+size = 7
+type = "u8[7]"
+name = "human_plus_bytes"
+disc = "AC1"
+what = "[exe bss] Human PLUS level and flags, saved at card +0xD48"
+status = "code"
+src = "ac1/records.md"
+pp = 0x8003BD24
+
+[[var]]
+addr = 0x800485A0
+size = 96
+type = "u8[96]"
+name = "owned_part_bits"
+disc = "AC1"
+what = "[exe bss] Owned-part bitmasks, saved at card +0x268"
+status = "code"
+src = "ac1/records.md"
+pp = 0x800439E0
+
+[[var]]
+addr = 0x80048630
+size = 56
+type = "struct"
+name = "settings_record"
+disc = "AC1"
+what = "[exe bss] Settings record, saved at card +0xCD0"
+status = "code"
+src = "ac1/records.md"
+pp = 0x80043A40
+
+[[var]]
+addr = 0x80049E70
+size = 64
+type = "u8[64]"
+name = "card_record_d08"
+disc = "AC1"
+what = "[exe bss] 64 bytes saved at card +0xD08, where PP keeps its arena rank record; what AC1 keeps here is not read yet"
+status = "code"
+src = "ac1/records.md"
+pp = 0x80043A78
+
+[[var]]
+addr = 0x80041B10
+size = 120
+type = "u8[120]"
+name = "mission_save_copy"
+disc = "AC1"
+what = "[exe bss] Saved copy of mission table T+0..+0x77 (store 0x80086654), card +0xC58"
+status = "code"
+src = "ac1/records.md"
+pp = 0x80043108
+
+[[var]]
+addr = 0x80049EC8
+size = 196
+type = "u8[196]"
+name = "mail_save_copy"
+disc = "AC1"
+what = "[exe bss] Saved copy of mail block S+0..+0xC3 (store 0x800960C0), card +0xD4F"
+status = "code"
+src = "ac1/records.md"
+pp = 0x80043AB8
+
+[[var]]
+addr = 0x801F3750
+size = 6468
+type = "struct"
+name = "mission_table"
+disc = "AC1"
+what = "[menu] Mission table T, PP's layout: 64 slots, flags at +0x38, MIS.T entry 0 copied to T+0xC4 (0x620 words, callback 0x80086E34)"
+status = "code"
+src = "ac1/records.md"
+pp = 0x80186A40
+
+[[var]]
+addr = 0x8017F6D0
+size = 4496
+type = "struct"
+name = "mail_block"
+disc = "AC1"
+what = "[menu] Mail block S, PP's layout: flags, 64 triggers at +0x40, count +0xC0, MIS.T 818 copied to S+0x110 (callback 0x800963A0)"
+status = "code"
+src = "ac1/records.md"
+pp = 0x8018D5D0

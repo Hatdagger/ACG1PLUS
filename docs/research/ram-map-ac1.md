@@ -44,15 +44,32 @@ that wrote it. Details and the stretches no code was seen using: `mapping/scratc
 |---|---|---|---|---|---|---|---|---|
 | `80011000` | 216 | char[18][12] | `archive_names` | [exe] Archive names for files 1, 2, 4-19 (COM\RTIM.T … MS\MIS.T), SCUS_941.82 +0x800; registered in this order by the boot routine at 0x800122A8 (calls 0x80012304-0x8001241C). Same numbers and names as PP | data | P16 in 1 fn: `800122A8` | — | ac1/foundations.md §2 |
 | `800112C8` | 4 | u32 | `module_base_ptr` | [exe] Holds 0x8004ADA0, the module load address (SCUS_941.82 +0xAC8); every module load passes it as the destination | data | R8 in 2 fn: `800121AC`, `800122A8` | — | ac1/foundations.md §3 |
+| `80031A58` | 12 | u8[12] | `garage_loadout` | [exe data] Equipped part ids (SCUS_941.82 +0x21258), saved at card +0x230 | code | — | menu RWP 58 | ac1/records.md |
+| `80031A64` | 48 | u8[48] | `garage_paint` | [exe data] Paint (SCUS_941.82 +0x21264), saved at card +0x2C8 | code | — | menu RWP 18 | ac1/records.md |
+| `80031A94` | 160 | u8[160] | `owned_part_counts` | [exe data] Owned-part counts, 160 entries (PP 256), SCUS_941.82 +0x21294; saved at card +0x2F8 | code | — | VS RW 1; link RW 1; menu RWP 19; missions RW 1 | ac1/records.md |
+| `80031B34` | 160 | u8[160] | `shop_stock` | [exe data] Shop stock per part, 160 entries (PP 256), SCUS_941.82 +0x21334; saved at card +0x398 | code | — | menu RWP 16 | ac1/records.md |
+| `80031BD4` | 36 | char[36] | `ac_pilot_names` | [exe data] AC and pilot names (SCUS_941.82 +0x213D4), saved at card +0x204 and +0x244 | code | — | menu RWP 17 | ac1/records.md |
 | `80039C5E` | 1 | u8 | `game_mode` | [exe bss, gp+2] Engine picked by the boot loop at 0x800124A0: 0 = FDAT 202 missions, 1 = FDAT 203 link, 2 = FDAT 204 VS (PP uses the same numbers and adds 3 = arena) | code | R1 in 1 fn: `800122A8` | menu RW 2 | ac1/foundations.md §3 |
+| `80039CA0` | 2 | u16 | `option_mask` | [exe bss] Option parts mask, saved at card +0x23E | code | — | menu RW 18 | ac1/records.md |
+| `80039CA4` | 4 | u32 | `credits` | [exe bss] Credits, saved at card +0x22C and +0x240 | code | — | menu RW 10; missions RW 1 | ac1/records.md |
+| `80039D18` | 4 | u32 | `cur_player_block` | [exe bss] Pointer to the player block being worked on | code | R2 W2 in 2 fn: `80016E14`, `80016E64` | VS RW 65; link RW 58 | ac1/records.md |
+| `80039D20` | 7 | u8[7] | `human_plus_bytes` | [exe bss] Human PLUS level and flags, saved at card +0xD48 | code | — | menu RWP 17 | ac1/records.md |
+| `80039D2A` | 1 | u8 | `round_number` | [exe bss] Round number (PP's twin: +1 per decided round) | code | W1 in 1 fn: `800122A8` | VS RW 2; link RW 2; menu W 3 | ac1/records.md |
 
 ## Exe bss (zeroed at boot, survives every load)
 
 | Address | Size | Type | Name | What | Status | Exe refs | Module refs | Source |
 |---|---|---|---|---|---|---|---|---|
 | `80040FA0` | 924 | struct | `player_block_1` | [exe bss] Player block 1 (player block 2 at 0x8004133C, 0x39C apart; PP 0x3A8). Fields up to +0x220 sit where PP has them; later ones are 4-12 bytes lower (struct-player-block.tsv) | code | R2 W2 P1 in 2 fn: `800122A8`, `80016E64` | VS RWP 13; link RWP 4; menu RWP 12; missions RWP 63 | ac1/foundations.md §6 |
+| `800411F4` | 316 | struct | `p1_stat_block` | [exe bss] Player 1 compiled stat block = player block +0x254 (player 2 at +924), written by the compile routine 0x8009C964 (FDAT 201) at VS START / launch. 8 bytes shorter than PP's (records.md §3) | code | R2 W1 in 1 fn: `800122A8` | VS RWP 5; link R 1; menu RWP 11; missions RWP 50 | ac1/records.md |
+| `800411F8` | 1 | u8 | `p1_stage_number` | [exe bss] Stat +0x04: stage / engine mission number; the boot loop tests it for 21-22, 47-48, 49 after a mission (endings, guess) | code | R2 in 1 fn: `800122A8` | VS R 1; link R 1; menu RWP 8; missions RWP 2 | ac1/records.md |
 | `8004121B` | 1 | u8 | `p1_body_number` | [exe bss] Player 1 block +0x27B: body kit number 0-71; the missions engine writes it into its name string as P<n/20>\PA<nn>.T and registers it as archive 0 (0x8004F1A8 in FDAT 202). PP has it at block +0x281 | code | — | menu W 1; missions R 2 | ac1/foundations.md §4 |
 | `8004133C` | 924 | struct | `player_block_2` | [exe bss] Player block 2 (see player_block_1) | code | W2 P1 in 2 fn: `800122A8`, `80016E64` | VS RWP 11; link RWP 4; menu RW 4 | ac1/foundations.md §6 |
+| `80041B10` | 120 | u8[120] | `mission_save_copy` | [exe bss] Saved copy of mission table T+0..+0x77 (store 0x80086654), card +0xC58 | code | — | menu RWP 11 | ac1/records.md |
+| `800485A0` | 96 | u8[96] | `owned_part_bits` | [exe bss] Owned-part bitmasks, saved at card +0x268 | code | — | menu RWP 16 | ac1/records.md |
+| `80048630` | 56 | struct | `settings_record` | [exe bss] Settings record, saved at card +0xCD0 | code | — | menu RWP 24 | ac1/records.md |
+| `80049E70` | 64 | u8[64] | `card_record_d08` | [exe bss] 64 bytes saved at card +0xD08, where PP keeps its arena rank record; what AC1 keeps here is not read yet | code | — | menu RWP 8 | ac1/records.md |
+| `80049EC8` | 196 | u8[196] | `mail_save_copy` | [exe bss] Saved copy of mail block S+0..+0xC3 (store 0x800960C0), card +0xD4F | code | — | menu RWP 6 | ac1/records.md |
 | `8004A2A4` | 240 | struct[20] | `archive_table` | [exe bss] One 12-byte row per archive number 0-19: +0 pointer to its entry list (start sectors, halfwords), +4 CD position, +8 size. Filled by the register routine 0x80016678, read by the loader 0x800165E4 | code | R4 P3 in 4 fn: `80015C9C`, `80015D80`, `800165E4`, `80016678` | — | ac1/foundations.md §2 |
 | `8004A394` | 4 | u32 | `archive_list_fill` | [exe bss] Next free byte for archive entry lists; the register routine copies each archive's list here and stops with an error once it reaches 0x80048508 | code | R2 W2 in 2 fn: `80016678`, `800167D0` | VS RW 1; link RW 1; missions RW 1 | ac1/foundations.md §2 |
 
@@ -61,16 +78,22 @@ that wrote it. Details and the stretches no code was seen using: `mapping/scratc
 | Address | Size | Type | Name | What | Status | Exe refs | Module refs | Source |
 |---|---|---|---|---|---|---|---|---|
 | `8004ADA4` | 4 | u32 | `engine_entry_word` | [module header +4] Entry point of the fight engine just loaded (202: 0x8004C340, 203: 0x8004BF94, 204: 0x8004BF3C); the boot loop calls it at 0x8001251C and loops while it returns non-zero. The menu (201) is entered directly at 0x8009B414 instead | code | R1 in 1 fn: `800122A8` | — | ac1/foundations.md §3 |
+| `8008C2B8` | 924 | struct | `vs_player_block_backup_p1` | [VS] VS engine's copy of player block 1 (P2 at 0x8008C654), set at run time | code | — | VS RWP 1 | ac1/records.md |
 | `8008D928` | 10 | char[] | `missions_body_archive_name` | [missions] Name string 'P0\PA00.T' (FDAT 202 +0x42B88); digits are written in before it is registered as archive 0. Link copy 0x800895D0 (FDAT 203 +0x3E830), VS copy 0x800893D4 (FDAT 204 +0x3E634) | data | — | missions WP 1 | ac1/foundations.md §4 |
+| `8017F6D0` | 4496 | struct | `mail_block` | [menu] Mail block S, PP's layout: flags, 64 triggers at +0x40, count +0xC0, MIS.T 818 copied to S+0x110 (callback 0x800963A0) | code | — | menu RWP 23 | ac1/records.md |
 | `8019B480` | 1 | u8 | `link_stage_slot` | [link] Stage slot n (90-94): RTIM n, FDAT 2n (stage code, to 0x801B80C8), FDAT 2n+1 (stage data, to the buffer at 0x8019B488) | code | — | link RW 2 | ac1/foundations.md §4 |
 | `8019B488` | 4 | u32 | `link_stage_buf` | [link] Pointer to the link engine's work buffer (body archive entry 1, RTIM 100, RTIM n, FDAT 200, stage data) | code | — | link RWP 2 | ac1/foundations.md §4 |
 | `8019F518` | 1 | u8 | `mission_slot` | [missions] Mission slot n: picks RTIM n (pictures), FDAT 2n (mission code, to 0x801C4B40) and FDAT 2n+1 (mission map, to the buffer at 0x8019F520). Slots 0-49 (16, 29, 39 empty), 60, 70 | code | — | missions RWP 4 | ac1/foundations.md §4 |
 | `8019F520` | 4 | u32 | `mission_map_buf` | [missions] Pointer to the work buffer: gets body archive entry 1, RTIM 100, RTIM n, FDAT 200 and the mission map in turn | code | — | missions RWP 2 | ac1/foundations.md §4 |
 | `801AB678` | 1 | u8 | `vs_stage_slot` | [VS] Stage slot n (80-84): RTIM n, FDAT 2n (stage code, to 0x801C8460), FDAT 2n+1 (stage data, to the buffer at 0x801AB680) | code | — | VS RW 2 | ac1/foundations.md §4 |
 | `801AB680` | 4 | u32 | `vs_stage_buf` | [VS] Pointer to the VS engine's work buffer (body archive entry 1, RTIM 100, RTIM n, FDAT 200, stage data) | code | — | VS RWP 2 | ac1/foundations.md §4 |
+| `801AB748` | 368 | struct | `vs_ac_object_p1` | [VS] Player 1 AC object (P2 at 0x801AB8B8); same 368-byte layout as PP except +0xF2..+0xF6 (PP +0xF0..+0xF4) | code | — | VS RWP 25 | ac1/records.md |
+| `801AB8B8` | 368 | struct | `vs_ac_object_p2` | [VS] Player 2 AC object (see vs_ac_object_p1) | code | — | VS RWP 19 | ac1/records.md |
+| `801B645C` | 57344 | struct[256] | `vs_object_pool` | [VS] Object pool, 256 x 224 bytes (shots, missiles, effects), cleared by 0x80081FD0; same size as PP's | code | — | VS RWP 7 | ac1/records.md |
 | `801B80C8` | 6144 | code | `link_stage_code` | [link] Per-stage code (FDAT 180-188, 4-6 KB), loaded at 0x80050084 (FDAT 203) | code | — | link P 1 | ac1/foundations.md §4 |
 | `801C4B40` | 43008 | code | `mission_code` | [missions] Per-mission code module (FDAT 2n, 6-43 KB), loaded at 0x8004F784; starts with a table of handler pointers into itself. PP loads its mission code at 0x80097A38 | code | — | missions P 1 | ac1/foundations.md §4 |
 | `801C8460` | 6144 | code | `vs_stage_code` | [VS] Per-stage code (FDAT 160-168, 4-6 KB), loaded at 0x8004FB7C (FDAT 204). PP loads VS stage code at 0x8008F5D0 | code | — | VS P 1 | ac1/foundations.md §4 |
+| `801F3750` | 6468 | struct | `mission_table` | [menu] Mission table T, PP's layout: 64 slots, flags at +0x38, MIS.T entry 0 copied to T+0xC4 (0x620 words, callback 0x80086E34) | code | — | menu RWP 26 | ac1/records.md |
 
 ## Touched by the exe's game code but not named yet
 
@@ -136,8 +159,6 @@ no entry above covers. Good first targets. (`P` below `80011D84` = a message str
 | `80039CBC` | P | `80011E6C` |
 | `80039CC0` | P | `80011F28` |
 | `80039D00` | W1 | `800122A8` |
-| `80039D18` | R4 W4 | `80016E14`, `80016E64` |
-| `80039D2A` | W1 | `800122A8` |
 | `80041720` | P | `80016ACC` |
 | `80041BB8` | W1 | `80016ACC` |
 | `80041BB9` | W1 | `80016ACC` |
@@ -211,17 +232,15 @@ no entry above covers. Good first targets. (`P` below `80011D84` = a message str
 
 From the module scan: bss addresses (gp area up to `8004AD9F`) that the menus or fight
 engines read or write, not covered by any entry. Sorted by how many routines use them;
-340 left (top 60 shown). These are the best next targets.
+257 left (top 60 shown). These are the best next targets.
 
 | Address | Used by (engine: routines) |
 |---|---|
-| `80039D18` | VS 65; link 58 |
 | `80039C78` | VS 16; link 16; missions 16 |
 | `80039C7B` | VS 15; link 15; missions 15 |
 | `80039C7C` | VS 15; link 15; missions 15 |
 | `80039C7F` | VS 15; link 15; missions 15 |
 | `80039CA2` | menu 28 |
-| `80039CA0` | menu 18 |
 | `80041BC2` | VS 5; link 5; missions 6 |
 | `80041BD0` | VS 5; link 5; missions 5 |
 | `80039CA3` | menu 15 |
@@ -231,43 +250,25 @@ engines read or write, not covered by any entry. Sorted by how many routines use
 | `80041DE0` | VS 4; link 4; missions 4 |
 | `80041DE2` | VS 4; link 4; missions 4 |
 | `80041DEA` | VS 4; link 4; missions 4 |
-| `80039D20` | menu 12 |
 | `80041B94` | VS 3; link 4; missions 4 |
-| `80039CA4` | menu 10; missions 1 |
-| `800485F0` | menu 11 |
-| `80048630` | menu 10 |
 | `80041BBB` | VS 3; link 3; missions 3 |
 | `80041BBD` | VS 3; link 3; missions 3 |
 | `80041BC4` | VS 3; link 3; missions 3 |
 | `80039CAE` | menu 9 |
-| `80041B10` | menu 9 |
 | `80039C5D` | VS 1; link 1; menu 5; missions 1 |
 | `80039D34` | VS 1; link 7 |
 | `80041B92` | VS 2; link 3; missions 3 |
 | `80041BBA` | VS 2; link 2; menu 2; missions 2 |
 | `8004A28C` | VS 1; link 5; menu 1; missions 1 |
 | `8004A293` | VS 1; link 5; menu 1; missions 1 |
-| `80039D23` | menu 8 |
-| `80039D24` | menu 8 |
-| `80039D25` | menu 8 |
-| `80039D26` | menu 8 |
-| `80041B14` | menu 8 |
 | `80042AA8` | menu 8 |
-| `80048634` | menu 8 |
-| `80048638` | menu 8 |
-| `8004863C` | menu 8 |
-| `80048640` | menu 8 |
 | `80039D08` | VS 1; link 1; menu 5 |
 | `80039D0A` | VS 1; link 1; menu 5 |
-| `80039D2A` | VS 2; link 2; menu 3 |
 | `80041B9A` | VS 1; link 3; missions 3 |
 | `80041BC1` | VS 2; link 2; missions 3 |
 | `80048614` | VS 2; link 2; menu 1; missions 2 |
 | `80039CAB` | menu 7 |
 | `80039CAD` | menu 7 |
-| `80048660` | menu 7 |
-| `80048663` | menu 7 |
-| `80049E70` | menu 7 |
 | `80041BA0` | VS 2; link 2; missions 2 |
 | `80041BC0` | VS 2; link 2; missions 2 |
 | `80041BC8` | VS 2; link 2; missions 2 |
@@ -275,6 +276,26 @@ engines read or write, not covered by any entry. Sorted by how many routines use
 | `80041BCC` | VS 2; link 2; missions 2 |
 | `80041BCD` | VS 2; link 2; missions 2 |
 | `80041BCE` | VS 2; link 2; missions 2 |
+| `80041EC6` | VS 2; link 2; missions 2 |
+| `80042086` | VS 2; link 2; missions 2 |
+| `8004208E` | VS 2; link 2; missions 2 |
+| `80042A86` | VS 2; link 2; missions 2 |
+| `80042A88` | VS 2; link 2; missions 2 |
+| `80042A8A` | VS 2; link 2; missions 2 |
+| `80042A8B` | VS 2; link 2; missions 2 |
+| `80042A8E` | VS 2; link 2; missions 2 |
+| `80042A94` | VS 2; link 2; missions 2 |
+| `8004A284` | link 4; menu 2 |
+| `8004A288` | link 4; menu 2 |
+| `80042AAB` | menu 6 |
+| `80042AAC` | menu 6 |
+| `80042AAF` | menu 6 |
+| `80042AB0` | menu 6 |
+| `80042AB3` | menu 6 |
+| `80042AB4` | menu 6 |
+| `80042AB7` | menu 6 |
+| `80042AB8` | menu 6 |
+| `80042ABC` | menu 6 |
 
 ## Next
 
@@ -288,4 +309,4 @@ engines read or write, not covered by any entry. Sorted by how many routines use
 
 ## Counts
 
-19 named entries (code 16). Exe scan: 3139 references to 796 addresses.
+42 named entries (code 39). Exe scan: 3139 references to 796 addresses.
