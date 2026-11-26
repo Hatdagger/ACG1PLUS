@@ -4033,13 +4033,13 @@ missions = 0x801BC328
 
 [[var]]
 addr = 0x801D1618
-size = 6656
-type = "struct[128]"
+size = 26624
+type = "struct[512]"
 name = "vs_stage_objects"
 disc = "PP"
-what = "[VS] Stage objects, 128 × 52 bytes: centre +0, +6 = −1 off, flags +0x1C (bit 1 / 3 / 5 pick the draw), eye box +0x22 … +0x27"
+what = "[VS] Stage objects, 512 × 52 bytes (PP direct read, round 2: the loader 0x8006FDF8 fills 512 from stage data chunk 9, 32 bytes each on the disc): centre +0, +6 = type index (−1 = off; model = model table [0xA0 + type]), flags +0x1C / +0x1E / +0x20 from the type record, eye box +0x22 … +0x27, parameter byte +0x2C (the AI's 'kind'), +0x14 the behaviour block a type's init installs. See vs_stage_object_types"
 status = "code"
-src = "mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/stages.md §3, mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high)"
 moa = 0x801D2EF8
 arena = 0x801CB258
 link = 0x801C2360
@@ -4614,3 +4614,24 @@ what = "[menu] Body combination table, 72 x 12 bytes: core id, 3 pad, pointer to
 status = "code"
 src = "mapping/pa-archives.md §1"
 moa = 0x800D4A64
+
+[[var]]
+addr = 0x801D1318
+size = 768
+type = "struct[32]"
+name = "vs_stage_object_types"
+disc = "PP"
+what = "[VS] Stage object types, 24 bytes each (stage data chunk 8: u32 count, then 12 halfwords per type; filled by 0x8006FF68): +0 draw flags (copied to object +0x1C), +2 / +4 (object +0x1E / +0x20), +6 class (249 = area box, 248 = AI marker, …; stages.md §3). The stage code's init for type i is its table +0xA0 + 4i"
+status = "code"
+src = "mapping/stages.md §3"
+arena = 0x801CAF58
+
+[[var]]
+addr = 0x80199F1C
+size = 8
+type = "ptr[2]"
+name = "vs_stage_extra_models"
+disc = "PP"
+what = "[VS] Two model pointers just below vs_model_table (0x80199C90 + 0x28C + 4i); stage data chunk 3 goes to [0] (0x80054D78), one model without a list header (sky / backdrop `guess`)"
+status = "code"
+src = "mapping/stages.md §2"
