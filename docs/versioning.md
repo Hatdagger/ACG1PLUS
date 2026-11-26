@@ -13,21 +13,36 @@ Rules
 5. Mapping the game's code runs alongside every step; it doesn't get a number of its own. Neither does the
    disc patch track (`docs/disc-patch-track.md`): using the mapping to patch the original game's disc.
 
-Ladder (order set 2026-11-20)
+Ladder (rewritten 2026-11-26 for the Phantasma base; numbering restarted at 0.0.1)
+
+Base game: Project Phantasma USA (SLUS-00670). Master of Arena and later Armored Core 1 are content sources.
+Builds are made on the player's PC from their own disc (no game code on GitHub). The Steam Deck is the
+benchmark: if it runs well there, it runs well everywhere else.
 
 | Version | Reached when |
 |---|---|
-| 0.0.x | Boots and plays the stock US game |
-| 0.1.x | Custom launcher with built-in updater (dev builds also download Actions builds) |
-| 0.2.x | Japanese disc plays stock too |
-| 0.3.x | Single disc and fast loading |
-| 0.4.x | Local link cable versus (Link Versus: two sessions on one PC) |
-| 0.5.x | Optimizations |
+| 0.0.x | Stock Phantasma builds on the owner's Windows PC from the owner's disc and plays: a mission, VS and the arena |
+| 0.1.x | Steam Deck: the same build route works there with everything it needs packed in, the install is portable, and a performance baseline is measured |
+| 0.2.x | Launcher on Phantasma: finds the Phantasma disc, shows a "preparing game" screen during the first-run build, the updater rebuilds when our changes change, works with a controller only |
+| 0.3.x | Fast loading, plus direct starts from the launcher (load a save, new game, VS) |
+| 0.4.x | Optimizations: full speed on the Deck, work spread across cores and the GPU |
+| 0.5.x | Link Versus (two sessions on one PC) |
 | 0.6.x | Netplay (LAN / online versus) |
-| 0.7.x | Additional content: Project Phantasma arena and missions, mission picker, save fix, Extra Garage, AI Battle |
+| 0.7.x | Master of Arena content into Phantasma: arenas, opponents and parts first, then missions and mail; mission source picker, Extra Garage, AI Battle |
 | 0.8.0 – 0.8.4 | Rogue Arena; level with AC1Recomp 0.8.4.4.2 |
-| 0.8.5 – 0.8.7 | New ground: things AC1Recomp never had (mail folders, …) |
+| 0.8.5 – 0.8.7 | New ground: mail folders, Armored Core 1 content, visual upgrades that keep the game playable |
 | 0.8.8 | Public release |
 
-Building: always give the version by hand when starting the "Release builds" workflow. Its auto-bump only
-understands three-number versions; numbers typed in by hand can have as many parts as we like.
+Why this order (owner, 2026-11-26)
+- The build route and the Deck come first: nothing else can be tested until Phantasma builds from the disc.
+- Optimizations come before Link Versus and netplay: a game that runs solid first benefits the networking later.
+- Dropped from the old ladder: the Japanese disc step (it was for Japanese Master of Arena; a Japanese
+  Phantasma disc is an open question) and single disc (Phantasma is already one disc).
+- 0.7 now runs the other way: Master of Arena content goes into Phantasma, data first, missions last.
+
+Earlier ladder (Master of Arena base, 2026-11-20, reached 0.0.4 in Armored-Core-Gen-1): 0.0 stock US,
+0.1 launcher, 0.2 Japanese disc, 0.3 single disc + fast loading, 0.4 Link Versus, 0.5 optimizations, 0.6 netplay,
+0.7 Phantasma content, 0.8.0–0.8.4 Rogue Arena, 0.8.5–0.8.7 new ground, 0.8.8 public release.
+
+Building: always give the version by hand when starting a build (the old "Release builds" workflow, now parked,
+only understood three-number versions); numbers typed in by hand can have as many parts as we like.
