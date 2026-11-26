@@ -2273,9 +2273,9 @@ size = 12
 type = "u8[12]"
 name = "garage_parts"
 disc = "PP"
-what = "Equipped part ids: core, booster, head, arms, blade (left arm), hand (right arm), back L, back R, generator, FCS, unused, legs (save +440)"
+what = "Garage part ids (save +560) [From the MoA twin: Equipped part ids: core, booster, head, arms, blade (left arm), hand (right arm), back L, back R, generator, FCS, unused, legs (save +440)]"
 status = "code"
-src = "mapping/boot-loads.md §4e, mapping/parts-tables.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md §4e, mapping/parts-tables.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x80036FB0
 
 [[var]]
@@ -2284,9 +2284,9 @@ size = 560
 type = "bytes"
 name = "save_block_main"
 disc = "PP"
-what = "Save +592 copied as one block: paint, owned parts (+0x30), shop stock (+0x130) …"
+what = "Save +592 copied as one block: paint, owned parts (+0x30), shop stock (+0x130) … Starts with the garage paint (48 bytes, save +712; Lane 3)."
 status = "code"
-src = "mapping/boot-loads.md §4e; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md §4e; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x80036FBC
 
 [[var]]
@@ -2295,9 +2295,9 @@ size = 256
 type = "u8[256]"
 name = "owned_parts"
 disc = "PP"
-what = "Owned count per part, one byte per part id (back weapons count 2 per buy)"
+what = "Owned parts (save +760) [From the MoA twin: Owned count per part, one byte per part id (back weapons count 2 per buy)]"
 status = "code"
-src = "mapping/arena-prizes.md, ram-map-codes.md §1; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/arena-prizes.md, ram-map-codes.md §1; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x80036FEC
 
 [[var]]
@@ -2306,20 +2306,20 @@ size = 256
 type = "u8[256]"
 name = "shop_stock"
 disc = "PP"
-what = "Shop stock per part id (save +896)"
+what = "Shop stock (save +1016); new game fills it from 0x800B42D4, 121 non-zero entries, values 1 and 2 [From the MoA twin: Shop stock per part id (save +896)]"
 status = "code"
-src = "mapping/boot-loads.md §4e, mapping/menus-screens.md §2i; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md §4e, mapping/menus-screens.md §2i; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x800370EC
 
 [[var]]
 addr = 0x800344F0
-size = 36
-type = "char[36]"
+size = 32
+type = "bytes"
 name = "ac_pilot_names"
 disc = "PP"
-what = "AC name then pilot name (save +460)"
+what = "AC name and pilot name, 16 bytes each (save +580); reset to '>' placeholders by 0x80058F08 [From the MoA twin: AC name then pilot name (save +460)]"
 status = "code"
-src = "mapping/boot-loads.md §4e; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md §4e; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x800371EC
 
 [[var]]
@@ -2359,11 +2359,11 @@ moa = 0x8003EA28
 addr = 0x8003BC85
 size = 1
 type = "u8"
-name = "flow_flag_29"
+name = "fight_music"
 disc = "PP"
-what = "Cleared before the exe loads VS (FDAT 209) together with 0x8003EA94"
+what = "Fight music number set by every fight launch [Was flow_flag_29 (code, carried over from MoA): Cleared before the exe loads VS (FDAT 209) together with 0x8003EA94]"
 status = "code"
-src = "mapping/boot-loads.md, mapping/mode-launch.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md, mapping/mode-launch.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA29
 
 [[var]]
@@ -2372,9 +2372,9 @@ size = 1
 type = "u8"
 name = "mode"
 disc = "PP"
-what = "Mode byte the exe main loop dispatches on: 2 = split-screen VS, 3 = arena (AI Battle flips 2→3) …"
+what = "Mode byte: 0 missions (and garage test fight), 1 link versus, 2 split-screen VS, 3 arena; the exe loads FDAT 202/203/204/205 (206 with the replay flag) [From the MoA twin: Mode byte the exe main loop dispatches on: 2 = split-screen VS, 3 = arena (AI Battle flips 2→3) …]"
 status = "code"
-src = "mapping/mode-launch.md, mapping/battle-system.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/mode-launch.md, mapping/battle-system.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA2A
 
 [[var]]
@@ -2405,9 +2405,9 @@ size = 2
 type = "u16"
 name = "options_fitted"
 disc = "PP"
-what = "Fitted optional parts, one bit each (bits 0–12 used, 13–15 free) (save +454)"
+what = "Option parts of the garage AC (save +574) [From the MoA twin: Fitted optional parts, one bit each (bits 0–12 used, 13–15 free) (save +454)]"
 status = "code"
-src = "mapping/parts-tables.md, custom-parts/op-wlink.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/parts-tables.md, custom-parts/op-wlink.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA70
 
 [[var]]
@@ -2416,9 +2416,9 @@ size = 1
 type = "u8"
 name = "paint_pattern"
 disc = "PP"
-what = "Paint pattern = AC texture set (save +452)"
+what = "Paint pattern of the garage AC (save +572) [From the MoA twin: Paint pattern = AC texture set (save +452)]"
 status = "code"
-src = "mapping/boot-loads.md §4d/§4e; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md §4d/§4e; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA72
 
 [[var]]
@@ -2427,20 +2427,20 @@ size = 1
 type = "u8"
 name = "paint_variant"
 disc = "PP"
-what = "Paint variant (picks MENU_TIM 26 + 4v + this)"
+what = "Paint variant of the garage AC (save +573) [From the MoA twin: Paint variant (picks MENU_TIM 26 + 4v + this)]"
 status = "code"
-src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA73
 
 [[var]]
 addr = 0x8003BCD0
 size = 4
-type = "u32"
+type = "s32"
 name = "credits"
 disc = "PP"
-what = "Credits (max 99,999,999) (save +456)"
+what = "Credits, starts at 100,000 in the exe image (save +576) [From the MoA twin: Credits (max 99,999,999) (save +456)]"
 status = "code"
-src = "mapping/arena-prizes.md, ram-map-codes.md §2; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/arena-prizes.md, ram-map-codes.md §2; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA74
 
 [[var]]
@@ -2458,11 +2458,11 @@ moa = 0x8003EA78
 addr = 0x8003BCD5
 size = 1
 type = "u8"
-name = "title_flag"
+name = "start_l1r1"
 disc = "PP"
-what = "Set to 1 with 0x8003EA7A when going to the title; cleared at PRESS START"
+what = "0 if L1 + R1 are held at PRESS START, else 1; nothing reads it (leftover) [Was title_flag (code, carried over from MoA): Set to 1 with 0x8003EA7A when going to the title; cleared at PRESS START]"
 status = "code"
-src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, medium)"
+src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, medium); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA79
 
 [[var]]
@@ -2471,9 +2471,9 @@ size = 1
 type = "u8"
 name = "go_to_title"
 disc = "PP"
-what = "1 = go to the title; in code only the link-return check 0x800A6BB0 sets it"
+what = "1 = the next menu start opens the title (exe image starts at 1; set when a link session ends) [From the MoA twin: 1 = go to the title; in code only the link-return check 0x800A6BB0 sets it]"
 status = "code"
-src = "mapping/README.md, mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, medium)"
+src = "mapping/README.md, mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, medium); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA7A
 
 [[var]]
@@ -2482,9 +2482,9 @@ size = 1
 type = "u8"
 name = "back_from_ac_test"
 disc = "PP"
-what = "Back from an AC TEST sortie: hub opens the garage on page 6"
+what = "1 = back from the garage test fight (set 0x80070C40, the hub clears it) [From the MoA twin: Back from an AC TEST sortie: hub opens the garage on page 6]"
 status = "code"
-src = "mapping/menus-hub.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/menus-hub.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA7B
 
 [[var]]
@@ -2493,9 +2493,9 @@ size = 1
 type = "u8"
 name = "back_from_arena"
 disc = "PP"
-what = "1 = back from an arena fight (hub opens the arena screen)"
+what = "1 = back from an arena fight; the hub opens on entry 5 (set by arena launch 0x800B141C) [From the MoA twin: 1 = back from an arena fight (hub opens the arena screen)]"
 status = "code"
-src = "mapping/boot-loads.md, mapping/menus-hub.md; PP address from xdisc/globals.tsv (exact, medium)"
+src = "mapping/boot-loads.md, mapping/menus-hub.md; PP address from xdisc/globals.tsv (exact, medium); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA7C
 
 [[var]]
@@ -2513,11 +2513,11 @@ moa = 0x8003EA7D
 addr = 0x8003BCD9
 size = 1
 type = "u8"
-name = "vs_first_visit"
+name = "return_to_vs"
 disc = "PP"
-what = "0 = first VS menu visit (map reset to 1)"
+what = "1 = the menu reopens on the VS menu (set 0x800A5410, cleared on leaving VS 0x800A9670) [Was vs_first_visit (code, carried over from MoA): 0 = first VS menu visit (map reset to 1)]"
 status = "code"
-src = "mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA7E
 
 [[var]]
@@ -2526,9 +2526,9 @@ size = 1
 type = "u8"
 name = "title_skip"
 disc = "PP"
-what = "1 = title opens without its intro (MENU_TIM 875, straight to 0x800AB014)"
+what = "1 = the title opens without logos and intro movies (set only by the link engine FDAT 203) [From the MoA twin: 1 = title opens without its intro (MENU_TIM 875, straight to 0x800AB014)]"
 status = "code"
-src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA7F
 
 [[var]]
@@ -2537,9 +2537,9 @@ size = 1
 type = "u8"
 name = "back_to_link_menu"
 disc = "PP"
-what = "Return to the link-cable versus menu (set by 0x800AD218)"
+what = "1 = the menu reopens on the link-cable menu (set 0x800A08A0) [From the MoA twin: Return to the link-cable versus menu (set by 0x800AD218)]"
 status = "code"
-src = "mapping/mode-launch.md; PP address from xdisc/globals.tsv (exact, medium)"
+src = "mapping/mode-launch.md; PP address from xdisc/globals.tsv (exact, medium); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA80
 
 [[var]]
@@ -2548,20 +2548,20 @@ size = 1
 type = "u8"
 name = "vs_map"
 disc = "PP"
-what = "VS map 1–10, written by 0x800B348C"
+what = "VS stage 20..29 chosen in the VS menu; VS START copies it to both player blocks +0x25D [From the MoA twin: VS map 1–10, written by 0x800B348C]"
 status = "code"
-src = "mapping/README.md, mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/README.md, mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA81
 
 [[var]]
 addr = 0x8003BCDD
 size = 1
 type = "u8"
-name = "mail_notice_shown"
+name = "flag_bcdd_dead"
 disc = "PP"
-what = "1 = the hub's \"You have new mail.\" box was already shown. Hub state 0x80055798 opens it (280 × 32 at 20, 104) when the new-mail check 0x800A23F4 says yes and this is 0, then sets it; the hub reset 0x8005A6C0 and 0x800A69C8 / 0x800BC9F0 clear it, 0x80073424 sets it. Was flow_flag_82"
-status = "guess"
-src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (near, low)"
+what = "Read after a mission but never set by any code in the exe or FDAT 201-206: dead [Was mail_notice_shown (guess, carried over from MoA): 1 = the hub's \"You have new mail.\" box was already shown. Hub state 0x80055798 opens it (280 × 32 at 20, 104) when the new-mail check 0x800A23F4 says yes and this is 0, then sets it; the hub reset 0x8005A6C0 and 0x800A69C8 / 0x800BC9F0 clear it, 0x80073424 sets it. Was flow_flag_82]"
+status = "code"
+src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (near, low); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA82
 
 [[var]]
@@ -2592,9 +2592,9 @@ size = 1
 type = "u8"
 name = "replay_flag"
 disc = "PP"
-what = "1 = play the replay next (VS sets it and returns 2; exe then loads FDAT 211)"
+what = "0 normal; 1 replay (VS loads FDAT 206, the load keeps 0x801F2000..0x801F8000); 2 recorded input ran out (12,288 bytes read) [From the MoA twin: 1 = play the replay next (VS sets it and returns 2; exe then loads FDAT 211)]"
 status = "code"
-src = "mapping/README.md, mapping/battle-system.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/README.md, mapping/battle-system.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA92
 
 [[var]]
@@ -2614,9 +2614,9 @@ size = 1
 type = "u8"
 name = "vs_round"
 disc = "PP"
-what = "VS round number, +1 per decided round; survives rematches, VS START resets it"
+what = "Match number in the current engine session (exe clears it before each engine load, engines add 1 per match end); VS uses player 1's stage on even matches, player 2's on odd [From the MoA twin: VS round number, +1 per decided round; survives rematches, VS START resets it]"
 status = "code"
-src = "mapping/battle-system.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/battle-system.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EA94
 
 [[var]]
@@ -2669,9 +2669,9 @@ size = 8
 type = "u16[4]"
 name = "vs_score"
 disc = "PP"
-what = "VS tally: 1P wins, 1P losses, 2P wins, 2P losses"
+what = "Win / loss counters capped at 999: P1 win adds +0 and +6, P2 win adds +2 and +4 (on time-up more AP wins) [From the MoA twin: VS tally: 1P wins, 1P losses, 2P wins, 2P losses]"
 status = "code"
-src = "mapping/battle-system.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/battle-system.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EAB0
 
 [[var]]
@@ -2691,9 +2691,9 @@ size = 4
 type = "u32"
 name = "random_seed"
 disc = "PP"
-what = "Random seed, set at PRESS START by 0x800A7B80"
+what = "Random number, stepped every frame by the pad reader 0x80059104: r = ((r + 0x3FD + pad) * 109) & 0x7FFF; music picks use its low byte [From the MoA twin: Random seed, set at PRESS START by 0x800A7B80]"
 status = "code"
-src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EABC
 
 [[var]]
@@ -2702,20 +2702,20 @@ size = 4
 type = "u16[2]"
 name = "vs_options_fitted"
 disc = "PP"
-what = "Per VS player fitted options (+2p), copied to 0x8003EA70"
+what = "VS staging: option parts per player [From the MoA twin: Per VS player fitted options (+2p), copied to 0x8003EA70]"
 status = "code"
-src = "mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EAC0
 
 [[var]]
 addr = 0x8003BD24
-size = 1
-type = "u8"
-name = "human_plus"
+size = 7
+type = "u8[7]"
+name = "ac_extras"
 disc = "PP"
-what = "Human PLUS level 0–15 (save +3564, 8 bytes of flags from here)"
+what = "Per-AC extras (Human PLUS level and flags) of the AC being compiled [Was human_plus (code, carried over from MoA): Human PLUS level 0–15 (save +3564, 8 bytes of flags from here)]"
 status = "code"
-src = "mapping/boot-loads.md §4e, ram-map-codes.md §2; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md §4e, ram-map-codes.md §2; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EAC8
 
 [[var]]
@@ -2801,9 +2801,9 @@ size = 256
 type = "u8[256]"
 name = "garage_owned_copy"
 disc = "PP"
-what = "The garage page's copy of a VS player's owned parts"
+what = "Copy of the owned parts made by the card finish after LOAD [From the MoA twin: The garage page's copy of a VS player's owned parts]"
 status = "code"
-src = "mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EB20
 
 [[var]]
@@ -2865,11 +2865,11 @@ moa = 0x8003EC54
 addr = 0x8003BF48
 size = 20480
 type = "bytes"
-name = "disc_buffer"
+name = "archive_table_pool"
 disc = "PP"
-what = "Default disc work buffer (20 KB, 10 sectors) pointed to by disc_buffer_ptr; holds whatever was last read through it (the menu copies 16-byte records from 0x80040000 here, 0x800ACF94)"
-status = "guess"
-src = "ram-map.md (exe + module scan 2026-11-21); PP address from xdisc/globals.tsv (near, low)"
+what = "Pool for the archives' sector tables (mxt_head_work); cursor 0x8004144C; about 13 KB free [Was disc_buffer (guess, carried over from MoA): Default disc work buffer (20 KB, 10 sectors) pointed to by disc_buffer_ptr; holds whatever was last read through it (the menu copies 16-byte records from 0x80040000 here, 0x800ACF94)]"
+status = "code"
+src = "ram-map.md (exe + module scan 2026-11-21); PP address from xdisc/globals.tsv (near, low); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8003EC70
 
 [[var]]
@@ -2940,13 +2940,13 @@ moa = 0x80044014
 
 [[var]]
 addr = 0x8004135C
-size = 16
-type = "struct"
+size = 240
+type = "struct[20]"
 name = "archive_table"
 disc = "PP"
-what = "File table used by 0x80016A58(file, entry, dest) (FDAT, RTIM, MENU_* …)"
+what = "Archive records, 12 bytes each: +0 sector-table pointer, +4 disc position [From the MoA twin: File table used by 0x80016A58(file, entry, dest) (FDAT, RTIM, MENU_* …)]"
 status = "code"
-src = "mapping/missions.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/missions.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8004402C
 
 [[var]]
@@ -3084,12 +3084,12 @@ moa = 0x800458D8
 [[var]]
 addr = 0x80042C38
 size = 24
-type = "u8[12][2]"
+type = "u8[24]"
 name = "vs_parts"
 disc = "PP"
-what = "VS players' part ids (P1 0x80045940, P2 0x8004594C), copied to/from 0x80036FB0"
+what = "VS staging: 12 part ids per player (also where the arena parks the player's build) [From the MoA twin: VS players' part ids (P1 0x80045940, P2 0x8004594C), copied to/from 0x80036FB0]"
 status = "code"
-src = "mapping/mode-launch.md, mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/mode-launch.md, mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x80045940
 
 [[var]]
@@ -3105,13 +3105,13 @@ moa = 0x80045958
 
 [[var]]
 addr = 0x80042C50
-size = 16
-type = "u8[8][2]"
+size = 14
+type = "u8[14]"
 name = "vs_extras"
 disc = "PP"
-what = "Per VS player extras (Human PLUS …)"
+what = "VS staging: 7 extras per player [From the MoA twin: Per VS player extras (Human PLUS …)]"
 status = "code"
-src = "mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8004A7D0
 
 [[var]]
@@ -3160,13 +3160,13 @@ moa = 0x8004AB60
 
 [[var]]
 addr = 0x80043108
-size = 44
-type = "struct"
-name = "mission_progress"
+size = 120
+type = "bytes"
+name = "scenario_progress"
 disc = "PP"
-what = "Mission progress (save +3232): sorties u16 at 0x8004AC58, successes 0x8004AC5C, failures 0x8004AC60"
+what = "Scenario and mission progress (save +3352); +0 mission slot (-1 = none) [Was mission_progress (code, carried over from MoA): Mission progress (save +3232): sorties u16 at 0x8004AC58, successes 0x8004AC5C, failures 0x8004AC60]"
 status = "code"
-src = "mapping/boot-loads.md §4e/§9a, mapping/menus-screens.md §2n; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md §4e/§9a, mapping/menus-screens.md §2n; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8004AC50
 
 [[var]]
@@ -3184,11 +3184,11 @@ moa = 0x8004AC80
 addr = 0x80043180
 size = 2048
 type = "bytes"
-name = "vram_backup_a"
+name = "hub_tile_backup"
 disc = "PP"
-what = "StoreImage backup of part of MENU_TIM 0, put back when the hub opens (?)"
+what = "VRAM (448,192) 16x64 saved by the title and put back by the hub [Was vram_backup_a (code, carried over from MoA): StoreImage backup of part of MENU_TIM 0, put back when the hub opens (?)]"
 status = "code"
-src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8004ACA8
 
 [[var]]
@@ -3205,34 +3205,34 @@ moa = 0x8004B4A8
 [[var]]
 addr = 0x800439E0
 size = 96
-type = "u64[12]"
+type = "bytes"
 name = "owned_masks"
 disc = "PP"
-what = "Owned-part bitmasks, 8 bytes per kind (blades 0x8004B520, 26-bit 0x8004B528, options 0x8004B558); rebuilt from owned_parts (save +496)"
+what = "Owned-part bitmasks (save +616; rebuilt by 0x800829A4) [From the MoA twin: Owned-part bitmasks, 8 bytes per kind (blades 0x8004B520, 26-bit 0x8004B528, options 0x8004B558); rebuilt from owned_parts (save +496)]"
 status = "code"
-src = "mapping/boot-loads.md §4d/§4e, mapping/menus-screens.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md §4d/§4e, mapping/menus-screens.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8004B508
 
 [[var]]
 addr = 0x80043A40
 size = 56
-type = "struct"
+type = "bytes"
 name = "settings"
 disc = "PP"
-what = "Settings record (save +3276): 12 button masks, then +0x30 TEXT MESSAGE, +0x31 master vol, +0x32 BGM vol, +0x33 VS STAGE, +0x34 VS TIME LIMIT, +0x35 VIBRATION"
+what = "Settings record (save +3472) [From the MoA twin: Settings record (save +3276): 12 button masks, then +0x30 TEXT MESSAGE, +0x31 master vol, +0x32 BGM vol, +0x33 VS STAGE, +0x34 VS TIME LIMIT, +0x35 VIBRATION]"
 status = "code"
-src = "mapping/menus-screens.md §2o; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/menus-screens.md §2o; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8004B568
 
 [[var]]
 addr = 0x80043A78
-size = 54
-type = "u16[9][3]"
-name = "arena_reports"
+size = 64
+type = "bytes"
+name = "arena_rank"
 disc = "PP"
-what = "Arena challenge / win / lose counts, 9 arenas each (0x8004B5A0 / B2 / C4)"
-status = "guess"
-src = "mapping/menus-screens.md §2n; PP address from xdisc/globals.tsv (near, low)"
+what = "u32 arena rank (new game 50, -1 per new opponent beaten), then 15 u32 from 0x800BD6F0 (save +3528) [Was arena_reports (guess, carried over from MoA): Arena challenge / win / lose counts, 9 arenas each (0x8004B5A0 / B2 / C4)]"
+status = "code"
+src = "mapping/menus-screens.md §2n; PP address from xdisc/globals.tsv (near, low); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8004B5A0
 
 [[var]]
@@ -3259,24 +3259,24 @@ moa = 0x8004B5D7
 
 [[var]]
 addr = 0x80043AB8
-size = 100
+size = 192
 type = "bytes"
-name = "arena_state_rest"
+name = "mail_table_save"
 disc = "PP"
-what = "Rest of the arena state (save +3572)"
-status = "code"
-src = "mapping/boot-loads.md §4e; PP address from xdisc/globals.tsv (exact, high)"
+what = "Saved copy of the menu table 0x8018D5D0 (save +3599); mail state by its users [Was arena_state_rest (code, carried over from MoA): Rest of the arena state (save +3572)]"
+status = "guess"
+src = "mapping/boot-loads.md §4e; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8004B688
 
 [[var]]
 addr = 0x80043B80
 size = 32
 type = "bytes"
-name = "vram_backup_b"
+name = "hub_clut_backup"
 disc = "PP"
-what = "StoreImage backup of VRAM (368,225,16,1)"
+what = "VRAM (368,225) 16x1 saved by the title and put back by the hub [Was vram_backup_b (code, carried over from MoA): StoreImage backup of VRAM (368,225,16,1)]"
 status = "code"
-src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, high)"
+src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, high); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x8004B6F0
 
 [[var]]
@@ -3363,11 +3363,11 @@ moa = 0x801B1CB8
 addr = 0x8019CEA0
 size = 2
 type = "u16"
-name = "menu_exit"
+name = "menu_start_fight"
 disc = "PP"
-what = "[menu] Menu loop runs until this is non-zero (start a fight …)"
-status = "guess"
-src = "mapping/boot-loads.md, mapping/mode-launch.md; PP address from xdisc/globals.tsv (between, low)"
+what = "Menu only: non-zero ends the menu frame loop and starts the fight [Was menu_exit (guess, carried over from MoA): [menu] Menu loop runs until this is non-zero (start a fight …)]"
+status = "code"
+src = "mapping/boot-loads.md, mapping/mode-launch.md; PP address from xdisc/globals.tsv (between, low); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x801B1CC8
 
 [[var]]
@@ -4306,13 +4306,13 @@ moa = 0x8004ABD8
 
 [[var]]
 addr = 0x800424E8
-size = 32
-type = "u32[8]"
-name = "sound_started_bits"
+size = 936
+type = "struct"
+name = "player_block_1"
 disc = "PP"
-what = "One bit per sound id (256): the play routine 0x80053284 sets it and skips a sound whose bit is already set, so one sound starts at most once per frame (cleared elsewhere, through a pointer)"
-status = "guess"
-src = "ram-map.md (VS module read 2026-11-21), sound-map.md; PP address from xdisc/globals.tsv (near, low)"
+what = "Player block 1; block 2 at 0x80042890 (+0x3A8); +0x25D stage, +0x281 body combination, +0x258 compiled stat block [Was sound_started_bits (guess, carried over from MoA): One bit per sound id (256): the play routine 0x80053284 sets it and skips a sound whose bit is already set, so one sound starts at most once per frame (cleared elsewhere, through a pointer)]"
+status = "code"
+src = "ram-map.md (VS module read 2026-11-21), sound-map.md; PP address from xdisc/globals.tsv (near, low); direct PP read: mapping/boot-loads.md (PP)"
 moa = 0x80045178
 
 [[var]]
@@ -4573,3 +4573,33 @@ src = "mapping/foundations.md §3"
 arena = 0x800956F0
 link = 0x800904B0
 replay = 0x8008F828
+
+[[var]]
+addr = 0x8003BCDE
+size = 1
+type = "u8"
+name = "mail_notice_shown"
+what = "New-mail notice already shown: hub state 0x8004C41C shows 'You have new mail.' once while 0; cleared at menu start after a mission or VS, set by LOAD"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x80042E60
+size = 52
+type = "u8[52]"
+name = "arena_beaten"
+what = "Arena 'beaten' flag per opponent number, 50 used (save +3795)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x800CEA40
+size = 749568
+type = "bytes"
+name = "menu_heap"
+what = "Menu heap (InitHeap at every menu start, 0x8004F194); menu only"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"

@@ -1,5 +1,6 @@
 # Mapping — who is doing what
 
+> **Round 1 done 2026-11-26: results and the waiting test list in `ROUND1.md`.**
 > **Restart 2026-11-26:** mapping starts over on ACG1PLUS in 8 lanes, with Project Phantasma (PP) as the
 > base (decided 2026-11-26). Read **`PLAN.md`** first. The lane table below is the new one; everything after
 > "Earlier lanes (MoA)" is the old Master of Arena work, kept as reference (MoA addresses).
@@ -9,13 +10,13 @@
 | # | Lane | Doc | Status |
 |---|---|---|---|
 | 1 | Foundations: disc layouts, function catalogue, cross-disc tools | `foundations.md` | done 2026-11-26, PR #5 |
-| 2 | Phantasma vs MoA: game feel | `feel-diff.md` | open |
+| 2 | Phantasma vs MoA: game feel | `feel-diff.md` | done 2026-11-26, PR #8 |
 | 3 | Boot, loads and mode launch | `boot-loads.md` (PP sections) | done 2026-11-26, PR #7 |
-| 4 | Battle system core | `battle-system.md` (PP sections) | open |
+| 4 | Battle system core | `battle-system.md` (PP sections) | done 2026-11-26, PR #3 |
 | 5 | Data and content formats | `content-data.md` | done 2026-11-26, PR #6 |
-| 6 | AI | `ai.md` | open |
+| 6 | AI | `ai.md` | done 2026-11-26, PR #1 (open items in its §6) |
 | 7 | Renderer and performance | `renderer.md` (PP sections), `performance.md` | done 2026-11-26 (static read; live tests A–C in `performance.md` §4 waiting), PR #4 |
-| 8 | Scenario side: hub, menus, missions, mail, saves, sound | `scenario.md` | open |
+| 8 | Scenario side: hub, menus, missions, mail, saves, sound | `scenario.md` | done 2026-11-26 (first pass, static), PR #2 |
 
 A chat claims its lane by setting Status to "claimed <date>" (one commit), and sets it to "done <date>, PR #n"
 at the end.

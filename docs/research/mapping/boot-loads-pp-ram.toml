@@ -1,5 +1,6 @@
 # Project Phantasma USA (SLUS-00670) RAM rows from mapping Lane 3 (boot, loads, mode launch), 2026-11-26.
 # Same fields as docs/research/ram-map.toml plus disc = "PP". For Lane 1 to merge into the shared map.
+# MERGED into docs/research/ram-map.toml on 2026-11-26 (rows with disc = "PP"); kept as the lane's record, no longer updated.
 # How we know: static read of the PP boot exe and FDAT 201-206 (details in mapping/boot-loads.md, PP sections).
 # Addresses below 0x800490D0 survive module loads; 0x8019CEA0 exists only while the menu (FDAT 201) is loaded.
 
