@@ -1,6 +1,6 @@
 # Lane 6 — AI (Project Phantasma base)
 
-First pass 2026-11-26, static read (nothing run yet). Disc tags: **PP** = Project Phantasma USA (SLUS-00670),
+First pass 2026-11-26, second pass same day (MoA's extra code, aim and fire, behaviour names, record number). Static read (nothing run yet). Disc tags: **PP** = Project Phantasma USA (SLUS-00670),
 **MoA-US** = Master of Arena USA disc 1 (SLUS-01030). Status per finding: `code` = read from the code,
 `guess` = inferred, not proven. No game code here: addresses, sizes and meanings only.
 
@@ -30,10 +30,15 @@ tables and addresses moved).
 - **Per-opponent tuning is built into Phantasma's arena code.** There are 49 settings records of 60 bytes,
   one per arena opponent. MoA instead takes one 36-byte record from the menu, the one its AI editor and our old
   AI cards wrote.
-- **Why Phantasma's AI may feel stronger** (not proven yet; needs a live test): its records give 4 + 3 tuned
-  behaviours where MoA's give fewer; top opponents have no reaction delay and wide random variation; MoA's
-  per-frame routine is twice as long and adds checks that may hold the AI back. Section 6 lists what to compare
-  next.
+- **Why Phantasma's AI feels stronger: it pulls the trigger.** Phantasma's AI fires every time you are lined
+  up, in that same frame. MoA's AI rolls dice on every chance (its "shoot" setting, usually about half), fires a
+  quarter as often in the first ~4 seconds, and in MoA's main arenas holds each shot back another 10 or 20
+  frames. Same aim, far fewer and later shots. (`code`; not yet seen in a running game.)
+- **MoA added smarter-looking tricks that cut the other way.** It aims ahead of you (where you'll be when the
+  shot arrives), dodges ordinary bullets and rockets, and goes all-out when its AP gets low. Phantasma does
+  none of these: it aims where you are (a few frames late) and only dodges missiles. Aiming ahead is easy to
+  fool by changing direction, which is what strafe dancing does, while aiming at where you actually are keeps
+  landing hits on a target that wiggles in place (`guess`).
 
 ## 2. Where things are (PP)
 
@@ -83,13 +88,13 @@ Free space: none looked for yet.
 
 ## 3. The AI record (PP, 60 bytes; MoA-US equivalent: 36 bytes)
 
-Picked by player block 2 +0x25C (0–48). The setup turns percents (0–100) into fractions of 4096.
+Picked by player block 2 +0x25C (0–48) = compiled stat block +4, a byte MoA leaves unused (padding); the menu fills it (who and from what: Lane 5). The setup turns percents (0–100) into fractions of 4096.
 "MoA name" = the slider of MoA's AI editor that writes the same state field (from the old card code's notes on
 the editor, `reference/ac1recomp/.../moa_card.c`), so it is a lead to the meaning, not proof.
 
 | PP off | Size | → state | MoA-US off | MoA name | Meaning | Status |
 |---|---|---|---|---|---|---|
-| +0x00 | u8 | player block 2 +0x25B | +0x00 | Human PLUS level | Read as a gate by the boost/○ rule in `0x80083314` | code / guess |
+| +0x00 | u8 | player block 2 +0x25B = compiled stat block +3 | +0x00 | Human PLUS level | **The opponent's Human PLUS level** (stat block +3 is Human PLUS in MoA's layout, `stat-block.md`); also a gate for the boost/○ rule in `0x80083314` | code |
 | +0x01 | % | +0x24E | +0x01 | 100 − fly | Base of desire A (ground), re-rolled | code / guess |
 | +0x02 | % | +0x250 | +0x02 | 100 − fly | Base of desire B (ground) | code / guess |
 | +0x03 | % | +0x252 | +0x03 | fly | Base of desire C (air); behaviour 5 scores with it | code / guess |
@@ -109,8 +114,8 @@ the editor, `reference/ac1recomp/.../moa_card.c`), so it is a lead to the meanin
 (× 22 frames), +3 whim interval (chance per check 8/(22·v)), +4 u16 whim factor % → behaviour entry +0x0C,
 +0x0E, +0x10, +0x12, +0x14.
 
-MoA-US only: record +0x0D/+0x0E/+0x0F → state +0x268/+0x26A/+0x26C (MoA names: shoot, avoid, …). PP has
-no such fields. MoA's record comes from the menu at `0x8004AC80` (36 bytes); PP's are fixed in the arena module.
+MoA-US only: record +0x0D → state +0x268 **fire chance** (MoA "shoot"), +0x0E → +0x26A **shot-dodge chance**
+("avoid"), +0x0F → +0x26C **desperation AP share** (§6). PP has no such fields. MoA's record comes from the menu at `0x8004AC80` (36 bytes); PP's are fixed in the arena module.
 
 **The 49 records on the disc** (`code`): two families. Records 0–29 share most values (desires 40/75/75, no
 spread, blade 0–100 %, delay 0–20 frames; 20–29 add a second-group tuning). Records 30–48 are a different
@@ -133,15 +138,15 @@ behaviour and the start frame and runs the on-start routine (which may refuse, a
 
 | # | Fit / action / start (PP) | MoA-US pair | What it seems to do | Status |
 |---|---|---|---|---|
-| 1 | `0x80081EC0` / `0x80082070` | `0x8008A078` (0.99) / `0x8008A228` | Fixed weight 4.0; fit uses a distance root | guess |
-| 2 | `0x800820F0` / `0x800821B4` | `0x8008A2CC` / `0x8008A384` (MoA much longer) | Fixed weight 4.0 | guess |
+| 1 | `0x80081EC0` / `0x80082070` | `0x8008A078` (0.99) / `0x8008A228` | Fixed weight 4.0; fit 4.0 when player block 2 +0x10 & 7 = 5, otherwise (only while running) a distance from the AI to a line stored at block 2 +0x33E…+0x34A: **get around an obstacle** | code / guess |
+| 2 | `0x800820F0` / `0x800821B4` | `0x8008A2CC` / `0x8008A384` (MoA much longer) | Fixed weight 4.0; fit 1.0 when an object of kind 0x14 / 0xF8 in the 512 × 52-byte list at `0x801CB258` touches either AC (`0x8008104C`): **react to a stage object** | code / guess |
 | 3 | `0x800822C4` / `0x80082368` | none | Fixed weight 4.0; only on stage id 28 (`0x800956D0`), when the AI stands 500+ high and the player is 1,000+ lower; walks forward: **come down to the player on one stage** | code |
 | 4 | `0x800823C4` / `0x80082428` | `0x8008A638` (1.00) / `0x8008A69C` | Fit = max(desire A, B) × how much the AI is in front of the player; presses forward with L1/R1: **close in / circle** | code / guess |
 | 5 | `0x80082594` / `0x800825A4` | `0x8008A808` / `0x8008A850` | Fit = desire C (air); strafes: **air / strafe** | code / guess |
-| 6 | `0x80082700` / `0x80082788` | `0x8008AD1C` / `0x8008ADE4` (1.00) | Action only turns toward the target: **hold and face** | guess |
+| 6 | `0x80082700` / `0x80082788` | `0x8008AD1C` / `0x8008ADE4` (1.00) | Fit 0 while the player can see it and it is inside the player's weapon range; otherwise (1 − record +8) × 0.5 (× 2 when block 2 +0x20 bit 0); action only turns toward the target: **hold position outside your weapon's reach** | code |
 | 7 | `0x800827A8` / `0x80082850` / `0x80082838` | `0x8008AEAC` (1.00, the action) | Fit = 1.0 when a missile in the object pool targets the AI's AC: **dodge missile** | code |
 | 12 | `0x80082B18` / `0x80082B6C` / `0x80082DA8` | none clear | Fit 0.25, or 0.5–0.75 once running | guess |
-| 13 | `0x80082ED4` / `0x80082F4C` | `0x8008A98C` | — | — |
+| 13 | `0x80082ED4` / `0x80082F4C` | `0x8008A98C` | Fit = a ramp of distance against the player's weapon range (state +0x236), capped at 0.5; 0.5 while running: **keep distance relative to your weapon** | code / guess |
 | 14 | `0x80082FF0` / `0x80083030` | `0x8008AA14` | Fit 0.25, 0.5 once running; random forward/back/strafe: **wander** | code / guess |
 
 MoA-US uses slots 1, 2, 4–10 and 14–17; its slot 3 (the stage-28 drop) is empty and slots 7, 8, 10, 15 have
@@ -170,7 +175,7 @@ the projectile) lands → that slot +d/4; the blade (tag 90) lands → blade cha
 | +0x22C / +0x22E | Current behaviour / frame it started | code |
 | +0x230 / +0x232 / +0x234 | Frame of the weapon pick / commitment 110 / chosen weapon's range | code |
 | +0x236 | Player's current weapon range (4000 if none) | code |
-| +0x238 | Flags: bit 0 player not in sight (line-of-sight check every 8 frames); bits 1–3 cleared each frame; bit 2 = no whims; bit 3 = "lost track" decays | code |
+| +0x238 | Flags: **bit 0 player in sight** (clear line, checked every 8 frames; guns and the ○ rule need it); bits 1–3 cleared each frame; bit 2 = no whims; bit 3 = "lost track" decays | code |
 | +0x23C, +0x240, +0x241 | Scratch for behaviours 7 / 12 | code |
 | +0x244 | **Lost track**, 0–3276: chance the turn routine turns wrong or at random; set from the target's sideways sweep and record +0x10, decays by 163 per frame | code |
 | +0x246 | Frame counter for the ○ rule | code |
@@ -180,24 +185,56 @@ the projectile) lands → that slot +d/4; the blade (tag 90) lands → blade cha
 
 Also `0x801DBAF4`: list scanned by behaviour 7 (object pool view, Lane 4).
 
+## 5b. Aim and fire (PP `0x80081438`, every frame; read in full)
+
+- **Up/down aim**: compares the pitch to the target (state +0x18) with the AC's look angle (block 2 +0x238)
+  and presses L2 / R2 outside ±24; with probability "lost track" it keeps the last press and flips at ±767.
+  With record +0x10 = 0 (no tracking skill) it writes the angle straight in instead (block 2 +0x220). `code`
+- **Weapon in hand**: its learned weight drops by 1 per frame (floor 409), so the AI keeps rotating weapons. `code`
+- **Kind 0 slot with no lock value (slot +0x14 = 0)**: fires (□, a fresh press every frame) when the player is
+  in sight, under 4,000 units, and both yaw and pitch error are inside a cone: half-angle (4000 − distance) ×
+  32 / 1000, clamped to 16–32 units (1.4°–2.8°), or 128 (11°) at distance 0. `code`
+- **Kind 1, or kind 0 with a lock value**: fires once block 2 has a lock target (+0x42C) with lock bit 3 set
+  (+0x442) and the player is in sight. `code`
+- **Kind 2**: unless block 2 +0x280 is set, it presses □ until the AC reaches state 0x22 with that weapon, then
+  releases movement (mask −0x504D) and fires on lock: looks like a back cannon that needs a firing stance. `code` / `guess`
+- No dice and no delay: when the condition holds, it fires that frame.
+
 ## 6. PP vs MoA-US, and what to look at next
 
 Same: the scheme (utility scores, 20 behaviour slots, learning, delayed aim, lost track), the state offsets,
 the helpers, most behaviour actions (several identical).
 
 Different (`code`):
+- **Firing.** PP: fires whenever its condition holds (§5b). MoA-US `0x8008C4E4`: every chance is a roll against
+  state +0x268 (record +0x0D, "shoot"), further divided by a weapon value (slot +0x23); during the first 110
+  frames of a match (countdown `0x801E2734`) the chance is a quarter. And MoA-US init `0x8008DC98` sets a
+  **fire-button delay line** (queue `0x801E2740`, length `0x801E2748`) that holds the AI's □ back by 10 frames
+  (opponents 0–10) or 20 frames (11 and up) whenever `0x8003EAD4` (arena) is 0; Ex arenas get none.
+- **Aiming ahead (MoA-US only).** `0x8008D4AC`, when the player is within twice the current weapon's range,
+  looks up the shot speed by weapon number (tables `0x80099A10`, `0x80099950`, `0x80099D4C`, `0x80099AAC`,
+  `0x800980E4`, `0x8009825C`) and stores the player's position moved forward by velocity × flight time into the
+  history. PP stores the actual position.
+- **Shot dodging (MoA-US only).** `0x8008CED0`: with chance state +0x26A ("avoid"), scans the object pool
+  (`0x801E2A0C`, 256 × 228 bytes) for live shots of 6 kinds heading at the AI within about ±11°, then turns
+  ±90° away (`0x80089B2C`) and boosts if energy allows. PP dodges missiles only (behaviour 7).
+- **Desperation (MoA-US only).** When the AI's AP falls below max × state +0x26C (record +0x0F): blade chance,
+  +0x268 and +0x26A set to 100 %, +0x260 = 5, tracking loss off, reaction delay emptied. Once per match.
+- `0x8008D224` (MoA-US) is PP's lost-track and up/down-aim code moved into its own routine: not new.
 - Record: PP 49 × 60 bytes inside the arena module, per opponent; MoA-US one 36-byte record from the menu.
 - Behaviour entries 28 vs 24 bytes; PP 10 behaviours, MoA-US 13; PP's stage-28 drop behaviour is PP-only;
   PP's record tunes 4 + 3 behaviours.
 - Per-frame AI: PP 237 instructions, MoA-US 507; aim-and-fire PP 270, MoA-US 450; MoA's rules routine
   `0x8008D224` and `0x8008CED0` have no PP twin.
 
-Next (open):
-1. Read MoA-US `0x8008D4AC`, `0x8008D224`, `0x8008CED0` to say what MoA added (lead for "MoA's AI feels weaker").
-2. Read PP aim-and-fire `0x80081438` in full (aim lead, fire discipline, missile locks).
-3. Name behaviours 1, 2, 6, 12, 13 from their actions.
-4. Which record each arena rank uses (who writes player block 2 +0x25C; Lane 5).
-5. Live test (owner, §8).
+Open:
+1. Behaviour 12 (`0x80082B18`…) unnamed; behaviours 1, 2, 4, 5, 13 named from their fit routines only.
+2. Which record each arena rank uses: the menu writes compiled stat block +4 (Lane 5). Which way MoA-US's
+   opponent numbers run (for the 10 / 20-frame split) is not recorded either.
+3. Weapon kinds 0 / 1 / 2 and slot +0x14, +0x23 meanings (Lane 5 / Lane 4).
+4. Live test (owner, §8), plus a new one: the same opponent in PP and in MoA, count shots fired in 30 s.
+5. If MoA opponents are imported into PP, decide whether they keep PP's firing (stronger) or get a MoA-like
+   fire chance: the record has no field for it, so it would be a mod setting.
 
 ## 7. Buttons the AI presses (PP button word)
 
@@ -234,4 +271,6 @@ frame), not a wrong address.
   routine pointers, match flags `0x800956DC`.
 - Lane 5: player block 2 +0x25C = AI record number; PP default key table `0x800BD568`; weapon slot +0x29 tag,
   +0x3C AI weight.
-- Lane 2: "lost track" (+0x244) explains why strafe dancing beats the AI; keep it working.
+- Lane 2: "lost track" (+0x244) explains why strafe dancing beats the AI; keep it working. MoA's AI fires
+  less and later (dice, 110-frame start, 10–20 frame delay): an AI difference, not a feel difference.
+- Lane 5: PP compiled stat block +4 = AI record number (MoA padding); +3 = Human PLUS, also set from the AI record.
