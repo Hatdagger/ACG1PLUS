@@ -1,0 +1,32 @@
+/* ACG1PLUS launcher: Windows manifest and version information (no icon yet). */
+#include <winver.h>
+#ifndef RT_MANIFEST
+#define RT_MANIFEST 24
+#endif
+
+1 RT_MANIFEST "@ACG_RES_DIR@/launcher.manifest"
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     @ACG_VER_COMMAS@
+PRODUCTVERSION  @ACG_VER_COMMAS@
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName",      "ACG1PLUS (fan project)"
+            VALUE "FileDescription",  "ACG1PLUS launcher"
+            VALUE "FileVersion",      "@ACG_LAUNCHER_VERSION@"
+            VALUE "InternalName",     "ACG1PLUS"
+            VALUE "OriginalFilename", "ACG1PLUS.exe"
+            VALUE "ProductName",      "ACG1PLUS"
+            VALUE "ProductVersion",   "@ACG_LAUNCHER_VERSION@"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

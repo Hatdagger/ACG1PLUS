@@ -67,7 +67,7 @@ game from the player's disc.
 ## Steps (each one a pull request, reviewed before anything is uploaded)
 | Step | Done when |
 |---|---|
-| 0.2.1 | Launcher shell on Windows and Deck: AC-style main menu with every entry (VERSUS and ROGUE ARENA shown as "coming"), controller + mouse/keyboard, 1280x800 and full screen, EXIT. First upload as a test pre-release so the owner can see it |
+| 0.2.1 | Launcher shell on Windows and Deck: AC-style main menu with every entry (VERSUS and ROGUE ARENA shown as "coming"), controller + mouse/keyboard, 1280x800 and full screen, EXIT. First upload as a test pre-release so the owner can see it. **Built** (`launcher2/`, see its README); not yet run on a real PC or Deck |
 | 0.2.2 | First run: disc finder (Disc/, beside the launcher, USB drives, a controller-friendly file picker), disc check, "Preparing game" screen with plain stage names, progress, time estimate, cancel/resume, log, retry |
 | 0.2.3 | START GAME: launches the built game straight into the game (its own menu skipped, `--no-launcher`), memory cards in `Memory Card/`, the launcher returns when the game closes; FULL BOOT toggle |
 | 0.2.4 | UPDATES: releases + hidden TEST channel, rebuild-on-update with the old game kept, launcher self-update |
