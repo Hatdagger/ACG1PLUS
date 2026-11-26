@@ -318,7 +318,11 @@ The owner wants Kaze kept and turned into a feature, working **left as well as r
 
 ---
 
-## Handed over to other lanes (copied into their docs' lists when those exist)
+## Handed over to other lanes
+
+Delivered 2026-11-26 as one line each in the "Handed over" lists of `foundations.md` (Lane 1),
+`battle-system.md` (Lane 4) and `content-data.md` (Lane 5) on their branches. Lane 4 and Lane 5 had
+already found the pad format, stun formula and part changes independently. Kept here for reference:
 
 - **Lane 1**: PP data addresses found through code (`tools/feeldiff/dataref.py`): player block pointer
   `0x8003BD00` (MoA `0x8003EAA0`), player block P1 `0x800424E8` (MoA `0x80045198`, P2 +0x3A8 vs +0x3A0),
