@@ -18,6 +18,16 @@
 | 7 | Renderer and performance | `renderer.md` (PP sections), `performance.md` | done 2026-11-26 (static read; live tests A–C in `performance.md` §4 waiting), PR #4 |
 | 8 | Scenario side: hub, menus, missions, mail, saves, sound | `scenario.md` | done 2026-11-26 (first pass, static), PR #2 |
 
+## Round 2 (2026-11-26, one mapping chat, topics in order; `PLAN-ROUND2.md`)
+
+| # | Topic | Doc | Status |
+|---|---|---|---|
+| 1 | PA body archives | `pa-archives.md` | done 2026-11-26 |
+| 2 | Stages | `stages.md` | next |
+| 3 | Hub screens in depth | `menus-screens.md` (PP sections) | |
+| 4 | Missions import plan | `missions-import-pp.md` | |
+| 5 | Small leftovers | owning lane docs | |
+
 A chat claims its lane by setting Status to "claimed <date>" (one commit), and sets it to "done <date>, PR #n"
 at the end.
 
