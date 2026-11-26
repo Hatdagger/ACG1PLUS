@@ -11,7 +11,7 @@
 | 1 | Foundations: disc layouts, function catalogue, cross-disc tools | `foundations.md` | open |
 | 2 | Phantasma vs MoA: game feel | `feel-diff.md` | open |
 | 3 | Boot, loads and mode launch | `boot-loads.md` (PP sections) | open |
-| 4 | Battle system core | `battle-system.md` (PP sections) | claimed 2026-11-26 |
+| 4 | Battle system core | `battle-system.md` (PP sections) | done 2026-11-26, PR #3 |
 | 5 | Data and content formats | `content-data.md` | open |
 | 6 | AI | `ai.md` | open |
 | 7 | Renderer and performance | `renderer.md` (PP sections), `performance.md` | open |
