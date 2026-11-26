@@ -66,3 +66,9 @@ picture of the window afterwards and closes. Used for the screenshots in pull re
 a virtual screen:
 
     xvfb-run -s "-screen 0 1280x800x24" env SteamDeck=1 out/linux/ACG1PLUS --test-keys down,confirm --test-shot versus.bmp
+
+## Test pre-releases
+
+GitHub builds them: Actions → **Launcher test release** → Run workflow, branch to build (for example
+`launcher/0.2`). It makes `test-launcher-<VERSION>` with both files and `SHA256SUMS.txt`, notes from
+`launcher2/test-notes.md` (only that build's changes; update it with each test build).

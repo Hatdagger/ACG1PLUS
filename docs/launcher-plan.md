@@ -6,8 +6,10 @@ Owner decisions, 2026-11-26:
 - **Controller first**, with mouse and keyboard as a fallback. Must work on the Steam Deck in Game Mode.
 - **Updates built in: releases + a test channel.** Players get approved releases. The owner also gets a
   hidden TEST channel to try a change (a pull request) before it is merged.
-- **Claude builds the launcher in the sandbox and uploads it to a GitHub Release**, each time the owner
-  approves. No Actions workflow.
+- ~~Claude builds the launcher in the sandbox and uploads it to a GitHub Release~~ **Changed 2026-11-26:**
+  Claude's sessions can't create releases, so the workflow `.github/workflows/launcher-test-release.yml`
+  builds the launcher on GitHub (it has no game code) and makes the release. Started by hand, one tap in the
+  GitHub app, each time the owner approves. The game itself is still never built on GitHub.
 - **One launcher for everything**: the game's current in-game menu (START GAME, SETTINGS, MODS, UPDATES)
   moves into the new launcher, including every settings page. The game window only plays.
 
