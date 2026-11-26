@@ -36,4 +36,4 @@ start goes straight to the right one.
 - Generated with psxrecomp-game at the pinned framework; the US code regenerates
   byte-for-byte with the same procedure.
 - START GAME: LOAD GAME and NEW GAME need the US disc's addresses found on the Japanese
-  disc; until then the JP program boots every start normally (`game/acg_start_none.c`).
+  disc; until then the JP program boots every start normally (`game/acg_addrs_jp.h` not complete, `ACG_START_ALL` 0 in `game/acg_start.h`).

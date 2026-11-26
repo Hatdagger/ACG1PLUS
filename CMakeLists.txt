@@ -136,16 +136,13 @@ target_sources(psx-runtime PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/launcher/moa_ui_sound.cpp")
 # Game-side code: the START GAME choices (game/acg_quick_start.c, hooked with a
 # function override on the title open; the launcher sets the choice through
-# game/acg_start.h). Its addresses are the US disc's; the JP program gets a
-# stand-in that always boots normally (game/acg_start_none.c) until they are
-# found on the Japanese disc.
-if(ACG_REGION STREQUAL "JP")
-    target_sources(psx-runtime PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/game/acg_start_none.c")
-else()
-    target_sources(psx-runtime PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/game/acg_quick_start.c")
-endif()
+# game/acg_start.h). Each disc has its own address table (game/acg_addrs_us.h,
+# game/acg_addrs_jp.h); a disc whose table isn't complete yet (ACG_START_ALL 0)
+# boots every start the normal way.
+target_sources(psx-runtime PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/game/acg_quick_start.c")
+set_property(SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/game/acg_quick_start.c"
+    APPEND PROPERTY COMPILE_DEFINITIONS "ACG_REGION_JP=${ACG_REGION_JP}")
 # Game-side code: Esc during play goes back to the launcher (game/acg_escape.c,
 # registered as the title's in-game menu provider).
 target_sources(psx-runtime PRIVATE

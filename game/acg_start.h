@@ -28,6 +28,15 @@ enum {
     ACG_START_TITLE = 3
 };
 
+/* 1 when this disc's program can do every START GAME choice (LOAD, NEW,
+ * LAUNCH with logos skipped). A disc set to 0 registers no hook, boots every
+ * start the normal way, and its launcher offers only LAUNCH GAME. Both discs'
+ * address tables are complete (game/acg_addrs_us.h, game/acg_addrs_jp.h). */
+#ifndef ACG_REGION_JP
+#define ACG_REGION_JP 0
+#endif
+#define ACG_START_ALL 1
+
 /* What the game's LOAD reads from a save: the first 3,712 bytes of its block. */
 #define ACG_SAVE_BYTES 3712u
 

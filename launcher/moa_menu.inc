@@ -471,8 +471,10 @@ static void start_game(LauncherModel* m) {
 #endif
 #if ACG_REGION_JP
 static const char* const kRegionTag = "MASTER OF ARENA  JAPAN";
+static const char kSaveName[] = "BISLPSP01855";   /* memory card file name, + A..O */
 #else
 static const char* const kRegionTag = "MASTER OF ARENA";
+static const char kSaveName[] = "BASLUS-01030";
 #endif
 
 /* ---- START GAME page ---------------------------------------------------------
@@ -575,8 +577,9 @@ static void read_card_saves(const LauncherModel* m) {
     for (int i = 1; i < 16; ++i) {
         const unsigned char* fr = mc.data() + i * 128;
         /* In use and the first block of its file; named BASLUS-01030 + A..O
-         * (the game's own saves; Z is its emblem file). */
-        if (fr[0] != 0x51 || std::memcmp(fr + 10, "BASLUS-01030", 12) != 0) continue;
+         * (the game's own saves; Z is its emblem file). The Japanese game
+         * names its saves BISLPSP01855 (with a P, not a dash). */
+        if (fr[0] != 0x51 || std::memcmp(fr + 10, kSaveName, 12) != 0) continue;
         const char letter = (char)fr[22];
         if (letter < 'A' || letter > 'O' || fr[23] != 0) continue;
         const unsigned char* b = mc.data() + i * 8192;
@@ -667,25 +670,26 @@ static void draw_start_page(LauncherModel* m, const Gfx& g, const Input& in) {
     for (int i = 0; i < S__COUNT; ++i) {
         bool hovered = false;
         const float y = 90.0f + (kRowH + 2.0f) * i;
-        /* The Japanese program boots every start the normal way for now
-         * (game/acg_start_none.c): LOAD and NEW are dimmed, no FULL BOOT. */
-        const bool offered = !ACG_REGION_JP || i == S_LAUNCH;
+        /* A disc whose addresses aren't all found yet (ACG_START_ALL 0, the
+         * Japanese one for now) boots every start the normal way: LOAD and NEW
+         * are dimmed, no FULL BOOT. */
+        const bool offered = ACG_START_ALL || i == S_LAUNCH;
         if (row(g, 25.0f, y, 590.0f, i == cur, offered, kLabels[i],
-                offered ? nullptr : "LATER", i == S_LAUNCH && !ACG_REGION_JP,
+                offered ? nullptr : "LATER", i == S_LAUNCH && ACG_START_ALL,
                 full_boot(), &hovered))
             activate = i;
-        if (i == S_LAUNCH && !ACG_REGION_JP)
+        if (i == S_LAUNCH && ACG_START_ALL)
             text_right(g, 25.0f + 590.0f - 60.0f, y + 7.0f, 10.0f, kDim, "FULL BOOT");
         if (hovered && (ImGui::GetIO().MouseDelta.x != 0.0f || ImGui::GetIO().MouseDelta.y != 0.0f))
             cur = i;
     }
-#if ACG_REGION_JP
+#if !ACG_START_ALL
     static const char* const kInfo[S__COUNT] = {
-        "Not on the Japanese disc yet: its game code sits at different addresses "
-        "than the US disc's, and they still have to be found. Use LAUNCH GAME and "
-        "the game's own LOAD.",
-        "Not on the Japanese disc yet. Use LAUNCH GAME and the game's own NEW GAME.",
-        "Start the Japanese disc the normal way: logos, intro movie and title screen.",
+        "Not on this disc yet: its game code sits at different addresses than the "
+        "US disc's, and they still have to be found. Use LAUNCH GAME and the game's "
+        "own LOAD.",
+        "Not on this disc yet. Use LAUNCH GAME and the game's own NEW GAME.",
+        "Start the game the normal way: logos, intro movie and title screen.",
     };
 #else
     static const char* const kInfo[S__COUNT] = {
@@ -700,19 +704,19 @@ static void draw_start_page(LauncherModel* m, const Gfx& g, const Input& in) {
     panel(g, 24.0f, 190.0f, 592.0f, 120.0f, "INFO");
     text(g, 38.0f, 206.0f, 11.0f, kHi, kLabels[cur]);
     text(g, 38.0f, 228.0f, 11.0f, kText, kInfo[cur], 560.0f);
-    footer(g, cur == S_LAUNCH && !ACG_REGION_JP
+    footer(g, cur == S_LAUNCH && ACG_START_ALL
                   ? "A / ENTER  START      LEFT / RIGHT  FULL BOOT      B / ESC  BACK"
                   : "A / ENTER  SELECT      D-PAD  MOVE      B / ESC  BACK");
     if (in.back) { g_state.start_page = false; return; }
-    if (cur == S_LAUNCH && !ACG_REGION_JP && (in.left || in.right)) {
+    if (cur == S_LAUNCH && ACG_START_ALL && (in.left || in.right)) {
         set_full_boot(!full_boot());
         sfx(moa_sound::SFX_CURSOR);
     }
     if (in.confirm || in.start) activate = cur;
     if (activate < 0) return;
     cur = activate;
-    if (ACG_REGION_JP && activate != S_LAUNCH) {
-        note("NOT ON THE JAPANESE DISC YET. USE LAUNCH GAME");
+    if (!ACG_START_ALL && activate != S_LAUNCH) {
+        note("NOT ON THIS DISC YET. USE LAUNCH GAME");
         sfx(moa_sound::SFX_REFUSED);
         return;
     }
