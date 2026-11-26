@@ -1,3 +1,331 @@
+# Renderer — Project Phantasma (PP) first, Master of Arena below as reference
+
+**Lane 7 (ACG1PLUS restart), 2026-11-26.** The PP sections come first. Everything from
+"Master of Arena — Renderer Mapping Plan" down is the old MoA work (addresses are `MoA-US`,
+SLUS-01030 v1.0 disc 1) and stays as reference. Performance (hot spots, offload, test steps) is in
+`performance.md`.
+
+**How we know (all PP findings below):** read from the Phantasma US disc (SLUS-00670 v1.0) in the
+chat sandbox: boot EXE `SLUS_006.70` (loads at `0x80011000`, file offset = address − `0x80011000` +
+`0x800`) and `GG/COM/FDAT.T` entries 202–206 (load at `0x800490D0`, entry offset = address −
+`0x800490D0`). Each routine was first paired with its MoA twin through `maps/moa-to-pp-functions.tsv`,
+then **read instruction by instruction on PP** (calls, globals, constants) and compared with the MoA
+notes below. Status `code` = read from code; nothing here has been seen running on PP yet (no PP build
+boots yet). `?` = guess.
+
+Disc notation: `PP 204+0x16768` = FDAT.T entry 204, byte 0x16768 of that entry; `PP EXE+0x723C` =
+`SLUS_006.70` file offset. RAM-only addresses (filled at run time) have no disc bytes. **Every bare address in a section headed
+"PP …" is a `PP` address**; MoA addresses there are always written `MoA` / `MoA-US`.
+
+## PP 0. In one paragraph
+
+Phantasma draws a fight **the same way Master of Arena does**: same frame loop, same double buffer,
+same ordering tables, same split-screen trick (one GTE projection, two DRAWENVs), same camera build,
+same stage / AC / object-pool draw routines, same culling edges, same **~22 fps cap** (frame end waits
+for 715 scanlines). Most draw routines are byte-for-byte the same code at other addresses. The
+differences that matter: (1) **no VRAM read-back during a fight** (MoA reads VRAM every time a
+scrolling texture moves; PP reads it once at match start), which is good news for the render thread;
+(2) PP's scene render steps two pad-vibration timers `?` at its start (a render pass must not run that
+twice); (3) PP has room for **512 stage objects** (MoA 128) and a 224-byte object-pool record (MoA 228);
+(4) MoA gives each AC a draw-order bias (AC +0x42) that PP does not have; (5) PP keeps a primitive
+high-water mark and prints "!!! WARNING PRIM OVER !!!" (a developer leftover).
+
+## PP 1. Main program routines the engines draw through (`PP` EXE)
+
+Paired with the MoA table below (`identical` = same code after ignoring addresses) and checked at PP's
+call sites. `?` kept where the MoA name was a guess.
+
+| Routine | PP address | PP EXE offset | MoA-US | How we know |
+|---|---|---|---|---|
+| `VSync(mode)` | `0x8002B220` | +0x1AA20 | `0x8002A714` | not in the map; found from its wait `0x8002B398`, which prints "VSync: timeout" (string `0x80011B3C`); same layout as MoA (wait = VSync + 0x178) |
+| `DrawSync(mode)` | `0x8002D27C` | +0x1CA7C | `0x8002C4B0` | identical; first call of every frame end |
+| `LoadImage` / `StoreImage` / `MoveImage` | `0x8002D528` / `0x8002D588` / `0x8002D5E8` | | `0x8002C75C` / `0x8002C7BC` / `0x8002C81C` | identical |
+| `ClearOTag` / `ClearOTagR` | `0x8002D6A0` / `0x8002D768` | | `0x8002C8D4` / `0x8002C99C` | identical |
+| **`DrawOTag`** / **`PutDrawEnv`** / `DrawOTagEnv` / **`PutDispEnv`** | **`0x8002D870`** / **`0x8002D8E0`** / `0x8002D9A0` / **`0x8002DAAC`** | | `0x8002CAA4` / `0x8002CB14` / `0x8002CBD4` / `0x8002CCE0` | identical (PutDispEnv: same shape); called from the frame end |
+| `SetDefDrawEnv` / `SetDefDispEnv` `?` | `0x8002CE10` / `0x8002CEC4` | +0x1C610 / +0x1C6C4 | `0x80011F94` / `0x80011FF0` (MoA's are wrappers, "MoA only" in the map) | PP's engines call these directly with (env, x, y, w, h), same values as MoA |
+| `SetDrawEnv(DR_ENV*, DRAWENV*)` `?` | `0x8002E1A4` | | `0x8002D3D8` | identical |
+| **addPrim(ot, prim)** | `0x8002FFC0` | +0x1F7C0 | inlined in MoA | 14 instructions: links a packet into an OT entry (24-bit pointer swap). PP-only as a call; the VS engine also has its own copy `0x80087468` (OT, length, packet) |
+| `InitGeom` | `0x800296D0` | | `0x80028DE4` | identical |
+| `SetRotMatrix` / `SetTransMatrix` | `0x8002A630` / `0x8002A6C0` | | `0x80029B24` / `0x80029BB4` | identical |
+| `SetGeomOffset` / **`SetGeomScreen`** / `SetFarColor` | `0x8002A830` / **`0x8002A850`** / `0x8002A810` | | `0x80029D24` / `0x80029D44` / `0x80029D04` | identical |
+| `SetDQA` / `SetDQB` | `0x8002A7D8` / `0x8002A7E4` | | `0x80029CCC` / `0x80029CD8` | identical |
+| `SetLightMatrix` / `SetColorMatrix` / `SetBackColor` | `0x8002A660` / `0x8002A690` / `0x8002A7F0` | | `0x80029B54` / `0x80029B84` / `0x80029CE4` | identical |
+| `SetFogNearFar` `?` | `0x800295C0` | | `0x80028CD4` | identical |
+| `Square0` / `RotTrans` | `0x8002A938` / `0x8002AA70` | | `0x80029E2C` / `0x80029F64` | identical |
+| `RotMatrix` / `RotMatrixYXZ` | `0x8002AAA0` / `0x8002AD30` | | `0x80029F94` / `0x8002A224` | same shape |
+| `rsin` / `rcos` | `0x80029450` / `0x80029520` | | `0x80028B64` / `0x80028C34` | identical / same shape |
+| MulMatrix0 `?` / ApplyMatrixLV `?` | `0x80029D30` / `0x8002A410` | | `0x80029444` / `0x80029904` | identical |
+| camera matrix from eye + look-at | `0x80014974` | | `0x80014344` | identical; called by every engine's per-view draw |
+| matrix shift-down copy | `0x80014040` | | `0x800139F8` | identical |
+| `GetRCnt` | `0x8002C0EC` | +0x1B8EC | `0x8002B600` | identical; called as `GetRCnt(0xF2000001)` = root counter 1 (scanlines) |
+| scanlines since a0 | `0x80016E80` | +0x6680 | `0x80016724` | identical; the frame-time wait |
+| VBlank callback | `0x80016DF8` | | `0x800166A0` | `changed` (0.51): not read yet |
+| `malloc` / `free` wrappers | `0x80016D70` / `0x80016DB8` | | `0x80016610` / `0x80016658` | identical |
+| `memset` `?` | `0x80015ED8` | | `0x8001589C` | called (buffer, 0, 16) to clear the per-view area bitsets |
+| **pad vibration timers `?`** (PP only) | `0x80017A3C` | +0x723C | none | 22 instructions: for two records at `0x80040F48` +0x3E2 / +0x3E3, counts the byte down; at 0 clears +0x3C1/+0x3C3 (resp. +0x3C5/+0x3C7). Those look like the two pads' motor bytes `?`. **Called first thing in every fight engine's scene render** |
+
+## PP 2. Frame anatomy (VS, `PP` FDAT 204)
+
+### Call order, one frame
+
+VS main routine `0x8004A228` (PP 204+0x1158; no `jal` to it, entered from the module start `?`). Its loop
+top is `0x8004A42C`. At the end of one pass (one logic step):
+
+1. Camera routine **`0x8007F704(out)`** (PP 204+0x36634; MoA `0x80087B90`, `changed` 0.98) once per
+   player, current player block put in **`0x8003BD00`** first (MoA `0x8003EAA0`). Player blocks: P1
+   **`0x800424E8`**, P2 **`0x80042890`** (stride 0x3A8; MoA `0x80045198` / `0x80045538`, stride 0x3A0).
+   Outputs: 16 bytes each on the loop's stack, P1 `sp+0x20`, P2 `sp+0x30`.
+2. **Scene render `0x8005F838(camP1, camP2)`** (PP 204+0x16768), called at `0x8004A960`, return
+   address **`0x8004A968`**. Two more calls with (0, 0) at `0x8004A598` / `0x8004A5A4` (match-end path,
+   "keep the last camera", as MoA).
+3. Eye copies `0x8004B668(camP1, camP2)` (MoA `0x8005301C`, identical).
+4. **Logic tick:** match struct **`0x8008F5B0`** +0x12 += 1 while below 0x4000 (`0x8004A974`–`0x8004A98C`;
+   MoA `0x80097EA0` +0x12). Then back to `0x8004A42C`.
+
+Inside the scene render `0x8005F838` (MoA `0x80067404`; `changed` 0.63, the changes are listed in the
+last column):
+
+| Order | PP address | What | Differs from MoA |
+|---|---|---|---|
+| a | `0x8005F868` | **`0x80017A3C` pad vibration timers `?`** | **PP only** |
+| b | `0x8005F870`–`0x8005F904` | camera P1 → `0x801A11AC`, P2 → `0x801A11C0` (16 bytes each, stride 0x14), skipped when the argument is 0 | addresses only |
+| c | `0x8005F918` / `0x8005F928` | `0x8006B0B8(previous area, camera)` → area words **`0x801A11A8`** (P1) / **`0x801A11BC`** (P2) | |
+| d | `0x8005F930` | colour pulse `0x8005F268` (identical to MoA `0x80066E34`) | |
+| e | `0x8005F938` | scrolling textures `0x8005411C` (see PP 6) | **no VRAM read** |
+| f | `0x8005F940` | **buffer swap `0x8005449C`** (identical to MoA `0x8005BFB8`) | |
+| g | `0x8005F948`–`0x8005F9AC` | pose records to state 1 (`0x80052C4C`), then **AC pose `0x80051B44`** (identical to MoA `0x80059624`) for each of the 2 ACs at **`0x801D80E0`** / **`0x801D8250`** (stride **0x170** = 368; MoA 376) | AC field offsets (PP 4) |
+| h | `0x8005F9B8`–`0x8005FA14` | 4 × 64-byte `DR_ENV` from the primitive buffer | |
+| i | `0x8005FA20`–`0x8005FA60` | show all joints `0x80053188` ×2; when player block +0x25A bit 0 (cockpit view) hide that player's cockpit joints `0x800531E8(record, camera record +4)`; camera record pointer = player block **+0x3A4** (MoA +0x39C) | |
+| j | `0x8005FA68`–`0x8005FAEC` | **view 1:** current OT (buffer base +0x288) = OT A; camera P1 → per-view camera **`0x801A11D4`**, its area → `0x801A11D0`; current player = P1; **per-view draw `0x8005F4FC`**; `SetDrawEnv(DR_ENV, R+0x08)` and `addPrim` to OT A's head (+0x7FFC) | addPrim is a call |
+| k | `0x8005FAF0`–`0x8005FBBC` | **view 2:** the same with OT B, camera P2, P2 block, `R+0x64` | |
+| l | `0x8005FBC0`–`0x8005FEFC` | fade box `0x8005B780` (when `0x801A03E3` ≠ 0), timer / text `0x8005D924`, icons `0x8004F840`, shared HUD `0x8005DE6C` | |
+| m | `0x8005FF08`–`0x8005FF68` | full-screen `DR_ENV`s, then **OT A's tail linked to OT B's head** (`0x80087468`) | |
+| n | `0x8005FF6C`–`0x8005FFFC` | **primitive high-water mark**: used bytes (allocator next − start) kept at `0x800888BC` if larger; when 0x23000 − mark < 0x1000, prints "!!! WARNING PRIM OVER !!!" (string PP 204+0x2AC) three times at (100, 100 / 110 / 120) with `0x8004AAF8` | **PP only** (developer leftover `?`: the buffer is 0x21000 long, so it can only fire after an overflow) |
+| o | `0x80060000` | **frame end `0x80054534`** | |
+| p | `0x80060008`, `0x80060010` | free unposed records `0x80052D3C`; frame counter **`0x801A035C`** += 1 | |
+
+Per-view draw **`0x8005F4FC`** (PP 204+0x1642C; same shape as MoA `0x800670C8`): camera matrix
+`0x80014974(eye 0x801A11D4, look-at 0x801A11DC, …)` → **view R at `0x801A11E4`, T at `0x801A11F0`**
+(the object draws load them with SetRotMatrix / SetTransMatrix; MoA `0x801A9AC0` / `0x801A9ACC`), Rx at
+`0x801A1354`, scaled copies from `0x801A1234` (`0x80014040` ×6); `0x8005F438` (per-area list, MoA
+`0x80067004`); `SetTransMatrix(0x80033E10)`; clears the area bitsets **`0x801A0360`** (looked at) and
+**`0x801A03A0`** (drawn) (16 words each); then **HUD `0x8005EF80`**, **stage `0x8005A0F4`**, **objects
+`0x8005E0D4`**, in that order (as MoA). The whole per-view camera block sits 0x88DC lower than MoA's
+(checked at `0x801A11AC`, `0x801A11D4`, `0x801A1354`).
+
+### Frame end `0x80054534` (PP 204+0xB464)
+
+`DrawSync(0)` → `0x8004BC00` (identical to MoA `0x800535F4`, sound-slot upkeep `?`) → **wait until 715
+scanlines** since frame start (`0x80054558`–`0x80054568`, **`slti 0x2CB` at `0x80054564`**, PP
+204+0xB494; frame start time at `0x801A0350`) → `PutDispEnv(R+0x11C)` → `PutDrawEnv(R+0x08)` →
+**`DrawOTag(OT A + 0x7FFC)`** (one call draws both views) → frame start = `GetRCnt(RCntCNT1)` →
+`0x800545C8`. Same as MoA, five instructions shorter. No `VSync` in the fight loop (VSync is called
+only outside it, e.g. at match end `0x8004AAA0`).
+
+### Buffer records (VS)
+
+Base **`0x80199C90`** (MoA `0x801A2568`; same layout, set up by `0x800545EC`, envs by `0x800546B8`).
+
+| Base + | What |
+|---|---|
+| +0x000 | buffer index |
+| +0x004 / +0x140 | record 0 / record 1 (0x13C bytes each) |
+| +0x27C | current record pointer R |
+| +0x280 | primitive buffer start `0x80133C88` |
+| +0x284 | pointer to the current record's primitive allocator (R+0x130: start, end, next free) |
+| +0x288 | current OT (switched per view) |
+
+| R+ | What | Record 0 | Record 1 |
+|---|---|---|---|
+| +0x000 | OT A (view 1), 8,192 entries | `0x80179C88` | `0x80181C88` |
+| +0x004 | OT B (view 2), 8,192 entries | `0x80189C88` | `0x80191C88` |
+| +0x008 / +0x064 / +0x0C0 | DRAWENV view 1 / view 2 / full screen | 2, 5, 158×230 / 160, 5, 158×230 / 0, 0, 320×240 | 2, 245 / 160, 245 / 0, 240 |
+| +0x11C | DISPENV | 0, 240 | 0, 0 |
+| +0x130 / +0x134 | primitive buffer start / end (0x21000 = 135,168 bytes, shared by both views) | `0x80133C88`–`0x80154C88` | `0x80156C88`–`0x80177C88` |
+
+Values passed to `SetDefDrawEnv` / `SetDefDispEnv` in `0x800546B8` are the same numbers as MoA's.
+**Flip mode: PENDING**, as MoA (each record draws one half of VRAM and shows the other).
+
+### Projection (VS)
+
+`0x800546B8` (called once from the VS main routine at `0x8004A348`) only: `SetGeomOffset(79, 115)`, `SetGeomScreen(160)`, then (`0x80054818`–`0x80054830`)
+`SetGeomScreen(160)` again and `SetFarColor(0, 0, 0)`. Same as MoA: one projection for both views, the
+DRAWENV offsets place them.
+
+### Render-pass facts (VS)
+
+| Item | PP value |
+|---|---|
+| Draw section start | scene render `0x8005F838`, first words `0x27BDFFA8, 0xAFB00030, 0x00808021, 0xAFB10034` |
+| Pass point (MoA's choice) | scene render entry from the main loop, `$ra` `0x8004A968` |
+| Flip mode | PENDING |
+| Logic tick | `0x8008F5B0` +0x12 (one step per frame, capped at 0x4000) |
+| Camera inputs | the render's two arguments (16 bytes each: eye x/y/z, pad, look-at x/y/z, pad), copied to `0x801A11AC` / `0x801A11C0` |
+| **Must not run twice in a pass** | `0x80017A3C` (pad vibration timers `?`, PP only, step state) and the sound upkeep `0x8004BC00` in the frame end; also check `0x8004C3DC` / `0x8004B8D0` (twins of MoA `0x80053DD0` / `0x80053284`, which the MoA plugin skipped) |
+| Things the render steps itself | colour pulse (frame counter `0x801A035C`), scrolling textures (their own counters), the high-water mark (harmless) |
+
+## PP 3. The other engines
+
+Found by the frame-end wait (`slti 0x2CB`, present in every fight engine and not in the menu module 201)
+and its caller. All `code`.
+
+| PP FDAT | MoA FDAT | Engine | Scene render | Frame end (wait at) | Views | Projection |
+|---|---|---|---|---|---|---|
+| 202 | 207 | missions | `0x80060C3C` (202+0x17B6C) | `0x80055614` (`0x80055644`) | 1 | H 320, centre (160, 120) |
+| 203 | 208 | link versus | `0x80060378` (203+0x172A8) | `0x800552E0` (`0x80055310`) | 1 | H 320, (160, 120) |
+| 204 | 209 | split-screen VS | `0x8005F838` (204+0x16768) | `0x80054534` (`0x80054564`) | 2 | H 160, (79, 115) |
+| 205 | 210 | arena | `0x8006172C` (205+0x1865C) | `0x80056694` (`0x800566C4`) | 1 | H 320, (160, 120) |
+| 206 | 211 | VS replay | `0x8005FB00` (206+0x16A30) | `0x80054A78` (`0x80054AA8`) | 1 | H 320, (160, 120) |
+
+The missions engine calls its scene render from 11 places (mission scripts `?`); the others from their
+main loop (and the match-end (0, 0) calls).
+
+**Arena (205), first cut:** single view, the per-view work is inline in the scene render. Order:
+`0x80017A3C`, camera matrix, `0x80061498` (colour pulse), swap `0x8005661C`, pose records `0x80054DCC`,
+AC pose `0x80053CC4`, HUD `0x80060FFC`, stage `0x8005C148`, objects `0x80060150`, high-water check
+(`0x8008DCCC`, limit 0x1E000), `0x80016E80` into `0x8009B3B0` (a scanline count, unused `?`),
+**scrolling textures `0x8005629C` after the draw** (VS does them before the swap), frame end
+`0x80056694`, free `0x80054EBC`, frame counter. Buffer base **`0x80193A70`**, record stride 0x80, one OT
+each (`0x80183A68`, `0x8018BA68`), primitive buffers `0x80147A68` / `0x80165A68`, 0x1C000 = 114,688
+bytes each. The stage, AC model and shadow draws, view-cone test and area-box test are the VS code
+again (same shape): `0x8005C148`, `0x8005D0F8` (0.89), `0x8005CEE0`, `0x80060968`, `0x8005BA80`.
+
+## PP 4. Draw list (VS) — what moved, what didn't
+
+Same routines and the same call graph as the MoA "Draw list (VS)" below. PP addresses (all FDAT 204,
+`code`; `=` identical to MoA, `~` same shape, a number = similarity of a changed routine):
+
+| What | PP | MoA | Pair |
+|---|---|---|---|
+| HUD per view | `0x8005EF80` | `0x80066B10` | 0.63, same 9 calls: text `0x8004F79C`, gauges `0x8004ED48` (0.92), `0x800500E4` =, `0x800503E4` (0.88, radar `?`), `0x8005060C` ~, `0x80050728` =, **sight / lock box `0x8004FC6C` (0.79)** |
+| Stage | `0x8005A0F4` | `0x80061C3C` | ~ ; area records **`0x801B46F0`** (MoA `0x801BDFD0`) |
+| one area | `0x80059BCC` | `0x80061700` | 0.99 |
+| area box test / corner | `0x80059A2C` / `0x80059950` | `0x80061560` / `0x80061484` | = / = |
+| near level, unlit / lit | `0x80064ECC` / `0x80065CCC` | `0x8006CAEC` / `0x8006D8EC` | = / = ; vertex edge codes `0x80064BFC` / `0x80065A00` ~ |
+| far level | `0x80059180` | `0x80060CB4` | = |
+| Objects | `0x8005E0D4` | `0x80065C44` | 0.91; the same 32 calls in the same order |
+| view-cone test | `0x8005E8EC` (codes `0x8005E8AC`) | `0x8006647C` (`0x8006643C`) | = ; same edges (±79, ±115) and the same far / size arguments (4,000 / 500) at every call site |
+| AC model / shadow | `0x8005B0A4` / `0x8005AE8C` | `0x80062C00` / `0x800629E0` | 0.98 / 0.96 |
+| AC pose / joint walk / records | `0x80051B44` / `0x800517F4` / `0x80052DA4` | `0x80059624` / `0x800592D4` / `0x8005A884` | = ; pose records **`0x8019A538`**, **`0x8019A560`** (2 × 40) |
+| AC hit flash | `0x8005A370` | `0x80061EB8` | = |
+| stage objects: kinds 1 / 3 / 5 | `0x8005BAE0` / `0x8005B49C` / `0x8005B3D0` | `0x80063648` / `0x80063004` / `0x80062F34` | = / = / 0.97 |
+| pool kinds 0–6 | `0x8005A41C`, `0x8005CA70`, `0x8005D100`, `0x8005D67C`, `0x8005AD3C`, `0x8005D37C`, `0x8005D100` | as MoA | 0.99, ~, =, 0.99, 0.98, ~, = |
+| pool allocator | `0x8008203C` | `0x8008A52C` | ~ |
+
+**Differences in the objects draw (read at the call sites):**
+- **ACs:** model draw args are (model AC +0x0E + 0x80, &AC +0x08 position, &AC +0x10 angles, pose
+  record AC **+0x60**; &AC **+0x148** hit flash, AC **+0x15C**, area AC +0x16, **100, 120**, AC **+0x6A**,
+  AC **+0x6C**). MoA: record +0x68, +0x150, +0x164, **100 + 4 × (AC +0x42), 120 + 4 × (AC +0x42)**, +0x72,
+  +0x74. So **MoA added a per-AC draw-order bias** (byte AC +0x42 pushes an AC deeper in the OT); PP draws
+  both ACs at fixed depths. Shadow area is AC +0x30 in both.
+- **Pose arguments** (scene render): &AC +0x60, model AC +0x0E + 0x80, AC +0x64 (main animation), AC
+  +0x6E (its time); AC +0x72, AC +0x65, AC +0x74, &AC +0x76 (aim). MoA: +0x68, +0x6C, +0x76; +0x7A,
+  +0x6D, +0x7C, +0x7E. **This block of AC fields is 8 bytes lower in PP** (as the base notes said for
+  +0xCC / +0xD4).
+- **Stage objects: 512 records** of 52 bytes at **`0x801D1618`** (loop count 0x200 at `0x8005E2C8`;
+  MoA: 128 at `0x801D2EF8`). Room for four times as many lamps / props / moving parts per stage.
+- **Object pool:** 256 records of **224** bytes at **`0x801DA47C`** (stride 0xE0 at `0x8005E878`; MoA
+  228 at `0x801D6F6C`); draw kind < 7, jump table `0x80049360` (PP 204+0x290).
+- Area bitset "drawn in this view" = buffer base +0x6710 = `0x801A03A0`.
+
+## PP 5. Culling and sorting (VS)
+
+Same code as MoA's "Culling and sorting (VS)" below: the area-box corner test and the view-cone test
+are identical routines, the near-level edge-code routines have the same shape, and every cone call site
+passes the same numbers. So **the widescreen and draw-distance edge sites are the same instructions
+at PP addresses**:
+
+| Test | PP routine | Edge instructions (PP, FDAT 204) | MoA-US twin |
+|---|---|---|---|
+| Area box corner (x 0…157, y 0…229; > 16,384 behind the eye drops the area) | `0x80059950` | x: `bgez` `0x800599DC`, `slti 0x9E` **`0x800599E0`** (204+0x10910); y: `bgez` `0x80059A08`, `slti 0xE6` `0x80059A0C`; behind: `slti -0x4000` `0x800599B8` | `0x80061510` / `0x80061514` |
+| Object cone (centred, ±79 × ±115) | codes `0x8005E8AC` | `slti -0x4F` **`0x8005E8AC`** (204+0x157DC), `slti 0x4F` **`0x8005E8B8`** | `0x8006643C` / `0x80066448` |
+| Stage near-level vertices (x 0…158, y 0…230) | `0x80064BFC`, `0x80065A00` | `slti 0x9F` **`0x80064CF0`, `0x80064DEC`, `0x80065AF4`, `0x80065BF0`**; `slti 0xE7` at +0x38 after each | `0x8006C910`, `0x8006CA0C`, … |
+
+Same instructions, same values as MoA (read 2026-11-26).
+
+Primitive buffer per frame: VS 0x21000 bytes (both views share it), arena 0x1C000. A longer draw
+distance or more objects fills these sooner: watch the high-water marks (`0x800888BC` VS, `0x8008DCCC`
+arena, reset at match start by `0x80074CB4` / `0x80076828`).
+
+## PP 6. Scrolling textures and VRAM reads (VS and arena)
+
+- **Match start** (`0x80053FA4`, PP 204+0xAED4, called from the VS main routine at `0x8004A3B0`): for each
+  scrolling texture, `malloc` a RAM copy and **`StoreImage` the VRAM rectangle into it once**, then
+  `DrawSync(0)`.
+- **Every frame** (`0x8005411C`, PP 204+0xB04C; MoA `0x8005BB40`, 0.72): 7 slots of 24 bytes (block
+  at `0x801A03E4`; per slot a counter, a signed step, a rectangle, an offset at +0x0A and the RAM copy
+  pointer at +0x0E, counted from the slot's byte +2 `?`); when a slot's counter runs out it moves its
+  offset by the step and **`LoadImage`s one or two slices from the RAM copy** (3 modes; field details
+  not settled). MoA instead does `StoreImage` + `LoadImage` + `malloc` / `free` every time it scrolls.
+- Fight engines 202–206 each have exactly **one** `StoreImage` (that match-start one) and **no**
+  `MoveImage`. The main program has none. (The menu module 201 uses both a lot.)
+- **Why it matters:** a VRAM read is a sync point for the framework's render thread (`RENDER_THREAD.md`),
+  so MoA's fights would force a hand-back every scroll step on stages with scrolling textures; PP's do
+  not. For render passes, a per-frame `LoadImage` inside the draw is still a VRAM write to journal.
+
+## PP 7. Open (renderer)
+
+- Not seen running: everything above is `code`. First live check once a PP build boots: the frame
+  layers tool on one VS frame (needs a debug-tools build), and the high-water marks on the heaviest stage.
+- `0x80017A3C`: confirm it is the vibration countdown (Lane 4 / Lane 3 may meet it).
+- Widescreen edge sites in the arena engine (205) not listed yet (VS ones are in PP 5).
+- Arena: HUD `0x80060FFC` and the inline per-view block not compared in detail yet.
+- Stage geometry format (old step 6) not started on either disc.
+
+## PP 8. RAM map rows (for `ram-map.toml`, Lane 1 brings it to main)
+
+| Address | Disc | Size | Name | Status |
+|---|---|---|---|---|
+| `0x80199C90` | PP | 0x290 | VS buffer base (index, 2 records, current R, prim allocator, current OT) | code |
+| `0x80193A70` | PP | 0x110 `?` | arena buffer base | code |
+| `0x801A11A8` / `0x801A11BC` | PP | 4 + 16 each | VS camera copies P1 / P2 (area word, eye, look-at) | code |
+| `0x801A11D0` / `0x801A11D4` | PP | 4 / 16 | VS per-view area / camera | code |
+| `0x801A11E4` / `0x801A11F0` | PP | 0x20 | VS view rotation / translation | code |
+| `0x801A0350` | PP | 4 | VS frame start time (root counter 1) | code |
+| `0x801A035C` | PP | 4 | VS frame counter | code |
+| `0x801A0360` / `0x801A03A0` | PP | 0x40 each | VS area bitsets looked at / drawn | code |
+| `0x801A03E3` | PP | 1 | VS fade box on | code |
+| `0x801A03E4` | PP | 7 × 24 | VS scrolling texture slots (from +2) | code |
+| `0x800888BC` / `0x8008DCCC` | PP | 4 | primitive high-water mark, VS / arena | code |
+| `0x8019A538` / `0x8019A560` | PP | 40 each | VS pose records P1 / P2 | code |
+| `0x801B46F0` | PP | 64 per area | VS stage area records | code |
+| `0x801D1618` | PP | 512 × 52 | VS stage objects | code |
+| `0x801D80E0` / `0x801D8250` | PP | 0x170 each | VS AC objects P1 / P2 | code |
+| `0x801DA47C` | PP | 256 × 224 | VS object pool | code |
+| `0x800424E8` / `0x80042890` | PP | 0x3A8 each | VS player blocks P1 / P2 | code |
+| `0x8003BD00` | PP | 4 | current player block pointer (camera / draws) | code |
+| `0x8008F5B0` | PP | ? | VS match struct (+0x12 steps) | code |
+| `0x80040F48` +0x3C1…+0x3E3 | PP | bytes | pad motor bytes and their timers `?` | guess |
+
+## PP Handed over (to this lane)
+
+(none yet)
+
+## PP Handed over from Lane 7 to other lanes
+
+Kept here (and in the PR text) instead of in the other lanes' docs, so eight parallel branches don't all
+edit the same file ends. Each lane: copy what you need into your own doc.
+
+- **Lane 1 (foundations):** PP main-program library routines named in PP 1 (incl. `VSync` `0x8002B220`
+  and `SetDefDrawEnv` / `SetDefDispEnv` `0x8002CE10` / `0x8002CEC4`, which the MoA→PP map has no row for);
+  scene render and frame end of every PP engine (PP 3); PP-only `0x80017A3C` and `0x8002FFC0` (addPrim).
+  RAM rows in PP 8.
+- **Lane 3 (boot and loads):** VS main routine `0x8004A228`, its loop top `0x8004A42C`; match-start
+  scrolling-texture copy `0x80053FA4` (the one VRAM read in a fight, called at `0x8004A3B0`); buffer /
+  env setup `0x800546B8`, which calls the OT / primitive setup `0x800545EC` at `0x80054818`.
+- **Lane 4 (battle):** VS player blocks `0x800424E8` / `0x80042890` (stride 0x3A8), current player pointer
+  `0x8003BD00`, match struct `0x8008F5B0` (+0x12 steps, cap 0x4000), AC objects `0x801D80E0` / `0x801D8250`
+  (stride 0x170), object pool 256 × 224 at `0x801DA47C`, stage objects 512 × 52 at `0x801D1618`; AC
+  fields the draws read: pose record +0x60, animation +0x64 / +0x65 / +0x6E / +0x72 / +0x74, aim +0x76,
+  size +0x6A / +0x6C, hit flash +0x148, +0x15C (MoA +0x68, +0x6C / +0x6D / +0x76 / +0x7A / +0x7C, +0x7E,
+  +0x72 / +0x74, +0x150, +0x164); cockpit-view flag player block +0x25A bit 0; camera record pointer
+  player block +0x3A4. `0x80017A3C` looks like pad vibration countdown `?`.
+- **Lane 2 (feel):** MoA draws each AC with a depth bias from AC +0x42 (`4 ×` that byte added to both OT
+  offsets); PP doesn't. Drawing only, but worth knowing if an MoA field at +0x42 is imported. The lock-box
+  / sight routine differs (`0x8004FC6C` vs MoA `0x800576E0`, 0.79).
+
+---
+
 # Master of Arena — Renderer Mapping Plan
 
 Goal: know how every frame of a fight is drawn — where the camera comes from, which routine
