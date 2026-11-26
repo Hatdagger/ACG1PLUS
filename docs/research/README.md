@@ -21,6 +21,9 @@ https://github.com/Hatdagger/AC1Recomp, at `7884f4c` (0.8.4.4.2). Those files ar
 | `mapping/missions.md` | Mission launch, MIS.T, per-mission code, Phantasma mission tests |
 | `mapping/renderer.md` | How a fight frame is drawn; plan for in-between frames and widescreen |
 | `mapping/arena-prizes.md` | Arena prize parts |
+| `xdisc/` | **Cross-disc tables MoA-US ↔ Phantasma** (routines, globals, struct fields); see `mapping/foundations.md` |
+| `mapping/foundations.md` | Lane 1: both disc layouts, FDAT and overlay table, file numbers, the cross-disc tool |
+| **`ram-map.md`**, `ram-map-pp.md` (from `ram-map.toml`) | **Every named RAM address in one table**: layout, save data, flags, player blocks, sound, pads, library areas, module-area headliners, with exe cross-references. Built by `tools/ram_map.py` |
 | `mapping/ram-map-gameshark.md`, `ram-map-codes.md` | RAM addresses from cheat codes |
 | `weapon-map.md` | Every weapon: shot, look, sound, knockback, special effects |
 | `sound-map.md` | Sound banks, sound ids, music, voices |

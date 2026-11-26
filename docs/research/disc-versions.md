@@ -23,3 +23,6 @@ Notes
   The old fork was built from this same image, so all research addresses carry over unchanged.
 - Cheat-code sites list a "Version 1.1" code set (addresses +0x60 / +0x64, `ram-map-codes.md`). Open question: is
   that the Japanese disc rather than a US 1.1 pressing? All US copies checked so far share one ring code.
+- 2026-11-24: an NTSC-J code list (Almar's Guides) shifts by +0x24 (profile) / +0x20 (player blocks), not the
+  "v1.1" set's +0x64 / +0x60, so those are two different builds. Test for the JP dump: read credits at 0x8003EA98
+  vs 0x8003EAD8 (`ram-map-codes.md` §6).
