@@ -9,7 +9,7 @@
 | # | Lane | Doc | Status |
 |---|---|---|---|
 | 1 | Foundations: disc layouts, function catalogue, cross-disc tools | `foundations.md` | open |
-| 2 | Phantasma vs MoA: game feel | `feel-diff.md` | claimed 2026-11-26 |
+| 2 | Phantasma vs MoA: game feel | `feel-diff.md` | done 2026-11-26 (PR pending) |
 | 3 | Boot, loads and mode launch | `boot-loads.md` (PP sections) | open |
 | 4 | Battle system core | `battle-system.md` (PP sections) | open |
 | 5 | Data and content formats | `content-data.md` | open |
