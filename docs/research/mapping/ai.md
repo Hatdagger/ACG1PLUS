@@ -145,7 +145,7 @@ behaviour and the start frame and runs the on-start routine (which may refuse, a
 | 5 | `0x80082594` / `0x800825A4` | `0x8008A808` / `0x8008A850` | Fit = desire C (air); strafes: **air / strafe** | code / guess |
 | 6 | `0x80082700` / `0x80082788` | `0x8008AD1C` / `0x8008ADE4` (1.00) | Fit 0 while the player can see it and it is inside the player's weapon range; otherwise (1 − record +8) × 0.5 (× 2 when block 2 +0x20 bit 0); action only turns toward the target: **hold position outside your weapon's reach** | code |
 | 7 | `0x800827A8` / `0x80082850` / `0x80082838` | `0x8008AEAC` (1.00, the action) | Fit = 1.0 when a missile in the object pool targets the AI's AC: **dodge missile** | code |
-| 12 | `0x80082B18` / `0x80082B6C` / `0x80082DA8` | none clear | Fit 0.25, or 0.5–0.75 once running | guess |
+| 12 | `0x80082B18` / `0x80082B6C` / `0x80082DA8` | none clear | Start: finds the **nearest stage object of kind 0x0A** (sub-value 0xF8) in the list at `0x801CB258` and keeps it in state +0x23C; if the stage has none, it clears its own enabled word (+0x18) and refuses, so the behaviour is **off for the whole match on such stages**. Action: no whims while running (sets +0x238 bits 1–2), turns and moves to the object (`0x80081B6C`), phase +0x240 = 1 once touching it; then compares its height with the object's top (+2 + byte +0x26 × 256), checks for clear space ahead (box test `0x800705A0`), stops moving when clear, and boosts through `0x80081BB0`. Fit 0.25, 0.5 while running, 0.75 once on it: **go to and ride a stage object (lift or platform to high ground?)** | code / guess (what kind 0x0A is) |
 | 13 | `0x80082ED4` / `0x80082F4C` | `0x8008A98C` | Fit = a ramp of distance against the player's weapon range (state +0x236), capped at 0.5; 0.5 while running: **keep distance relative to your weapon** | code / guess |
 | 14 | `0x80082FF0` / `0x80083030` | `0x8008AA14` | Fit 0.25, 0.5 once running; random forward/back/strafe: **wander** | code / guess |
 
@@ -228,13 +228,17 @@ Different (`code`):
   `0x8008D224` and `0x8008CED0` have no PP twin.
 
 Open:
-1. Behaviour 12 (`0x80082B18`…) unnamed; behaviours 1, 2, 4, 5, 13 named from their fit routines only.
+1. What stage-object kinds 0x0A (behaviour 12) and 0x14 (behaviour 2) are, and which arena stages have them
+   (who fills `0x801CB258`: Lane 4 / stages). Behaviours 1, 2, 4, 5, 13 are named from their fit routines only.
 2. Which record each arena rank uses: the menu writes compiled stat block +4 (Lane 5). Which way MoA-US's
    opponent numbers run (for the 10 / 20-frame split) is not recorded either.
 3. Weapon kinds 0 / 1 / 2 and slot +0x14, +0x23 meanings (Lane 5 / Lane 4).
 4. Live test (owner, §8), plus a new one: the same opponent in PP and in MoA, count shots fired in 30 s.
-5. If MoA opponents are imported into PP, decide whether they keep PP's firing (stronger) or get a MoA-like
-   fire chance: the record has no field for it, so it would be a mod setting.
+5. **Decided (owner, 2026-11-26):** when MoA opponents are brought over, offer a **toggle in settings** between
+   Phantasma-style AI and MoA-style AI, with a short note saying what differs (PP: fires whenever lined up,
+   aims at you, dodges missiles only; MoA: fire chance, slow start and 10–20 frame hold, aims ahead, dodges
+   shots, desperation mode). PP's records have no fields for the MoA parts, so MoA-style needs a hook that runs
+   MoA's extra rules (or MoA's AI code) on top of PP. Not built yet.
 
 ## 7. Buttons the AI presses (PP button word)
 
@@ -273,4 +277,6 @@ frame), not a wrong address.
   +0x3C AI weight.
 - Lane 2: "lost track" (+0x244) explains why strafe dancing beats the AI; keep it working. MoA's AI fires
   less and later (dice, 110-frame start, 10–20 frame delay): an AI difference, not a feel difference.
+- Lane 4: stage-object list `0x801CB258` (512 × 52 bytes; kind byte at +0x2C, an index at +0x06 into 24-byte
+  records at `0x801CAF58`): the AI looks for kinds 0x0A and 0x14.
 - Lane 5: PP compiled stat block +4 = AI record number (MoA padding); +3 = Human PLUS, also set from the AI record.
