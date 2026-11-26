@@ -38,8 +38,8 @@ addr = 0x800343F0
 size = 256
 type = "u8[256]"
 name = "pp_shop_stock"
-what = "Save +1016; shop stock by MoA's order"
-status = "guess"
+what = "Shop stock (save +1016); new game fills it from 0x800B42D4, 121 non-zero entries, values 1 and 2"
+status = "code"
 disc = "PP"
 src = "mapping/boot-loads.md (PP)"
 
@@ -48,8 +48,8 @@ addr = 0x800344F0
 size = 32
 type = "bytes"
 name = "pp_names"
-what = "Save +580; AC and pilot name by the VS menu's use"
-status = "guess"
+what = "AC name and pilot name, 16 bytes each (save +580); reset to '>' placeholders by 0x80058F08"
+status = "code"
 disc = "PP"
 src = "mapping/boot-loads.md (PP)"
 
@@ -117,9 +117,9 @@ src = "mapping/boot-loads.md (PP)"
 addr = 0x8003BCD5
 size = 1
 type = "u8"
-name = "pp_flag_bcd5"
-what = "Starts at 1, written at PRESS START; meaning unknown"
-status = "guess"
+name = "pp_start_l1r1"
+what = "0 if L1 + R1 are held at PRESS START, else 1; nothing reads it (leftover)"
+status = "code"
 disc = "PP"
 src = "mapping/boot-loads.md (PP)"
 
@@ -197,9 +197,9 @@ src = "mapping/boot-loads.md (PP)"
 addr = 0x8003BCDD
 size = 1
 type = "u8"
-name = "pp_flag_bcdd"
-what = "Tested after a mission; no code found that sets it"
-status = "guess"
+name = "pp_flag_bcdd_dead"
+what = "Read after a mission but never set by any code in the exe or FDAT 201-206: dead"
+status = "code"
 disc = "PP"
 src = "mapping/boot-loads.md (PP)"
 
@@ -207,8 +207,8 @@ src = "mapping/boot-loads.md (PP)"
 addr = 0x8003BCDE
 size = 1
 type = "u8"
-name = "pp_save_just_loaded"
-what = "Set to 1 by LOAD 0x80066C44; the hub reads it once"
+name = "pp_mail_notice_shown"
+what = "New-mail notice already shown: hub state 0x8004C41C shows 'You have new mail.' once while 0; cleared at menu start after a mission or VS, set by LOAD"
 status = "code"
 disc = "PP"
 src = "mapping/boot-loads.md (PP)"
@@ -218,7 +218,7 @@ addr = 0x8003BCF2
 size = 1
 type = "u8"
 name = "pp_replay_flag"
-what = "Non-zero: VS loads the replay engine FDAT 206 and the load keeps 0x801F2000..0x801F8000"
+what = "0 normal; 1 replay (VS loads FDAT 206, the load keeps 0x801F2000..0x801F8000); 2 recorded input ran out (12,288 bytes read)"
 status = "code"
 disc = "PP"
 src = "mapping/boot-loads.md (PP)"
@@ -227,9 +227,9 @@ src = "mapping/boot-loads.md (PP)"
 addr = 0x8003BCF4
 size = 1
 type = "u8"
-name = "pp_flag_bcf4"
-what = "0xFF at SCENARIO, 0 at VS START and link launch; read by the VS engine"
-status = "guess"
+name = "pp_match_number"
+what = "Match number in the current engine session (exe clears it before each engine load, engines add 1 per match end); VS uses player 1's stage on even matches, player 2's on odd"
+status = "code"
 disc = "PP"
 src = "mapping/boot-loads.md (PP)"
 
@@ -369,6 +369,66 @@ size = 2
 type = "u16"
 name = "pp_menu_start_fight"
 what = "Menu only: non-zero ends the menu frame loop and starts the fight"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BD10
+size = 8
+type = "u16[4]"
+name = "pp_win_loss_counters"
+what = "Win / loss counters capped at 999: P1 win adds +0 and +6, P2 win adds +2 and +4 (on time-up more AP wins)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x8003BD1C
+size = 4
+type = "u32"
+name = "pp_random"
+what = "Random number, stepped every frame by the pad reader 0x80059104: r = ((r + 0x3FD + pad) * 109) & 0x7FFF; music picks use its low byte"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x80043A78
+size = 64
+type = "bytes"
+name = "pp_arena_rank"
+what = "u32 arena rank (new game 50, -1 per new opponent beaten), then 15 u32 from 0x800BD6F0 (save +3528)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x80042E60
+size = 52
+type = "u8[52]"
+name = "pp_arena_beaten"
+what = "Arena 'beaten' flag per opponent number, 50 used (save +3795)"
+status = "code"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x80043AB8
+size = 192
+type = "bytes"
+name = "pp_mail_table_save"
+what = "Saved copy of the menu table 0x8018D5D0 (save +3599); mail state by its users"
+status = "guess"
+disc = "PP"
+src = "mapping/boot-loads.md (PP)"
+
+[[var]]
+addr = 0x800CEA40
+size = 749568
+type = "bytes"
+name = "pp_menu_heap"
+what = "Menu heap (InitHeap at every menu start, 0x8004F194); menu only"
 status = "code"
 disc = "PP"
 src = "mapping/boot-loads.md (PP)"

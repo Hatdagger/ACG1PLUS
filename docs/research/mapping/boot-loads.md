@@ -52,8 +52,21 @@ credits, flags, player blocks, VS staging, settings. Everything from 0x800490D0 
 tasks 0x8019CEC0, heap, card list …). (code: the clears in `0x80012C74`, see PP-2.)
 
 The replay flag (0x8003BCF2 ≠ 0) keeps 0x801F2000 … 0x801F8000 (24 KB) through the load, which is where the
-VS replay data sits. The VS engine writes 1 at `0x8004A560` (replay picked `guess`) and 2 at `0x8007587C` when
-its record pointer reaches a limit `?`.
+VS replay data sits. Values: **0** normal fight, **1** replay (the VS engine writes it at `0x8004A560`; every
+engine reads the flag to know it is playing back), **2** = the recorded input ran out: `0x800754E8` (VS, MoA
+`0x8007D5E8` identical) reads 2 bytes of recorded input per step and, once it has read 0x3000 = 12,288 bytes,
+writes 2 at `0x8007587C`, starts a 30-frame timer and ends the round. (code)
+
+**The menu's memory** (code: heap init `0x8004F194`, called at every menu start):
+
+| Range | What |
+|---|---|
+| 0x800490D0 … 0x800CEA40 | menu file (code and data) |
+| **0x800CEA40 … 0x80185A40** | **menu heap**, 749,568 bytes (`InitHeap(0x800CEA40, 0xB7000)`); it starts inside the last 1,680 bytes of the file, which are zeros |
+| 0x80185A40 … 0x801F8000 | fixed work memory (first use 0x80185BC8; tasks 0x8019CEC0 … 0x801B72D0, mail/mission table 0x8018D5D0, …) |
+
+Engines have no such gap: the first fixed variable above each engine's file is 0–9,240 bytes past its end
+(missions 202 +9,240, link 203 +0, VS 204 +288, arena 205 +576, replay 206 +888).
 
 ## PP-2. Power-on and the boot exe loop
 
@@ -81,15 +94,21 @@ its record pointer reaches a limit `?`.
      | other | nothing loaded, the old entry word is called again | | |
 
    - engine returns **1** → call the same engine again (no reload, no picture); **2** → back to the dispatch
-     (no menu, flags not cleared; this is how VS → replay works); anything else → `0x800305F8(2,0,0)` `?`,
-     loading picture RTIM 61, back to the menu.
+     (no menu, flags not cleared; this is how VS → replay works); anything else → `0x800305F8(2,0,0)` (reset
+     the serial port, see below), loading picture RTIM 61, back to the menu.
+
+**`0x800305F8(mode, sub, value)`** is the library's **serial-port control** (`_sio_control`; MoA `0x8002F7CC`
+identical). It works on the port registers through the pointer at 0x8003BB44: mode 0 reads (sub 0 = status),
+mode 1 writes (control bits, baud rate from 0x1FA400 / value), mode 2 resets. The serial port is where the
+link cable plugs in; status bit 0x80 is the "other side present" line (DSR). (code)
 
 (code: `0x80012C74` read in full.)
 
 ### Loading picture `0x80012B04(n)`
 Reads RTIM *n* synchronously into the module area, sends its TIMs to VRAM (`0x80012624`), shows it, and
-installs a per-frame callback at 0x80040F50: `0x80012710` for n = 61 (the general NOW LOADING screen),
-`0x800129D4` for the others `?`. (code)
+installs a per-frame callback at 0x80040F50 with its frame counter at 0x80040F54 (reset to 0): `0x80012710`
+for n = 61 draws the moving NOW LOADING sprite (MoA `0x80012030`); `0x800129D4` for the mission pictures steps
+two boxes over the picture as the counter runs (PP-only). (code)
 
 ## PP-3. Resume flags and other launch state (exe data, survive loads)
 
@@ -100,7 +119,7 @@ values are from the exe image (0x8003BCD0 … 0x8003BCDF is in the image, so it 
 |---|---|---|---|---|
 | 0x8003BC86 | 0 | **mode byte** (table PP-2) | title rows, VS / link menu entry, `0x800AE330` (3, arena list opening `guess`), `0x800AF418` (0) | 0x8003EA2A |
 | 0x8003BCD0 | 100,000 | credits (s32; the menu clamps to ±99,999,999 after a mission) | | 0x8003EA74 |
-| 0x8003BCD5 | 1 | written at PRESS START (`0x8009E5B8`, 0 or 1) `?` | | 0x8003EA79 |
+| 0x8003BCD5 | 1 | PRESS START (`0x8009E5B8`) writes **0 if L1 + R1 are held**, else 1. **Nothing reads it** (no load of any width found in the exe or FDAT 201–206): a leftover | | 0x8003EA79 |
 | 0x8003BCD6 | **1** | **go to the title** (first boot; set again when a link session ends, below) | cleared when the title opens | 0x8003EA7A |
 | 0x8003BCD7 | 0 | **back from the garage test fight** | set `0x80070C40`; the hub reads and clears it (`0x8004D1E8`) | (MoA used 0x8003EA7D = 5) |
 | 0x8003BCD8 | 0 | **back from an arena fight** (hub opens on entry 5) | set by arena launch `0x800B141C`, cleared `0x800AE638` | 0x8003EA7C |
@@ -108,12 +127,13 @@ values are from the exe image (0x8003BCD0 … 0x8003BCDF is in the image, so it 
 | 0x8003BCDA | 0 | **title without logos/intro** — set only by the **link engine** (FDAT 203 `0x8004ACA0`) | cleared when the title opens | 0x8003EA7F |
 | 0x8003BCDB | 0 | **return to the link-cable menu** | set `0x800A08A0` | 0x8003EA80 |
 | 0x8003BCDC | 0 | **VS stage** (20 … 29) chosen in the VS menu; VS START copies it into both player blocks +0x25D | VS menu | (MoA kept a map number 1–10 at 0x8003EA81 and a table) |
-| 0x8003BCDD | 0 | tested after a mission (title or texture reload) — **no code found that sets it** `?` | cleared `0x80050F00`, `0x80099450` | |
-| 0x8003BCDE | 0 | a save was just loaded (LOAD sets 1); the hub reads it once `?` | | |
+| 0x8003BCDD | 0 | read after a mission (PP-9), but **never set**: no store of any width, direct or through a base register, in the exe or FDAT 201–206. The PP-9 branch it guards is dead in this version | cleared `0x80050F00`, `0x80099450`, `0x800994B4` | |
+| 0x8003BCDE | 0 | **"new-mail notice already shown"**: hub state `0x8004C41C` shows "You have new mail." when `0x80093C04` reports unread mail and this is 0, then sets it. Cleared at a menu start after a mission or VS (PP-4), set by LOAD | | |
 | 0x8003BCF2 | 0 | **replay flag** (PP-1) | VS / link / arena engines | 0x8003EA92 |
-| 0x8003BCF4 | 0 | 0xFF at SCENARIO, 0 at VS START and the link launch; read by the VS engine at load `?` | | 0x8003EA94 |
+| 0x8003BCF4 | 0 | **match number** in the current engine session: the exe clears it before each engine load, VS START / link launch set 0, the VS, link and arena engines add 1 at each match end (and set bit *n* of player block +0x39C of the winner). **VS: even matches use player 1's stage, odd ones player 2's** (`0x8004DF20`). SCENARIO sets 0xFF (menu only) | | 0x8003EA94 |
 | 0x8003BC85 | | **fight music** number, set by every launch (arena: picked by thresholds on 0x8003BD1C) | | 0x8003EA29 |
-| 0x8003BD1C | | byte the launches use to pick the music (≥217 → 1, ≥181 → 5, ≥145 → 16, ≥109 → 17, ≥73 → 19, else 23); likely the random byte like MoA 0x8003EABC `guess` | no plain writer found | |
+| 0x8003BD1C | | **random number** (u32, 15 bits used): the pad-reading routine `0x80059104` steps it every frame, `r = ((r + 0x3FD + pad bits) × 109) & 0x7FFF`. Launches pick the music from its low byte (≥217 → 1, ≥181 → 5, ≥145 → 16, ≥109 → 17, ≥73 → 19, else 23) | `0x80059234` | 0x8003EABC |
+| 0x8003BD10 … 0x8003BD17 | 0 | **win / loss counters** (4 × u16, capped at 999): on a fight's end the engines add 1 to +0 and +6 when player 1 wins, to +2 and +4 when player 2 wins (on time-up the AC with more AP, AC +0x160, wins; equal = draw, no count). So +0 = P1 wins, +2 = P2 wins, +4 = P1 losses, +6 = P2 losses `guess` on which pair is shown as which. The arena result reads +0 ("player won") | cleared at menu start (PP-4), VS first visit, link menu, arena result | |
 | 0x8003BD24 … 0x8003BD2A | 0 | 7 per-AC extras (Human PLUS level and flags); cleared at SCENARIO / VS rows; LOAD fills +4 … +6 | | 0x8003EAC8 … (8 bytes) |
 | **0x8019CEA0** (u16) | | **"start the fight now"**: the menu's frame loop `0x80098640` runs until it is non-zero | written by `0x8005C788`, `0x800B151C` (arena) and VS START (through base 0x8019CE90 +0x10) | 0x801B1CC8 |
 
@@ -135,7 +155,7 @@ Runs at power-on and after every fight. (code, read in full.)
    settings `0x800AA4B8`**.
 8. Resume, in this order:
    1. If not back from a test fight (0x8003BCD7 = 0) and not back from the arena: 0x8003BCDE = 0. If none of
-      VS / link / arena is set: clear 8 bytes at 0x8003BD10 `?`.
+      VS / link / arena is set: clear the win / loss counters 0x8003BD10 … 17 (PP-3).
    2. **0x8003BCD9 (VS)** → PICTURE MENU_TIM 0, mode = 2, **VS menu `0x800A42DC`**.
    3. **0x8003BCDB (link)** → PICTURE MENU_TIM 0, mode = 1, VRAM moves (x 0x2C0 / 0x300, CLUT rows 0x1E6 …,
       back-weapon blocks), **link menu `0x800A04A8`**.
@@ -164,8 +184,10 @@ Runs at power-on and after every fight. (code, read in full.)
 
 **Movie player `0x8009F7E4(n, can_skip)`** reads the table at **0x800BD448** (FDAT 201 +0x74378), 8 bytes per
 movie: name pointer, frame count. 0 `\GG\STR\ASLOGO.STR;1` 110, 1 `ACOPA.STR` 1,415, 2 `DEMOPLAY.STR` 2,160,
-3–7 `ACED5.STR` 10 `?`, 8 `STAFF.STR` 3,890. It allocates its own buffers from the menu heap and frees them.
-(data + code)
+3–7 `ACED5.STR` 10, 8 `STAFF.STR` 3,890. It allocates its own buffers from the menu heap and frees them.
+(data + code) Who plays what (the only three calls): the title plays 0–2; **`0x80099D74` plays 6** (ACED5; the
+same routine raises the Human PLUS level 0x8003BD24, so this is the Human PLUS scene `guess`); **`0x8004E1F0`
+plays 8** (staff roll), then opens the title. Entries 3, 4, 5 and 7 are never played.
 
 **So "skip logos and intro" = open the title with skip = 1** (what the link engine does through 0x8003BCDA).
 Setting 0x8003BCDA = 1 before the first menu start should do the same for a normal boot `guess` (it is only
@@ -177,12 +199,14 @@ The highlighted row is read as a Y position (task +0x14 → +0x4C): **0xB0 = 176
 (same as MoA).
 
 **SCENARIO (176):** 0x8003BCF4 = 0xFF, **garage = the scenario starting AC `0x8005895C`**, mode = 0,
-`0x800AE088` (arena-side reset `?`; MoA's `0x800BA854` arena-table reset has no PP twin, this is the likely
-one), settings defaults + apply, clear 0x8003BD24 … 0x8003BD2A, kill task group 2, **PICTURE MENU_TIM 0, 1
+**`0x800AE088` = arena reset** (code): arena rank 0x80043A78 = 50, the 15 words after it from the table at
+0x800BD6F0 (FDAT 201 +0x74620: 9,000, 7,500, 7,000, 6,500, 4,500, 4,300, 3,500, 3,400, 2,700, 2,500, then 2,400 ×
+5; meaning Lane 8's), and the 50 "beaten" bytes at 0x80042E60 cleared, settings defaults + apply, clear 0x8003BD24 … 0x8003BD2A, kill task group 2, **PICTURE MENU_TIM 0, 1
 and 4**, window `0x80059658`, → **NEW GAME / LOAD GAME menu `0x8009ECF8`**. (MoA also reset its VS staging
 here; PP doesn't.)
 
-**VS (192):** if the second pad is usable (0x8019CEA8 bit 1) or `0x800305F8` returns bit 0x80 → split-screen:
+**VS (192):** if the second pad is connected (0x8019CEA8 bit 1) or the serial-port status (`0x800305F8(0,0,0)`,
+PP-2) has bit 0x80 set → split-screen:
 `0x8006844C`, **garage = VS default AC `0x80058B04`**, clear 0x8003BD24 … 2A, kill group 2, PICTURE MENU_TIM 0,
 **mode = 2, VS menu `0x800A42DC`**. Otherwise → the same but **mode = 1, link menu `0x800A04A8`**.
 
@@ -211,22 +235,23 @@ copies (code, every loop bound read):
 | +572 / +573 | 1 + 1 | 0x8003BCCE / 0x8003BCCF | paint pattern / variant (MoA 0x8003EA72/73) |
 | +574 | 2 | 0x8003BCCC | option parts (MoA 0x8003EA70) |
 | +576 | 4 | 0x8003BCD0 | credits |
-| +580 | 32 | 0x800344F0 | AC name and pilot name `guess` (the VS menu copies 32 bytes from here into its name buffers) |
+| +580 | 32 | 0x800344F0 | AC name and pilot name, 16 bytes each (`0x80058F08` resets them to two ">" placeholders from 0x800B4604; the VS menu copies them) |
 | +616 | 96 | 0x800439E0 | owned-part bitmasks (the card finish rebuilds them) |
 | +712 | 48 | 0x800342C0 | paint |
 | +760 | 256 | 0x800342F0 | owned parts |
-| +1016 | 256 | 0x800343F0 | shop stock `guess` (MoA order) |
+| +1016 | 256 | 0x800343F0 | shop stock: NEW GAME fills it from a 256-byte table at 0x800B42D4 (right after the starting owned parts at 0x800B41D4) with 121 non-zero entries, values 1 and 2; same place and shape as MoA's shop stock. What 2 means: Lane 8 |
 | +1272 | 2,048 | VRAM **(544,384) 16×64** | emblem pixels (LoadImage, rect at 0x800B48A4) |
 | +3320 | 32 | VRAM **(256,510) 16×1** | emblem colours (rect 0x800B48AC) |
 | +3352 | 120 | 0x80043108 | scenario / mission progress (the mission return reads +0, +4, +0x38, +0x42) |
 | +3472 | 56 | 0x80043A40 | settings record (56 bytes, as MoA) |
-| +3528 | 64 | 0x80043A78 | `?` |
+| +3528 | 64 | 0x80043A78 | **arena**: u32 player rank (new game 50, −1 for each new opponent beaten, `0x800AE59C`), then 15 u32 from 0x800BD6F0 (PP-5b) |
 | +3596 … +3598 | 3 | 0x8003BD28 … 0x8003BD2A | extras (Human PLUS …) |
-| +3599 | 192 | 0x80043AB8 | arena state `guess` |
-| +3795 | 52 | 0x80042E60 | `?` |
+| +3599 | 192 | 0x80043AB8 | saved copy of the menu table at 0x8018D5D0: `0x80093830` (LOAD, NEW GAME) copies it in, `0x80093634` copies it back. The table is used by the routines around the mail and mission screens (`0x80095F9C`, `0x80096DEC`), so **mail state** `guess`; Lane 8 |
+| +3795 | 52 | 0x80042E60 | **arena "beaten" flags**, one byte per opponent number (50 used; cleared by the arena reset). After a won arena fight, if the opponent's byte (opponent 0x8003BD2E) is not yet 1 it becomes 1 and the rank goes up by one |
 
 Then: DrawSync, **apply settings `0x800AA4B8`**, `0x8008A9B0`, `0x80085B50`, **`0x80085750`** (mission
-progress copy-back, MoA `0x80093BC4`), `0x80093B28`, `0x80093830`, **0x8003BCDE = 1**.
+progress copy-back, MoA `0x80093BC4`), `0x80093B28`, `0x80093830` (the +3599 table into 0x8018D5D0), **0x8003BCDE
+= 1** (no mail notice straight after a load).
 The save **builder** (DATA SAVE) is `0x80065ECC`: header "SC", 0x11, 1, title text from 0x800B48B4, icon
 palette from 0x800B48F4, then the same table the other way. Lane 8 owns the save format; this table is here
 because a direct Load Save must replay it.
@@ -247,8 +272,12 @@ Same steps as MoA (code):
 
 - New task, first state `0x8004C1AC`. Hub entry +0xAE = 5 if back from the arena (0x8003BCD8), else 0.
 - **LoadImage 0x80043B80 → (368,225,16,1) and 0x80043180 → (448,192,16,64)**: the two blocks the title saved
-  (rects at FDAT 201 +0x4 / +0xC). MoA's lesson applies: a direct start that never showed the title must fill
-  these two buffers itself, or the hub shows black (MoA `boot-loads.md` §10).
+  (rects at FDAT 201 +0x4 / +0xC). They are the third picture of **MENU_TIM 0** (image (448,192) 16×64 4-bit,
+  colours (368,225)), which every menu start loads (PP-4 step 4), and which almost every stage texture load
+  overwrites (PP-10). That is why the title saves them, `0x8005C5E4` saves them again before each fight, and the
+  hub puts them back. A direct start that skips the title must fill the two buffers itself: StoreImage after
+  the menu start (as the title does), or write them from MENU_TIM entry 0. MoA's recomp found StoreImage read
+  back black there, so writing them from the disc entry is the safer road (MoA `boot-loads.md` §10).
 - `0x800592B8` full-screen layer, `0x8004D33C`; back weapon ≥ 51: MoveImage (768,448,64,64) → (384,256) and
   (0,493,256,1) → (320,482); `0x8005DD30`; **hub ring task `0x8004DB68`**:
   - **sound bank `0x8005ADA8(2)`**, **TIM queue MENU_TIM 1 and 4**, **MODEL slot 15 ← MENU_TMD 1**
@@ -285,9 +314,9 @@ Same steps as MoA (code):
 1. `0x800A6360` / `0x800A6458`: for P1 then P2, parts into the garage, extras into 0x8003BD24, **build check
    `0x80070C5C`**; a failed check shows a message (`0x8005B884`) and stops.
 2. `0x800A654C`, per player: parts → garage, extras → 0x8003BD24, options → 0x8003BCCC, **compile
-   `0x8009A238`** (the stat block: writes player block +0x258 on; Lane 5), **`0x800A6DEC`** (a VRAM block
-   swap of the AC's texture pages, done only when task +0x81 is set: PP's version of MoA's texture-set swap
-   `guess`), back-weapon MoveImages (rects 0x8004B83C / 0x8004B844). Then P1's paint/options back into the
+   `0x8009A238`** (the stat block: writes player block +0x258 on; Lane 5), **`0x800A6DEC`** (only when task
+   +0x81 is set: the same player 1 ↔ player 2 texture-set swap as the arena's `0x800B16A0`, PP-10a, plus a
+   redraw of two VS windows), back-weapon MoveImages (rects 0x8004B83C / 0x8004B844). Then P1's paint/options back into the
    garage, kill groups, windows.
 3. `0x800A69F8`: **stage 0x8003BCDC → player blocks +0x25D (0x80042745) and +0x605 (0x80042AED)**, music
    0x8003BC85 (from 0x8003BD1C), 0x8003BCF4 = 0, **0x8019CEA0 = 1** → the exe loads FDAT 204.
@@ -319,10 +348,21 @@ After the fight 0x8003BCD9 is still 1, so the menu reopens on the VS menu.
   **stage 19** into player block 1 +0x25D, music 0xFF, compile, **0x8003BCD7 = 1**, `0x8005C5E4`. Mode stays 0,
   so it runs in the **missions engine** (MoA used the arena engine for this). Stage 19 also explains the
   loading-picture exception in PP-2.
-- **Link-cable versus launch** (state `0x800A3504`, installed at `0x800A319C` in the link menu): compile the
-  local AC, keep the garage in heap buffers (2 × 0xAF0), **PICTURE (synchronous) of the other AC's part
-  textures** from CORE_T … WER_T, swap builds, 0x8003BCF4 = 0, music 17, `0x8005C5E4`. Details `?` (Lane 8 /
-  link work).
+- **Link-cable versus launch** (state `0x800A3504`, installed at `0x800A319C` in the link menu; code):
+  1. two 2,800-byte heap buffers: this console's packet (pointer 0x801E1688) and the other one's (0x801B72D0);
+  2. **compile the local AC** (`0x8009A238(0)`) and pack it: garage parts, options, paint pattern / variant,
+     paint, stage (player block 1 +0x25D), and the emblem read back from VRAM (StoreImage (544,384) 16×64 and
+     (256,510) 16×1);
+  3. **swap packets over the cable**: `0x800A402C` / `0x800A40D8` (MoA `0x800B0A04` / `0x800B0AB0`, identical);
+  4. **move the local AC's textures from the player 1 slots to the player 2 slots** (MoveImage (704,256) and
+     (768,256) 64×256 → y 0, colour rows 486–494 → 495, emblem (544,384) → (560,384), its colours row 510 → 511);
+  5. **load the other AC into the player 1 slots**: its emblem by LoadImage, its stage → player block 2 +0x25D,
+     its build into the garage, compile it (`0x8009A238(1)`), its colours by the paint ramp `0x80073324`, its part
+     textures by **PICTURE (synchronous)** from HEAD_T, CORE_T, ARMS_T, LEG_T, …, BST_T; then the local build
+     back into the garage;
+  6. free both buffers, 0x8003BCF4 = 0, music 17, `0x8005C5E4`.
+  So on each console the other player's AC sits in the player 1 texture slots. Which side the link engine then
+  treats as "me" is the link engine's business (not read here).
 - **`0x8005C5E4` = "leave the menu for a fight"** (shared by the three above): kill task groups 2 … 20, a task
   whose first state `0x8005C750` waits for the disc queue and then `0x8005C788` sets **0x8019CEA0 = 1**;
   back-weapon VRAM moves; **StoreImage the hub's two blocks back into 0x80043B80 / 0x80043180** (rects
@@ -331,11 +371,12 @@ After the fight 0x8003BCD9 is still 1, so the menu reopens on the VS menu.
 ## PP-9. Back from a fight (menu entry, PP-4 step 8)
 
 - **Mission / test fight (mode 0):** `0x80085854`, `0x800939A0`, `0x800857A4`, `0x800938E8`, credits clamped to
-  ±99,999,999. If 0x8003BCDD: title (when progress +0x38 bit 1 is clear) or queue the AC textures and step two
-  counters (progress +0x2C / +0x30). If progress +0 = 10 with progress +0x42 bit 1, +4 ≠ 0 and 0x8003BD25 = 0:
-  **PICTURE MENU_TIM 0, 1, 4 and `0x80093D84`** (an ending / special scene `?`). Otherwise **PICTURE MENU_TIM 0,
-  wait for the disc, open the hub**. This road does **not** queue the AC's textures (the missions engine
-  leaves them alone `guess`).
+  ±99,999,999. (A branch on 0x8003BCDD, title or texture reload, never runs:
+  PP-3.) If progress +0 = 10 with progress +0x42 bit 1, +4 ≠ 0 and 0x8003BD25 = 0:
+  **PICTURE MENU_TIM 0, 1, 4 and `0x80093D84`**, then `0x8004E010` (PP-only; leads to the ending: the staff
+roll `0x8004E1F0`, PP-5a, is the state installed at `0x8004E1AC` / `0x8004E1D8` `guess` on the exact chain). Otherwise **PICTURE MENU_TIM 0,
+  wait for the disc, open the hub**. This road does **not** queue the AC's textures, and doesn't need to: no
+  stage texture load touches player 1's texture slots (PP-10a).
 - **Arena (mode 3):** the same result calls, ~40 MoveImage calls that rebuild the hub windows from VRAM,
   back-weapon moves, **queue the AC's textures `0x800730A4`**, **PICTURE MENU_TIM 0**, wait, **open the hub**
   (entry 5).
@@ -372,6 +413,30 @@ below). Stage number s comes from player block +0x25D (VS: 0x8008F5B0; arena 0x8
 ### RTIM (63 entries)
 0 … 39 stage textures (17 and 18 empty), 40 … 56 small 4-bit mission loading pictures, 57 … 59 bigger ones,
 60 shared fight textures, 61 NOW LOADING (8 KB), 62 mission results.
+
+### PP-10a. VRAM: the AC slots and what fight loads overwrite
+Read from the TIM headers on the disc (every part archive entry and every RTIM entry) and from the swap
+routine `0x800B16A0`, run step by step in a small simulator (data + code):
+
+| Slot | Player 1 | Player 2 |
+|---|---|---|
+| part textures (8-bit) | **(704…831, 256…511)**: core (704,256) 64×128, booster (704,384) 64×32, legs (704,416) 64×96, arms (768,256) 64×96, head (768,352) 64×32, blade (768,384), hand weapon (768,416), back L (768,448), back R (768,480), 64×32 each | (704…831, 0…255) |
+| part colours | rows 486 … 494 at x 0 … 255 | rows 495 … 503 |
+| emblem / its colours | (544,384) 16×64 / (256,510) | (560,384) / (256,511) |
+| menu-only pictures (generator, FCS, blade extra) | (320…447, 256…479) and colour rows 480 … 494 at x 320 … 575 | (448,256), (832,0), rows 496 … 510 |
+
+The part archives always load into the player 1 slot; `0x800B16A0` (and `0x800A6DEC`) swap the whole set with
+player 2's through a scratch block at (960,0).
+
+What the fight engines' texture loads cover (every RTIM entry tested against the slots):
+- **No RTIM entry touches player 1's part textures, colours or emblem.**
+- **Mission stages** (RTIM 0 … 16 and 19) overwrite **player 2's** part textures and colour rows (nothing needs
+  them after a mission: any later VS or arena fight loads player 2 again).
+- **Every stage except RTIM 8**, and RTIM 62, overwrites at least one of the hub's two blocks (448,192) and
+  (368,225) (PP-5f).
+- RTIM 60 (shared fight textures) covers x 320 … 575 / y 256 … 511 and (832…959, 256…511): only menu pictures
+  live there.
+- RTIM 40 … 61 (loading pictures) touch none of these.
 
 ## PP-11. Disc read layer (exe)
 
@@ -411,9 +476,12 @@ SOUND `0x8004F52C(n)`, read into heap `0x8004F2D8`, read with callback `0x8004F4
 ## PP-13. Room for MoA content (first look)
 
 - **Module area:** PP's area (0x800490D0 … 0x801F8000, 1,765,168 bytes) is about the same as MoA's
-  (0x80050DD8 … 0x801FE000, 1,757,736 bytes). MoA's menu is 69,632 bytes bigger than PP's, so the menu image
-  itself has room to grow by about that much, **if** PP's menu work memory doesn't use more than MoA's `guess`.
-  Measuring the highest address the menu's tasks and heap use is the next step.
+  (0x80050DD8 … 0x801FE000, 1,757,736 bytes). MoA's menu is 69,632 bytes bigger than PP's.
+- **Menu:** the file is followed directly by a fixed-size heap (PP-1). Growing the menu file means moving the
+  heap start and shrinking its size by the same amount: both are constants in `0x8004F194` (lui / addiu at
+  0x8004F1A4 … 0x8004F1B4: FDAT 201 +0x60D4 … +0x60E4). How much of the 749,568-byte heap the menu really uses
+  at its busiest needs a live measurement.
+- **Engines:** no free room above their files (fixed variables start 0 … 9,240 bytes after them).
 - **Archive tables:** ~13 KB free in the pool (PP-11), enough for many extra entries.
 - **Part archives** have almost the same entry counts on both discs (PP / MoA): CORE_T 176 / 176, LEG_T 640 /
   640, ARMS_T 384 / 384, HEAD_T 288 / 288, BST_T 14 / 14, BWL_T 59 / 60, BWR_T 59 / 60, WEL_T 9 / 6, WER_T 21 /
@@ -422,19 +490,24 @@ SOUND `0x8004F52C(n)`, read into heap `0x8004F2D8`, read with callback `0x8004F4
   discs have 72 body archives (PA00 … PA71). So new MoA part textures and models would need new entries in
   PP's `*_T` and MENU_TMD archives (the recomp can serve extra entries from files; a disc patch would have to
   rebuild the archives).
-- **Free space in the code files:** none of FDAT 201–206 ends in zero padding, and the exe's zero tail is
-  initialised data. No free space found yet for disc patches `?` (Lane 1).
+- **Free space in the code files:** none for disc patches. Each module file ends in a block of zeros and one
+  final word, but code points into every one of those zero blocks (they are the modules' zero-started variables,
+  and in the menu's case the heap's start); the exe's long zero runs are library data that code uses too. So a
+  disc patch has to make room (for example by shrinking the menu heap, above) rather than find it.
 
 ## PP-14. Open
 
-- 0x8003BCDD: never set in the code found. Dead, or written by a block copy.
-- 0x8003BD10 … 17 (cleared at menu start), 0x8003BCF4, 0x8003BCD5, save +3528 / +3795: meaning unknown.
-- `0x800A6DEC` and the link launch `0x800A3504` read only in outline.
-- Which VRAM areas the stage textures (RTIM 0 … 39) and RTIM 60 overwrite, and whether that ever touches the AC
-  texture pages.
-- Nothing is tested. Suggested first check once there is a PP build or an emulator with a memory viewer: boot to
+Cleared 2026-11-26 (second pass): every unknown from the first pass is answered above (0x8003BCD5, 0x8003BCDD,
+0x8003BCDE corrected, 0x8003BCF4, 0x8003BD10 … 17, 0x8003BD1C, the replay flag's 2, `0x800305F8`, the loading
+callbacks, the movie entries, the save blocks at +580, +1016, +3528, +3599, +3795, the swap `0x800A6DEC`, the
+link launch, VRAM overlap, free space). What is left needs a running game or belongs to another lane:
+- **Nothing is tested.** First live check once there is a PP build or an emulator with a memory viewer: boot to
   the title and confirm 0x8003BCD6 = 0 and 0x8003BC86 = 0; pick VS and confirm 0x8003BC86 = 2 and 0x8003BCD9 = 1;
-  start a VS fight and confirm 0x8019CEA0 = 1 just before the loading screen.
+  start a VS fight and confirm 0x8019CEA0 = 1 just before the loading screen; win one VS round and confirm
+  0x8003BD10 = 1 and 0x8003BD16 = 1.
+- How much of the menu heap is used at its busiest (PP-13), live only.
+- For other lanes: what the table at 0x800BD6F0 and the value 2 in the shop stock mean, and the mail table
+  0x8018D5D0 (Lane 8); which side the link engine treats as "me" (link work).
 
 ## Handed over (from Lane 3)
 
@@ -448,7 +521,13 @@ SOUND `0x8004F52C(n)`, read into heap `0x8004F2D8`, read with callback `0x8004F4
 - **To Lane 7:** RTIM 60 and RTIM [stage] go to VRAM at every fight load; engines never load part textures.
 - **To Lane 8:** LOAD `0x80066C44` copy table and SAVE builder `0x80065ECC` (PP-5d); checksum `0x80065E7C`;
   card list builder `0x80065948`; mission launch `0x800870F0`; test fight `0x80070BC8`; scenario progress
-  block 0x80043108 (120 bytes, save +3352); movie table 0x800BD448; 0x8003BCDE "save just loaded".
+  block 0x80043108 (120 bytes, save +3352); movie table 0x800BD448 (6 = Human PLUS scene `guess`, 8 = staff
+  roll); arena rank 0x80043A78, arena table 0x800BD6F0, beaten flags 0x80042E60, arena reset `0x800AE088`;
+  mail: 0x8003BCDE "new-mail notice shown", `0x80093C04` "unread mail?", table 0x8018D5D0 saved at +3599;
+  shop stock 0x800343F0 (values 1 and 2).
+- **To Lane 4:** win / loss counters 0x8003BD10 … 17 and match number 0x8003BCF4 (who wins on time-up: more AP,
+  AC +0x160); winner's bit in player block +0x39C.
+- **To Lane 7:** the VRAM slot table (PP-10a).
 
 ---
 
