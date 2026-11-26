@@ -79,15 +79,14 @@ Known from the first comparison (`claude/phantasma-base.md`), so no lane redoes 
   least the boot EXE and the VS/arena engines, tool committed and documented.
 
 ### Lane 2 — Phantasma vs MoA: game feel
-**Goal:** say in plain words what MoA changed in how an AC moves and fights, and where in the code. This is the
-evidence for the base-game choice and the list of what must survive when MoA content is imported.
+**Goal:** say in plain words what MoA changed in how an AC moves and fights, and where in the code, so that
+importing MoA content (parts, numbers, hooks) keeps Phantasma's feel. The base-game choice is already made.
 - Compare the movement code side by side: ground boost, jump, air boost, landing, turning, friction, energy
   drain/recovery, stagger, overheat, blade lunge. The changed routines are already listed in
   `claude/phantasma-base.md` (air/rise, energy, stat scale-in, stagger, blade swing, stepper installer, recover turn).
-- Tie each trick from the owner's clips to code: **Kaze** (down + R1 + boost on one frame = full boost from
-  standing; lead: MoA only ground-boosts once already moving), **strafe dancing** / lock cancelling,
-  **heavy-biped high jump** (said to work in MoA too), **wall/floor clip** (lead: MoA's extra checks in the
-  stepper installer). Then a test on real PP the owner can run, with exact steps.
+- **The tricks are not to be investigated.** Kaze, strafe dancing / lock cancelling, the heavy-biped high jump
+  and the wall/floor clip all already work in Phantasma (owner, 2026-11-26). Only list them as a **keep-working
+  list**: anything we change later (imported MoA parts, hooks) must not break them.
 - Compare constants and tables that shape feel: speeds, gravity, turn rates, damage factors, lock-on timing,
   missile tracking, frame/step timing.
 - Output: a difference table (what, PP value/behaviour, MoA value/behaviour, address on both, status), and a
@@ -175,8 +174,8 @@ take over menus.
 
 All 8 can start now. Lane 1's cross-disc table speeds everyone up, so lanes 2–8 should pull `main` when they
 begin and again before pushing. If a lane needs a Lane 1 result that isn't there yet, it finds that one
-address itself and hands it to Lane 1. Lanes 2 and 6 are the ones that settle the base-game question; their
-plain summaries go to the owner first.
+address itself and hands it to Lane 1. The base game is settled; Lane 6's plain summary of the AI goes to
+the owner first.
 
 ## Starter prompt for a lane chat (copy, fill in the lane number)
 
