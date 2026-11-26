@@ -20,6 +20,41 @@ shadow draws; test 2 (ACs glide) on branch `renderer-vs-ac-pass`, built 2026-11-
 VS 2026-11-18** (§1 "Culling and sorting (VS)"); arena edge sites read 2026-11-18 (§1 "Culling and
 sorting (arena)").
 
+## 0. Where this lane stands on Armored-Core-Gen-1 (2026-11-26)
+
+Everything below was read and tested on the old fork (Hatdagger/AC1Recomp). "master", "branch"
+and plugin file names in this doc mean that fork. The US disc is the same image, so every address
+still applies here. Nothing from this lane is ported to this repo yet (no frame-rate package, no
+hooks in `game.toml`).
+
+**Disc location (disc patch track).** Engine code and its built-in tables: file offset inside the
+engine's FDAT entry = address − `0x80050DD8` (the rule the menu docs use for entry 206; VS = entry
+209 of `GG/COM/FDAT.T`). Computed, not yet checked against the disc for the fight engines.
+Addresses from about `0x8019xxxx` up (buffer records, camera state, AC objects, the object pool)
+are working memory filled in at run time: they have no place on the disc. US disc 1 (SLUS-01030)
+only; no Japanese (SLPS-01855) address has been found for this lane.
+
+| Step (§3) | State | What finishing it needs |
+|---|---|---|
+| 1 Frame anatomy | done for VS | nothing |
+| 2 Camera | done for VS; camera glide tested by the owner on the old fork | nothing |
+| 3 Draw list | read from code for VS, never checked on screen | a debug-tools build + one captured frame (`gpu_frame_layers.py`) |
+| 4 ACs | read for VS; "ACs glide" was built on the old fork, **never tested** | paint / pre-painted sets and the mesh format: **engine files**. The glide test: a build + the owner's eyes |
+| 5 Object pool | read from code for VS; "pool glides" built on the old fork, **never tested** | which kind is which on screen: debug-tools build |
+| 6 Stage geometry | **not started** | **engine files + stage files** (FDAT 209, and 5s+1 / 5s+4 for one stage) |
+| 7 Culling and sorting | read from code for VS; arena edge sites read | a run to confirm; stage near path and fog: **engine files** |
+| 8 HUD | **not started** (only the sight routine `0x800576E0` is known) | **engine files** |
+| 9 Other engines | arena edge sites and link scene render only | **engine files** (FDAT 207, 208, 210, 211) to find each VS routine's twin |
+
+"Engine files" = the fight engines' code, which lives in `GG/COM/FDAT.T` on the disc and is not in
+this repo (`generated/` holds only the boot program `SLUS_010.30`, which has almost no drawing
+code: §1 "Main program routines the engines call"). A chat can only read steps 6, 8 and 9 when it
+is given `FDAT.T` (or the disc image).
+
+**Old-fork test branches** (`renderer-vs-ac-pass`, `renderer-vs-pool-pass`): reference only under
+this repo's rule. When the frame-rate feature is rebuilt here it is written fresh from the facts in
+this doc, camera first (the one part proven by eye), then ACs, then the pool.
+
 ## 1. What we already have
 
 | Thing | Where | Source |
