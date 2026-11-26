@@ -41,6 +41,7 @@ Several chats map Master of Arena at the same time. To avoid double work:
 | Part tables | `parts-tables.md` | data chat | Part tables, weapon details, options on the disc | complete 2026-11-17: weapon detail +0x04 = post-shot hold (read in every engine); only its base length needs a live check |
 | Mode launch | `mode-launch.md` | launch chat | Boot → menu → engine loop, the mode byte, resume flags, how Scenario (hub) and VS (menu → VS START → fight) start; goal: starting modes straight from the launcher | static read done 2026-11-17; repo gaps filled; runtime test next |
 | Boot and loads | `boot-loads.md` | boot chat | What is read from the disc, what goes into VRAM and what state is set at each step: power-on, every menu start, title, Scenario (Load Save / New Game) → hub, VS setup, VS START, arena launch, the fight engines' loads; what a direct start must replay | static read done 2026-11-17 (disc 1); open items in its §10 |
+| RAM map | `../ram-map.toml` → `../ram-map.md` | shared | One table of every named address (any lane may add rows; the details stay in the lane docs). Rebuilt by `tools/ram_map.py`, which also scans the boot exe for who reads/writes each address | first cut 2026-11-21: 117 entries, persistent area (exe + bss) covered, module area headliners only |
 | GameShark RAM list | `ram-map-gameshark.md` | shared, append-only | Raw code-derived addresses | reference |
 | Missions: weapon detail +0x04 | `parts-tables.md` | data chat | Narrow check only: does the missions engine (FDAT 207) read weapon detail +0x04? Not the rest of the missions lane | done 2026-11-17: yes, and so do VS, arena and replay (the earlier "no reader" was wrong); see `parts-tables.md` |
 | Menus: scenario hub | `menus-hub.md` | hub chat | The hub ring (FDAT 206 from `0x800552C0`): its 8 entries, tables, input, models and labels, and how to add / remove / replace entries. Not the screens behind the entries (garage, shop, …) | static read done 2026-11-17, icon and caption pictures found |
@@ -70,6 +71,32 @@ beaten flags and rank bytes are all used by `games/master-of-arena/moa_phantasma
 Read those before mapping anything arena-related.
 
 ## Handed over
+
+From RAM map to boot chat (`boot-loads.md`):
+- "VS staging area 0x80045958 / 0x8004A7C4" is the **Arena Maker arena**: name at +0, ranker count +0x14,
+  9 rankers × 2,228 bytes from 0x80045970; its reset `0x800C566C` is Arena Maker code. 0x8004A7C4 = ranker
+  picked for RANKER TEST, then the Maker arena's 9-byte rank table and beaten count. See `../ram-map.md`.
+- 0x8003EC70 … 0x80043C6F is the exe's 20 KB default disc work buffer (pointer 0x8004411C = exe_sys +0x4AC).
+
+From RAM map to battle chat (`battle-system.md`), 2026-11-21:
+- Arena engine only (no VS twin): **opponent AI state 0x801E2750**, 632 bytes up to the camera record
+  0x801E29C8. AI init `0x8008DC98` clears the first 584 bytes; +0x28 is a track of recent AC positions
+  (16-byte entries, shifted every frame by `0x8008D4AC`, newest at the pointer +0x228); +0x24E … +0x26E
+  the personality from `0x8004AC80` (AI setup `0x80055768`, percent × 4096 ÷ 100). AI globals
+  0x801E2730 … 0x801E2749 are set by AI init too. Decision routines `0x800896AC` … `0x8008E55C`.
+
+From RAM map to renderer chat (`renderer.md`):
+- VS `0x801A2E0C` = vertex list of the mesh being drawn (the mesh entry's +0, set before each mesh) and
+  `0x801A9A80` = its vertex count (0 = skip); the transforms `0x8005CE48`, `0x800698A0`, `0x8006C81C`,
+  `0x8006D620` RTPS that list into `0x801A2E60`. Scratchpad layout is in `scratchpad.md`.
+
+From RAM map to missions chat (`missions.md`):
+- The RAM map had `0x801CFAB0` (stage sections) as a VS address; only the missions engine uses it. Fixed
+  in `ram-map.toml` (now `mission_stage_sections`). VS keeps its 64-byte area records at `0x801BDFD0`.
+- Pairing identical routines between engines (`tools/engine_xlate.py`) puts the VS **stage objects**
+  (`0x801D2EF8`, 128 × 52 bytes, drawn by the object draw) at missions **`0x801E49D8`**, the table
+  `missions.md` calls trigger zones (also 52 bytes). Same records, same drawing code: worth a look
+  whether the zones are stage objects with an eye box (+0x22 … +0x27) rather than a separate table.
 
 From battle chat to data chat:
 - Damage reads player block **+0x272 / +0x273** (compiled +0x22 / +0x23) as the shell / energy damage factors (×/64); default AC = 27 / 32. Confirms Armored-CoreR's note. Code `0x80079500` (VS engine).

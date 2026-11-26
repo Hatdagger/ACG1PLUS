@@ -126,6 +126,35 @@ Booster/energy `0x800451AE`.
 - Mission player AP `0x801E73B0`, gated by `0x8007B7CA == 0x1040`
 - Arena player AP `0x801D8D70`; enemy AP `0x801D8EE8`, gated by `0x8007BBAE == 0x1040` → stride 0x178 (AC object = 376 bytes, confirmed in `battle-system.md`)
 
+## 6. NTSC-J code set (Almar's Guides "Japan" CodeBreaker list) — added 2026-11-24
+
+A third code set, labelled NTSC-J. Its shifts against our US v1.0 disc are **not** the "v1.1" shifts above,
+so the "v1.1" set and this list are for different builds.
+
+| Code | NTSC-J | US v1.0 match | Shift |
+|---|---|---|---|
+| Credit Max | 3EA98 / 3EA9A | 3EA74 `credits` | **+0x24** |
+| All Options | 3EA94 FFFF (gate D0084708 == 002A) | 3EA70 `options_fitted` | +0x24 |
+| Booster Max | 451CE EA60 | 451AE (player1 +0x16) | **+0x20** |
+| Bullet 1000 | 4549E/454A0, 454DC/454DE, 4551A/4551C | 4547E … (weapon slots) | +0x20 |
+| Arena AP Max | 801D8590 (gate D007B3E2 == 1040) | 801D8D70 (gate 7BBAE) | −0x7E0 (gate −0x7CC) |
+| Arena Enemy AP 0 | 801D8708 | 801D8EE8 | −0x7E0 (stride 0x178 unchanged) |
+| Scenario AP Max | 801E6BB8 (gate D007B006 == 1040) | 801E73B0 (gate 7B7CA) | −0x7F8 (gate −0x7C4) |
+| Scenario Time | 800A0DCC = 5000 (gate D0052726 == 2462) | 800A0DC4 = missions `vs_match` +0x14, time left in steps | +0x08 (likely; not checked) |
+
+Reading it:
+- Exe save/profile data moves by +0x24 and the player blocks by +0x20; the fight objects move the other
+  way by about 0x7E0. The AC object stride (0x178) and the slot layout are the same.
+- Our Japanese dump (SLPS-01855) says "Version 1.1" in COPY.TXT. That doesn't tell us which list fits it:
+  this NTSC-J list could be for a JP 1.0 pressing, and the "v1.1" set could be the JP 1.1 disc, a US 1.1 pressing or PAL.
+  **Quick test once the JP exe is loaded:** read the u32 at 0x8003EA98 (credits if this list fits) and at 0x8003EAD8
+  (credits if the "v1.1" list fits). Whichever one matches the save's credits names the code set, and then
+  the matching shifts give first-guess addresses for the JP fresh recomp.
+- "Scenario Time" 0x5000 = 20,480 steps written to time left: the cheat stops the mission clock running out.
+  Its US address is already mapped (`vs_match` row, `missions = 0x800A0DB0`).
+
+Source: almarsguides.com/retro/walkthroughs/ps1/games/armoredcoremasterofarena/codebreaker/japan/
+
 ## Sources
 Almar's Guides (MoA Codebreaker, NTSC-U); ViperByte, MofG, Salvo & Kagato 210-code list;
 gamegenie.53lu.com/cheats/ps1/armored-core-master-of-arena/3.html. Its "Infinite Ammo" entry is actually the optional-parts unlock.
