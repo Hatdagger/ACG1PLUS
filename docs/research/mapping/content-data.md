@@ -308,11 +308,11 @@ uses owned + 0x200 (`0x800344F0`) as MoA does (`0x800371EC`), so PP stock is mos
 
 ## 7. Open
 
-- ~~PP weapon type name table (1c)~~: `0x800BCB18`, 28 names (round 2 topic 5). What the bytes after it are.
-- Part model archives (`*_T.T`): entry counts match the table sizes per kind (BWL/BWR 59 vs 60, WEL 9 vs 6, WER
-  21 vs 26, MENU_TMD 249 vs 252, the rest equal), but how body-part archives group 16 entries per part isn't
-  decoded; PP has data in some `DUMMY` slots. Needed to import a part's model.
-- PP shop stock address (guess `0x800343F0`) and new-game stock values.
+- ~~PP weapon type name table (1c)~~: `0x800BCB18`, 28 names (round 2 topic 5). ~~What the bytes after it are~~:
+  the body layouts and body table, byte for byte MoA's (round 3 topic 3, `parts-pp.md` §3).
+- ~~Part model archives (`*_T.T`)~~: textures, entry = paint pattern × part count + part id; PP's filled `DUMMY`
+  slots and MENU_TMD's layout in `parts-pp.md` §1 (round 3 topic 3).
+- ~~PP shop stock address and new-game stock values~~: `0x800343F0` confirmed, values in `parts-pp.md` §2.
 - PP's 7-byte copy to `0x8003BD24` vs MoA's 8 bytes to `0x8003EAC8`: which byte MoA added.
 - Paint (48 bytes) and emblem formats: copied unchanged by the old importer, not mapped field by field here. Still open after round 2
   (topic 5 ran out of room; next step: read the CHANGE COLOR page `0x8005DF7C` and the emblem editor `0x8006844C` …).

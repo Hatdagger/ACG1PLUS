@@ -5849,3 +5849,68 @@ disc = "PP"
 what = "[menu] The arena's 12 stages as (stage, stage − 20) byte pairs: 20, 23, 24, 25, 28, 29, 30, 32, 33, 34, 35, 36 (FDAT 201 +0x74604). Only these stages have a loadable arena code file"
 status = "code"
 src = "mapping/stages.md §1, mapping/performance.md §7"
+
+# ── round 3 topic 3: parts (mapping/parts-pp.md) ──
+
+[[var]]
+addr = 0x800B41D4
+size = 256
+type = "u8[256]"
+name = "newgame_owned_parts"
+disc = "PP"
+what = "[menu] New-game owned counts, copied to owned_parts 0x800342F0 by NEW GAME: 1 for the 11 starting parts (HD-GRY-NX, XCA-00, AN-201, LN-1001-PX-0, GPS-VVA, COMDEX-C7, B-P320, WM-S40/1, RXA-01WE, WG-RF35, LS-2001), else 0 (FDAT 201 +0x6B104)"
+status = "data"
+src = "mapping/parts-pp.md §2"
+
+[[var]]
+addr = 0x800B42D4
+size = 256
+type = "u8[256]"
+name = "newgame_shop_stock"
+disc = "PP"
+what = "[menu] New-game shop stock, copied to shop_stock 0x800343F0: 1 for most parts on sale, 2 for back weapons (1 for the two starting ones), 0 = never sold; 121 non-zero (FDAT 201 +0x6B204)"
+status = "data"
+src = "mapping/parts-pp.md §2"
+
+[[var]]
+addr = 0x800BC284
+size = 176
+type = "struct[11]"
+name = "part_kind_table"
+disc = "PP"
+moa = 0x800D4544
+what = "[menu] Garage part kinds, 11 x 16 bytes (u16 part count, u16 first MENU_TMD entry, owned-mask, framing and one more table pointer), order core, legs, arms, blade, head, booster, back, hand, FCS, options, generator; MENU_TMD starts 3, 14, 54, 169, 78, 96, 110, 178, 199, 215, 234 (FDAT 201 +0x731B4)"
+status = "data"
+src = "mapping/parts-pp.md §1"
+
+[[var]]
+addr = 0x800BC380
+size = 1080
+type = "u8[]"
+name = "body_combo_lists"
+disc = "PP"
+what = "[menu] The 144 arms / legs id lists of body_combo_table (one per row and side, end 255, padded to 4 bytes). PP's parts only; MoA's lists (new arms 8, 21, legs 20, 24, 32, leg 9 moved to the heavy group) fit in place (FDAT 201 +0x732B0)"
+status = "data"
+src = "mapping/parts-pp.md §4"
+
+[[var]]
+addr = 0x800BCCD8
+size = 580
+type = "bytes"
+name = "body_layouts"
+disc = "PP"
+moa = 0x800D4DC4
+what = "[menu] Body layouts (model joint numbers for muzzles, interceptor, alternate camera), 6 used at +0x00 / +0x3A / +0xAE / +0x196 / +0x1D0 / +0x20A; byte for byte MoA's; read by the stat compile 0x8009A238 into stat +0x56 … +0x85 (FDAT 201 +0x73C08)"
+status = "code"
+src = "mapping/parts-pp.md §3, mapping/stat-block.md"
+
+[[var]]
+addr = 0x800BCF1C
+size = 1152
+type = "struct[72]"
+name = "body_table"
+disc = "PP"
+moa = 0x800D5008
+what = "[menu] Body table, one 16-byte entry per body combination: layout pointer, u16 frame (0 two-legged, 1 caterpillar, 2 four-legged), u16 650, u16 40 (0 on combination 1), u16 100, u32 2 → stat +0x36 … +0x3C; same as MoA; read only by 0x8009A238 (FDAT 201 +0x73E4C)"
+status = "code"
+src = "mapping/parts-pp.md §3, mapping/stat-block.md"
