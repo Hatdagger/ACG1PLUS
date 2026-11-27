@@ -77,6 +77,7 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 | 34 | R3 MoA rows | VS names on PP: rename player 1 and player 2 in VS and watch `0x8003BDB0` (P1) and `0x8003BDD4` (P2), 36 bytes each (AC name then pilot name); they should change, `0x8003BD2C` should not (`moa-rows-pp.md`) | first PP build |
 | 35 | R3 parts | Shop stock on PP: start a NEW GAME, then `0x800343F0` + 157 (WM-S40/1) = 1 and + 158 (WM-S40/2) = 2, `0x800342F0` + 157 = 1; buy one WM-S40/2 and its stock drops to 1 while owned + 158 becomes 1; set a stock byte to 127 (e.g. + 161) and buy: it stays 127 (`parts-pp.md` §2) | PP disc in DuckStation, memory view |
 | 36 | R3 parts | Paint pattern textures: in the garage pick CHANGE PATTERN → WOODLAND (pattern 1); the head's texture at VRAM (768, 352) should match HEAD_T entry 18 + head id (`parts-pp.md` §1) | PP disc in DuckStation, VRAM viewer |
+| 37 | R3 opponents | Arena line-up on PP (`ai.md` §3a): (a) with a cheat 8-bit write `30042AEC 0000` (opponent uses record 0, the rank 1 AI) fight the rank 49 opponent and strafe fast in front of it: it should keep turning onto you at once, unlike without the cheat; (b) on a fresh save set the rank to 30 once (`80043A78 001E`, then remove the code), challenge the opponent just *below* you and win: the rank should become 29; (c) try to challenge two places above: refused (tone only) | PP disc in DuckStation |
 
 ## Open questions left by the lanes
 - **Build chat (0.0.x), for the stages topic:** the arena stage code pieces FDAT 107, 112, 132, 137, 157 and 187 don't fit the
@@ -89,7 +90,7 @@ seen running on PP yet. Lane write-ups: project docs `claude/mapping-<lane>.md`;
 - **Feel:** the arena engine's movement (PP 205 / MoA 210) not compared.
 - **Content:** PP weapon type-name table; part model archive grouping; shop stock address (likely 0x800343F0,
   Lane 3 agrees); paint and emblem field layout.
-- **AI:** stage-object kinds 0x0A / 0x14 and which stages have them; which AI record each arena rank gets.
+- **AI:** stage-object kinds 0x0A / 0x14 and which stages have them; ~~which AI record each arena rank gets~~ (round 3 topic 4: `ai.md` §3a).
 - **Boot:** peak menu heap use (live); which side the link engine treats as "me".
 - **Renderer:** stage geometry format; arena HUD and screen-edge sites.
 - **Scenario:** ~~the screens behind each hub entry in depth~~ (round 2 topic 3: `menus-screens.md` §PP) (garage pages, shop, card screen, arena list, options,

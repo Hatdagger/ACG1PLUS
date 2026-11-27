@@ -2786,9 +2786,9 @@ size = 1
 type = "u8"
 name = "arena_opponent"
 disc = "PP"
-what = "Opponent index of the next/last arena fight"
-status = "guess"
-src = "mapping/arena-prizes.md; PP address from xdisc/globals.tsv (near, low)"
+what = "MoA: opponent number of the next / last arena fight. Not this byte on PP: nothing in PP's menu, missions or arena engine reads or writes 0x8003BD2F; PP keeps the opponent number one byte lower, at 0x8003BD2E (see arena_opponent_no). Round 3 topic 4"
+status = "code"
+src = "mapping/arena-prizes.md; PP address from xdisc/globals.tsv (near, low); checked on PP, round 3 topic 4 (mapping/ai.md §3a)"
 moa = 0x8003EAD5
 
 [[var]]
@@ -3248,8 +3248,8 @@ size = 50
 type = "u8[50]"
 name = "arena_rank_table"
 disc = "PP"
-what = "Per-rank byte table (Ex Arena …), entry n at 0x80043AAD + n (one byte before this row, as on MoA)"
-status = "guess"
+what = "MoA: per-rank byte table (Ex Arena …). PP has no such table: these bytes are inside arena_rank (the 15 words after the rank), and nothing on PP reads 0x80043AAD … 0x80043AE0 as bytes. PP's per-opponent state is arena_beaten 0x80042E60. Round 3 topic 4"
+status = "code"
 src = "mapping/missions.md; PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8004B5D6
 
@@ -3259,9 +3259,9 @@ size = 48
 type = "u8[48]"
 name = "arena0_beaten"
 disc = "PP"
-what = "Arena 0 opponents beaten, bit 0 of each byte"
-status = "guess"
-src = "mapping/menus-screens.md §2n; PP address from xdisc/globals.tsv (near, low)"
+what = "MoA: arena 0 opponents beaten, bit 0 of each byte. Not on PP: these bytes are inside arena_rank, nothing on PP reads them as flags; PP's beaten flags are arena_beaten 0x80042E60 (one byte per opponent number). Round 3 topic 4"
+status = "code"
+src = "mapping/menus-screens.md §2n; PP address from xdisc/globals.tsv (near, low); checked on PP, round 3 topic 4 (mapping/ai.md §3a)"
 moa = 0x8004B5D7
 
 [[var]]
@@ -5914,3 +5914,45 @@ moa = 0x800D5008
 what = "[menu] Body table, one 16-byte entry per body combination: layout pointer, u16 frame (0 two-legged, 1 caterpillar, 2 four-legged), u16 650, u16 40 (0 on combination 1), u16 100, u32 2 → stat +0x36 … +0x3C; same as MoA; read only by 0x8009A238 (FDAT 201 +0x73E4C)"
 status = "code"
 src = "mapping/parts-pp.md §3, mapping/stat-block.md"
+
+# ───────────── PP: arena opponents (round 3 topic 4, mapping/ai.md §3a) ─────────────
+
+[[var]]
+addr = 0x8003BD2E
+size = 1
+type = "u8"
+name = "arena_opponent_no"
+disc = "PP"
+what = "(MoA's 0x8003EAD5) Opponent number (0–48) of the next / last arena fight: written by the arena launch 0x800B13C0 from the list entry +8, read on the way back for the beaten flag (0x800AE59C), the prize money (0x800AE84C: entry 483 + 8 × n) and the prize part (0x800AEA00). The same number picks the AI record (ai_record_no)"
+status = "code"
+src = "mapping/ai.md §3a"
+
+[[var]]
+addr = 0x80042AEC
+size = 1
+type = "u8"
+name = "ai_record_no"
+disc = "PP"
+what = "Player block 2 +0x25C (compiled stat block +4): which of the arena engine's 49 AI records the opponent uses. Written only by the arena pre-fight compile 0x800B0F7C (menu FDAT 201) = opponent number (list entry +8); the stat compile 0x8009A238 leaves it alone; read by AI setup 0x8004DDBC as record 0x8008E498 + 60 × n"
+status = "code"
+src = "mapping/ai.md §3a"
+
+[[var]]
+addr = 0x8008E498
+size = 2940
+type = "struct[49]"
+name = "arena_ai_records"
+disc = "PP"
+what = "[arena] The 49 opponents' AI records, 60 bytes each, record n = opponent number n (starts at rank n + 1); layout in ai.md §3 (FDAT 205 file +0x453C8 = GG/COM/FDAT.T +0x1247BC8)"
+status = "code"
+src = "mapping/ai.md §3, §3a"
+
+[[var]]
+addr = 0x8008F014
+size = 560
+type = "struct[20]"
+name = "arena_ai_behaviours"
+disc = "PP"
+what = "[arena] AI behaviour table, 20 slots of 28 bytes, 10 used; layout in ai.md §4 (FDAT 205 file +0x45F44)"
+status = "code"
+src = "mapping/ai.md §4"
