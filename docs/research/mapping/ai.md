@@ -81,14 +81,15 @@ are there (`code`). Mission enemies use other code (Lane 8).
 | Match flag word (bit 0x400: AI does nothing, pads cleared) | `0x800956DC` | — | code |
 | **AI's button word** = player block 2 +0x08 (previous frame at +0x0C) | `0x80042898` | — | code |
 | AI's wanted weapon slot = player block 2 +0x19 (selected slot is +0x18) | `0x800428A9` | — | code |
-| AI record number = player block 2 +0x25C (copied from the compiled block; who fills it: Lane 5) | `0x80042AEC` | — | code |
+| **AI record number** = player block 2 +0x25C; written only by the arena pre-fight compile `0x800B0F7C` (menu FDAT 201) = the opponent number (§3a) | `0x80042AEC` | — | code |
+| Opponent number of the next / last arena fight (MoA-US `0x8003EAD5`) | `0x8003BD2E` | — | code |
 | Default key layout, 12 × u32 (§7) | `0x800BD568` | FDAT 201 +0x74498 = `FDAT.T` +0x1124C98 | code |
 
 Free space: none looked for yet.
 
 ## 3. The AI record (PP, 60 bytes; MoA-US equivalent: 36 bytes)
 
-Picked by player block 2 +0x25C (0–48) = compiled stat block +4, a byte MoA leaves unused (padding); the menu fills it (who and from what: Lane 5). The setup turns percents (0–100) into fractions of 4096.
+Picked by player block 2 +0x25C (0–48) = compiled stat block +4, a byte MoA leaves unused (padding). **Record n belongs to opponent number n, the opponent who starts at rank n + 1** (§3a). The setup turns percents (0–100) into fractions of 4096.
 "MoA name" = the slider of MoA's AI editor that writes the same state field (from the old card code's notes on
 the editor, `reference/ac1recomp/.../moa_card.c`), so it is a lead to the meaning, not proof.
 
@@ -120,8 +121,59 @@ MoA-US only: record +0x0D → state +0x268 **fire chance** (MoA "shoot"), +0x0E 
 **The 49 records on the disc** (`code`): two families. Records 0–29 share most values (desires 40/75/75, no
 spread, blade 0–100 %, delay 0–20 frames; 20–29 add a second-group tuning). Records 30–48 are a different
 family (desires 70/25/25 with spread 30/30, re-roll v = 4, different behaviour tuning, delay 30 frames, +0x0E =
-5000). Which record belongs to which arena rank is not proven: index = rank − 1 is a `guess` (record 0 has the
-odd 1500 and delay 0).
+5000). Record n = the opponent who starts at rank n + 1 (`code`, §3a).
+
+## 3a. Which opponent gets which record (PP arena screen, menu FDAT 201; round 3 topic 4)
+
+Read in the menu module (`code`). Plain version first:
+
+- **Each of the 49 arena opponents has a fixed number, 0–48, = its starting rank − 1.** That one number picks
+  everything about the opponent: its name pair, its AC build, its prize, its "beaten" flag **and its AI record**.
+  So record 0 is the rank 1 opponent's, record 48 the rank 49 opponent's. The AI follows the opponent, not the
+  rank: an opponent that the player pushes down a place keeps its own AI.
+- **The table matches strength:** ranks 1–20 mostly react at once and never lose track (delay 0, tracking 0;
+  exceptions ranks 10, 11, 13 with delay 10–20), ranks 21–30 mostly react 10 frames late and lose track easily
+  (tracking 60), ranks 31–49 are the second family (mostly delay 30; desires 70/25/25; rank 32 has delay 0). Records with Human PLUS byte 9
+  are ranks 1–9, 12, 14–20.
+- **Your rank = 50 − how many different opponents you have beaten.** Beating someone you already beat gives
+  nothing. Beating a *new* opponent moves you up one place even if it was the one *below* you (`code`; in
+  normal play the one below has always been beaten already, so this only shows with an edited rank; test 37).
+- **Who you may challenge:** the opponent just above you, the one just below you, or anyone you have already
+  beaten. Anyone else (and your own line) only plays the refuse tone.
+
+The list (`code`):
+
+| What | Where (PP) | Notes |
+|---|---|---|
+| Arena screen opener | `0x800AE330` | allocates the **list, 50 × 12 bytes** (task +0x7C+0x34; the 600-byte buffer `?` of `menus-screens.md` PP-5), loads names (`MENU_TIM` entry 482) and prizes (entry 483) |
+| **List builder** | **`0x800AE59C`** | entry = +0 pilot-name pointer, +4 AC-name pointer, **+8 opponent number**. With rank R (`0x80043A78`): lines 0 … R−2 = opponents 0 … R−2; line R−1 = the player (names `0x80034502` / `0x800344F0`, number **50**); lines R … 49 = opponents R−1 … 48. Name pair of opponent n = entry 482 + 48 × n (pilot +0, AC +0x18) |
+| Cursor | task +0x7C+0x46 (row on screen) + task +0x7C+0x47 (top line, 0–44; 6 rows shown) | list line = the two added; on open the top line = R − 3 (0 … 44) |
+| Back from a fight | `0x800AE59C` | if `0x8003BCD8` (back from arena) and the player's win count `0x8003BD10` ≠ 0 and **`0x80042E60` + n** = 0: set it to 1 and **rank − 1**. Then both are cleared |
+| Prize | `0x800AE84C` / `0x800AEA00` | money and part from entry 483 + 8 × n (n = `0x8003BD2E`): the prize belongs to the opponent, not the rank |
+| **Challenge check** | `0x800B0360` (at `0x800B04C8`) | number 50 (own line) → tone 7. Line = R − 2 (just above) or R (just below) → allowed; otherwise allowed only if `0x80042E60` + n ≠ 0; else tone 7. Then the equipment check and "Do you want to challenge?" |
+| Stage | `0x800B08E0` | the player picks it (Left / Right through the 12 stages); not tied to the opponent |
+| Opponent build | `0x800B0DF0` | loads **`MENU_TIM` entry 382** (64 bytes per opponent) to task +0xB4 |
+| **AI record + build** | **`0x800B0F7C`** (at `0x800B1104`) | n = list entry +8 → **`0x80042AEC` = n** (store at `0x800B1130`), then build = entry 382 + 64 × n into the garage (re-read from the list, not from `0x80042AEC`), compile `0x8009A238(1)` (does not write compiled +4), player's build back |
+| Launch | `0x800B13C0` | `0x8003BD2E` = n (store at `0x800B1450`) |
+| AI setup (arena FDAT 205) | `0x8004DDBC` | record = `0x8008E498` + 60 × `0x80042AEC`; byte +0 → `0x80042AEB` |
+
+Nothing else on PP writes `0x80042AEC` (searched the exe and FDAT 201–206). The record table is full: 49 × 60 =
+2,940 bytes end exactly at the behaviour table `0x8008F014`, so there is **no spare slot** for new records.
+
+**MoA-US is numbered the same way** (`code`): its list builder `0x800BBEA8` gives each line the opponent's
+position in that arena's own file list (top first, lines flagged bit 1 in the arena's byte list are skipped) and
+the launch `0x800C0878` stores it in `0x8003EAD5`. So MoA's 10-frame fire hold (§6) goes to the **top 11
+opponents of the main arena** (numbers 0–10) and the 20-frame hold to the rest; Ex Arenas get none.
+
+What this gives the 0.7 work (`guess`, design notes, nothing built):
+- **Any AI on any opponent:** the AI record and the build are chosen separately from the same list byte, so a
+  hook right after `0x800B1130` can set `0x80042AEC` to a different record without touching the build (Rogue
+  Arena line-ups, a "hard mode" giving low ranks top-rank AI).
+- **MoA opponents need more records:** no room in the arena module, so `0x8004DDBC` has to be hooked to read
+  records 49 and up from our own data. The same hook is the natural place for the Phantasma / MoA AI-style
+  toggle (§6 open 5).
+- **Second arena / Rogue Arena list:** entries 382, 482 and 483 are all indexed by the same number, so a new
+  roster is three files (builds, names, prizes) plus AI records, swapped where the screen reads them.
 
 ## 4. Behaviours (PP: 20 slots of 28 bytes at `0x8008F014`, 10 in use; MoA-US: 20 × 24 at `0x80098890`, 13 in use)
 
@@ -230,8 +282,8 @@ Different (`code`):
 Open:
 1. What stage-object kinds 0x0A (behaviour 12) and 0x14 (behaviour 2) are, and which arena stages have them
    (who fills `0x801CB258`: Lane 4 / stages). Behaviours 1, 2, 4, 5, 13 are named from their fit routines only.
-2. Which record each arena rank uses: the menu writes compiled stat block +4 (Lane 5). Which way MoA-US's
-   opponent numbers run (for the 10 / 20-frame split) is not recorded either.
+2. ~~Which record each arena rank uses~~ (round 3 topic 4, §3a: record n = opponent number n = starting rank − 1;
+   MoA-US numbers the same way, so its 10-frame hold is for the main arena's top 11).
 3. Weapon kinds 0 / 1 / 2 and slot +0x14, +0x23 meanings (Lane 5 / Lane 4).
 4. Live test (owner, §8), plus a new one: the same opponent in PP and in MoA, count shots fired in 30 s.
 5. **Decided (owner, 2026-11-26):** when MoA opponents are brought over, offer a **toggle in settings** between
@@ -266,6 +318,11 @@ frame), not a wrong address.
 ## Handed over (to this lane)
 
 —
+
+## Handed over to the build chat (round 3 topic 4)
+
+No new routine starts (all were known from round 2). Hook points for 0.7: `0x800B1130` (AI record store, menu
+FDAT 201), `0x8004DDBC` (record read, arena FDAT 205), `0x800AE59C` (list builder), `0x800B04C8` (challenge rule).
 
 ## Handed over from this lane
 
