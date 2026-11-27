@@ -36,6 +36,10 @@ bool take_start_now();
  * is there now stays until the new one is in place. */
 void rebuild();
 
+/* 0.2.5.1: a build left running in the background (BACK TO THE MENU on
+ * "Preparing game") has ended: the menu shows a note, once. */
+bool take_ready_note();
+
 /* For the main menu's STATUS panel. */
 std::string disc_status(bool* ok);
 

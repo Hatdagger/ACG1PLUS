@@ -44,6 +44,7 @@ struct Snapshot {
     std::string error_title, error_text;     /* when Failed */
     std::vector<std::string> log;            /* the last lines */
     std::string log_file;
+    bool        waiting_for_game = false;   /* 0.2.5.1: the new game is ready, the old one is open */
 };
 
 /* Folder layout (docs/building.md), from the launcher's own folder. */
@@ -78,5 +79,13 @@ bool game_built(std::string* info);
  * updated): it should be built again. *built_version: the source it was built
  * from. Always false in a developer build (no source baked in). */
 bool game_outdated(std::string* built_version);
+
+/* 0.2.5.1: the build and the game take turns with RecompData/<os>/. The game
+ * that is there can be played while a new one builds; "Putting the game in
+ * place" waits for it to close before the swap, and the game can't start
+ * during the swap (a few seconds): begin_game() is false then. Call end_game()
+ * when the game has closed (or didn't start). */
+bool begin_game();
+void end_game();
 
 } /* namespace setup */

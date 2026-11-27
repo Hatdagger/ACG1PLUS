@@ -108,6 +108,9 @@ std::wstring g_user_path;                     /* Windows: user PATH before */
 bool g_have_user_path = false;
 std::vector<fs::path> g_watch_new;            /* Linux: home folders that must stay absent */
 std::atomic<bool> g_pack_ready{false};       /* for the estimate */
+std::mutex g_game_mu;                         /* the two below: the game vs the swap */
+bool g_game_open = false;
+bool g_swapping = false;
 
 double now() {
     using namespace std::chrono;
@@ -874,6 +877,32 @@ void step_place() {
     bi += "source_sha256=" + read_text(P.state / "source.sha256") + "\n";
     if (!write_text(in / "build-info.txt", bi)) fail("Couldn't put the game in place", "Couldn't write build-info.txt.");
 
+    /* 0.2.5.1: the game that is there may be open (it can be played while the
+     * new one builds): wait until it is closed, and keep it closed during the
+     * swap. */
+    bool said = false;
+    for (;;) {
+        {
+            std::lock_guard<std::mutex> lk(g_game_mu);
+            if (!g_game_open) { g_swapping = true; break; }
+        }
+        if (!said) {
+            said = true;
+            log("The new game is ready. Waiting for the game that is open to close...");
+            std::lock_guard<std::mutex> lk(g_mu);
+            g_snap.waiting_for_game = true;
+            g_snap.detail = "waiting for the game to close";
+        }
+        if (g_cancel) throw Cancelled{};
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+    {
+        std::lock_guard<std::mutex> lk(g_mu);
+        g_snap.waiting_for_game = false;
+        g_snap.detail = "swapping in the new game";
+    }
+    struct EndSwap { ~EndSwap() { std::lock_guard<std::mutex> lk(g_game_mu); g_swapping = false; } } end_swap;
+
     /* The swap: each of the new game's files and folders replaces the old one
      * (moved aside to <os>.replaced first, and back if a rename fails). */
     fs::create_directories(P.game, ec);
@@ -1134,6 +1163,18 @@ bool game_outdated(std::string* built_version) {
     auto it = kv.find("source_sha256");
     /* Built by 0.2.2 / 0.2.3 (no source_sha256): from an older source too. */
     return it == kv.end() || it->second != ACG_SOURCE_SHA256;
+}
+
+bool begin_game() {
+    std::lock_guard<std::mutex> lk(g_game_mu);
+    if (g_swapping) return false;
+    g_game_open = true;
+    return true;
+}
+
+void end_game() {
+    std::lock_guard<std::mutex> lk(g_game_mu);
+    g_game_open = false;
 }
 
 } /* namespace setup */
