@@ -5914,3 +5914,12 @@ moa = 0x800D5008
 what = "[menu] Body table, one 16-byte entry per body combination: layout pointer, u16 frame (0 two-legged, 1 caterpillar, 2 four-legged), u16 650, u16 40 (0 on combination 1), u16 100, u32 2 → stat +0x36 … +0x3C; same as MoA; read only by 0x8009A238 (FDAT 201 +0x73E4C)"
 status = "code"
 src = "mapping/parts-pp.md §3, mapping/stat-block.md"
+[[var]]
+addr = 0x801A8000
+size = 4
+type = "u32[]"
+name = "mission_id_bits"
+disc = "PP"
+what = "[missions] Bit set, one bit per id (word = id >> 5, bit = id & 31; ids from a record's +0xE). PP engine 0x8005C5C4 reads it as 0x801A15B8 + 0x6A48; AC1 twin 0x8005E434 reads AC1 0x801AC860 directly (same -0x4860 shift as its neighbours), and AC1 slot 1 indexes it the same way. Size not read"
+status = "code"
+src = "../ac1-import.md (converter INDEXED table)"
