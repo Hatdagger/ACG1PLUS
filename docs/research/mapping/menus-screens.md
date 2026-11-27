@@ -1065,7 +1065,7 @@ the volumes and the VS time limit for both players**).
 - Tones 8 and 9 (one or two uses each).
 - The garage exit's `0x8003EA7D` values 1 … 3 (Arena Maker roads).
 - ~~The detail key in the shop's part list~~: △ (§2i, 2026-11-18).
-- Shop (§2i): what stock and owned 127 mean, whether a sold option stays fitted, the preview's
+- Shop (§2i): ~~what stock and owned 127 mean~~ (PP: 127 = never changed, nothing sets it, `parts-pp.md` §2), whether a sold option stays fitted, the preview's
   framing numbers, where new stock comes from (missions lane `?`).
 - ASSEMBLY (§2h): what the preview slide value (±180 / 360 / 540) changes, MENU_TMD entry 2 and
   MODEL slot 17 (NO EQUIP stand-ins).

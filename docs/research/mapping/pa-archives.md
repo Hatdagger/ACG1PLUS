@@ -200,7 +200,8 @@ sectors. Because the skeletons match, **MoA's copy in its file n fits PP's file 
 - Code constants (if the numbering ever changes): the bases 2, 15, 57, 122, 81, 99, 150, 209 are `addiu a2, a2, N`
   immediates in the five body loaders (VS: `0x8004D960`, `0x8004D9A4`, `0x8004D9E8`, `0x8004DA2C`, `0x8004DA70`,
   `0x8004DAC8`, `0x8004DB18`, `0x8004DB64`; FDAT 204 + address − 0x800490D0).
-- Combination table: FDAT 201 +0x736E8, 864 bytes; the lists it points to sit after it.
+- Combination table: FDAT 201 +0x736E8, 864 bytes; the lists it points to sit **before** it (`0x800BC380`, 1,080
+  bytes; MoA's lists fit there in place: `parts-pp.md` §4).
 
 ## 8. Open
 
