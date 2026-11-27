@@ -23,7 +23,7 @@ benchmark: if it runs well there, it runs well everywhere else.
 |---|---|
 | 0.0.x | Stock Phantasma builds on the owner's Windows PC from the owner's disc and plays: a mission, VS and the arena |
 | 0.1.x | Steam Deck: the same build route works there with everything it needs packed in, the install is portable, and a performance baseline is measured |
-| 0.2.x | Launcher on Phantasma: finds the Phantasma disc, shows a "preparing game" screen during the first-run build, the updater rebuilds when our changes change, works with a controller only |
+| 0.2.x | One launcher program for everything (no scripts): finds the disc, builds the game on a "preparing game" screen, updates (releases + a test channel), all settings and mods, starts the game; controller first, mouse/keyboard fallback. Plan: `docs/launcher-plan.md` |
 | 0.3.x | Fast loading, plus direct starts from the launcher (load a save, new game, VS) |
 | 0.4.x | Optimizations: full speed on the Deck, work spread across cores and the GPU |
 | 0.5.x | Link Versus (two sessions on one PC) |
