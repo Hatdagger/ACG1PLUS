@@ -40,7 +40,7 @@ AC surface mask: flag-2 surfaces exist only on seven MoA mission maps, so it mat
 | # | Topic | Doc | Status |
 |---|---|---|---|
 | 1 | Build helpers: code files to pre-compile, link "me" side | `performance.md` §7, `boot-loads.md` PP-8a | done 2026-11-26 (static; tests 30–31 in `ROUND1.md`) |
-| 2 | The 60 "MoA 0x…" rows in `ram-map.toml` | `ram-map.toml` | **claimed by the round 3 mapping chat 2026-11-26** (copied PP rows: AC1 chat hands off until merged) |
+| 2 | The 60 "MoA 0x…" rows in `ram-map.toml` | `ram-map.toml`, `moa-rows-pp.md` | done 2026-11-26 (static; 46 of 59 matched, 13 have no PP counterpart; 16 of 17 "(likely)" confirmed; test 34 in `ROUND1.md`). Copied rows free again |
 | 3 | Parts batch: part model archives, shop stock, bytes after the weapon-name table | `content-data.md`, `menus-screens.md` | open |
 | 4 | Opponents: AI record per arena rank | `ai.md` | open |
 | 5 | Stages batch: MoA's extra chunk, chunks 4 / 10 / 12, stage numbers ≥ 40, flags 1 / 2 | `stages.md` | open |

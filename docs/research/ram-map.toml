@@ -2271,6 +2271,8 @@ owner = "lib"
 # "(no PP twin)" = PP has no copy of that routine, "(likely)" = PP twin of low confidence.
 # moa = the MoA-US row's address. Module-area engines: PP menu FDAT 201, missions 202, link 203,
 # VS 204, arena 205, replay 206 (base 0x800490D0).
+# Round 3 topic 2 (2026-11-26) checked every "MoA 0x…" and "(likely)" by hand; in the rows it fixed,
+# "MoA's 0x…" = a MoA address named on purpose (the MoA side of a twin, or MoA code PP doesn't have).
 
 [[var]]
 addr = 0x800342B4
@@ -2454,9 +2456,9 @@ size = 1
 type = "u8"
 name = "arena_stage_index"
 disc = "PP"
-what = "Index into the arena stage table MoA 0x800D59F0 (×2) for the next arena fight"
+what = "Index into the arena stage table 0x800BD6D4 (×2; menu FDAT 201 file +0x74604, read by 0x800B0CC4 at the spot where MoA's twin reads its table; PP's pairs differ from MoA's) for the next arena fight"
 status = "code"
-src = "mapping/mode-launch.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/mode-launch.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8003EA78
 
 [[var]]
@@ -2663,9 +2665,9 @@ size = 8
 type = "ptr[2]"
 name = "link_players"
 disc = "PP"
-what = "[link] me / other: +0 this console's player block, +4 the other one's. Link start 0x8004DB20 (FDAT 203 +0x4A50): master = player1 (0x800424E8) / player2 (0x80042890); slave first copies its player1 block into player2 (0x3A8 bytes), then +0 = player2, +4 = player1. 0x8004D9D0 sends +0 + 0x258 (stat block) and receives into +4 + 0x258. 55 reads in the link engine (time-up result 0x8004A84C, HUD 0x8004F86C, marker setup 0x8005FF78 …). VS sets +0 once (MoA 0x800558C0)"
+what = "[link] me / other: +0 this console's player block, +4 the other one's. Link start 0x8004DB20 (FDAT 203 +0x4A50): master = player1 (0x800424E8) / player2 (0x80042890); slave first copies its player1 block into player2 (0x3A8 bytes), then +0 = player2, +4 = player1. 0x8004D9D0 sends +0 + 0x258 (stat block) and receives into +4 + 0x258. 55 reads in the link engine (time-up result 0x8004A84C, HUD 0x8004F86C, marker setup 0x8005FF78 …). VS sets +0 and +4 once (0x8004DECC, twin of MoA's 0x800558C0)"
 status = "code"
-src = "mapping/boot-loads.md PP-8a (read on PP, round 3 topic 1, 2026-11-26); first from ram-map.md (MoA module scan, 2026-11-21)"
+src = "mapping/boot-loads.md PP-8a (read on PP, round 3 topic 1, 2026-11-26); first from ram-map.md (MoA module scan, 2026-11-21); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8003EAA4
 
 [[var]]
@@ -2762,9 +2764,9 @@ size = 4
 type = "u8[4]"
 name = "scenario_flags_hi"
 disc = "PP"
-what = "Last 4 of the 8 flag bytes after Human PLUS (save +3568 …); the menu reads/writes +0 and +3 in 10+ routines (VS menu 0x800A6360 (likely), 0x8009E9D0 …)"
+what = "MoA: the last 4 of the 8 flag bytes after Human PLUS. On PP that flag block is 7 bytes, not 8: the VS menu 0x800A6360 copies 0x8003BD24 … 0x8003BD2A from 0x80042C50 where MoA's twin copies 8. So MoA's last 4 are PP's last 3, 0x8003BD28 … 0x8003BD2A, starting one byte after this row's address (0x8003BD27 is guest_arena_open). No PP code found reading 0x8003BD28 … by address (only the block copies); 0x8009E9D0 writes the block's first byte"
 status = "guess"
-src = "ram-map.md (module scan, 2026-11-21); PP address from xdisc/globals.tsv (inside, low); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (module scan, 2026-11-21); PP address from xdisc/globals.tsv (inside, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8003EACC
 
 [[var]]
@@ -2795,9 +2797,9 @@ size = 72
 type = "char[36][2]"
 name = "build_check_names"
 disc = "PP"
-what = "Two 36-byte name records (same layout as ac_pilot_names, AC name then pilot name), likely VS player 1 at +0 and player 2 at +0x24: the hub's MoA 0x800A69C8 draws them into VRAM at (960, 0) and (960, 16); MoA 0x800BE0A0 writes single letters into them (name entry?); VS START passes them to MoA 0x8007E164. Watch them while renaming in VS to confirm"
+what = "Two 36-byte name records (AC name then pilot name), likely VS player 1 and player 2. On PP they are not at this row's address but at 0x8003BDB0 (P1) and 0x8003BDD4 (P2): the VS menu 0x800A6360 passes 0x8003BDB0 and 0x800A6458 passes 0x8003BDD4 at the spots where their MoA twins (0x800B2D7C, 0x800B2E90) pass MoA's two records; 0x800AF650 (twin of MoA's letter writer 0x800BE0A0) uses 0x8003BDD4; PP-only 0x80098EF0 and 0x800B0360 use 0x8003BDB0. MoA's hub draw 0x800A69C8 has no PP twin that touches them. The VS START check is 0x80070C5C (twin of MoA's 0x8007E164). 0x8003BD2C itself is vs_paint_pattern on PP. Watch 0x8003BDB0 while renaming in VS to confirm"
 status = "guess"
-src = "mapping/mode-launch.md; PP address from xdisc/globals.tsv (inside, low); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/mode-launch.md; PP address from xdisc/globals.tsv (inside, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8003EAD8
 
 [[var]]
@@ -2817,9 +2819,9 @@ size = 36
 type = "char[36]"
 name = "names_compare"
 disc = "PP"
-what = "36-byte name buffer the garage (0x800701E4) compares with ac_pilot_names via MoA 0x8007E164 when resume_kind = 0"
+what = "36-byte name buffer the garage (0x800701E4) compares with ac_pilot_names via 0x80070C5C (twin of MoA's 0x8007E164); PP readers by address: 0x80070AA8, 0x800A0E38 and PP-only 0x80098EF0 when resume_kind = 0"
 status = "guess"
-src = "ram-map.md (module scan 2026-11-21); PP address from xdisc/globals.tsv (between, low); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (module scan 2026-11-21); PP address from xdisc/globals.tsv (between, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8003EC20
 
 [[var]]
@@ -2828,9 +2830,9 @@ size = 16
 type = "struct"
 name = "mission_results"
 disc = "PP"
-what = "Mission result record: +4 reward, +8 end code, +0xC destruction tally (mission screen MoA 0x800974E0 fills it at launch, missions engine 0x80076B7C adds to +0xC)"
+what = "Mission result record: +4 reward, +8 end code, +0xC destruction tally (mission screen 0x80088DD0 fills it at launch, missions engine 0x80076B7C adds to +0xC)"
 status = "code"
-src = "ram-map.md (module scan 2026-11-21), mapping/missions.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (module scan 2026-11-21), mapping/missions.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8003EC48
 
 [[var]]
@@ -2861,9 +2863,9 @@ size = 4
 type = "u32"
 name = "mission_destroy_tally"
 disc = "PP"
-what = "Destruction tally (mission_results +0xC): every fight engine's object-destroyed routine (missions 0x80076B7C, VS 0x80075440 …) adds the object's value (+0x1A) ÷ 200 when its +0x36 bit 1 is set; fight setup (VS 0x80086E38 …) zeroes it. No reader found in any module or the exe: the payout MoA 0x800918E8 uses +0 and +4 only, so it looks unused"
+what = "Destruction tally (mission_results +0xC): every fight engine's object-destroyed routine (missions 0x80076B7C, VS 0x80075440 …) adds the object's value (+0x1A) ÷ 200 when its +0x36 bit 1 is set; fight setup (VS 0x80086E38 …) zeroes it. No reader found in any module or the exe: the payout 0x80088E30 (missions engine, twin of MoA's 0x800918E8) uses +0 and +4 only, so it looks unused"
 status = "code"
-src = "mapping/missions.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/missions.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8003EC54
 
 [[var]]
@@ -2883,9 +2885,9 @@ size = 120
 type = "struct"
 name = "exe_sys"
 disc = "PP"
-what = "Exe system block head (the block, set up by MoA 0x80016C10, runs past +0x4AC = 0x8004144C): +0x00 root-counter handle, +0x04 VBlank count, +0x08 VBlank hook, +0x10 frame/draw flags (0xC0 tested), +0x14 … display setup; set up by MoA 0x80016C10"
+what = "Exe system block head (the block, set up by 0x800173A0, runs past +0x504 = 0x8004144C): +0x00 root-counter handle, +0x04 VBlank count, +0x08 VBlank hook, +0x10 frame/draw flags (0xC0 tested), +0x14 … display setup; set up by 0x800173A0 (exe system init, twin of MoA's 0x80016C10). Fields past the disc queue sit 0x58 further on than on MoA (disc_buffer_ptr +0x504, MoA +0x4AC)"
 status = "code"
-src = "ram-map.md (exe xref, 2026-11-21), mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (exe xref, 2026-11-21), mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x80043C70
 
 [[var]]
@@ -2894,9 +2896,9 @@ size = 768
 type = "struct[16]"
 name = "disc_queue_records"
 disc = "PP"
-what = "Exe disc queue: 16 records × 48 bytes (exe_sys +0x78), cleared by MoA 0x80016C10, filled by MoA 0x80015994 (no PP twin)"
+what = "Exe disc queue: 16 records × 48 bytes (exe_sys +0x74 on PP), cleared by 0x800173A0, filled by 0x800163D8 (the tools found no twin; matched by hand: it is the routine that takes this table's address and the queue tail, as MoA's 0x80015994 does)"
 status = "code"
-src = "ram-map.md (exe xref); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (exe xref); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x80043CE8
 
 [[var]]
@@ -2905,9 +2907,9 @@ size = 8
 type = "ptr[2]"
 name = "disc_queue"
 disc = "PP"
-what = "Exe disc queue head / tail pointers into disc_queue_records (exe_sys +0x378 / +0x37C); MoA 0x800589DC reports busy from these"
+what = "Exe disc queue head / tail pointers into disc_queue_records (exe_sys +0x374 / +0x378 on PP); the menu's 0x8004F860 reports busy from these (same code as MoA's 0x800589DC, offsets 4 lower)"
 status = "code"
-src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x80043FE8
 
 [[var]]
@@ -2916,20 +2918,20 @@ size = 20
 type = "u32[5]"
 name = "sys_handles"
 disc = "PP"
-what = "Event / root-counter handles opened by MoA 0x80016C10 (exe_sys +0x390, +0x394), then the link cable's sio: handles: +0x39C read handle (opened no-wait, mode 0x8001), +0x3A0 write handle (mode 2)"
+what = "Event / root-counter handles opened by 0x800173A0 (MoA's exe_sys +0x390, +0x394; this row is +0x3E8 on PP), then the link cable's sio: handles: MoA +0x39C read handle (opened no-wait, mode 0x8001), MoA +0x3A0 write handle (mode 2)"
 status = "code"
-src = "ram-map.md (exe xref, 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (exe xref, 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x80044000
 
 [[var]]
 addr = 0x800114E4
-size = 12
-type = "ptr[3]"
+size = 8
+type = "ptr[2]"
 name = "module_bounds"
 disc = "PP"
-what = "Exe constants read by the main loop: 0x800490D0 (module base), MoA 0x801F8EB0, MoA 0x801FC898 (end of the menu's clear)"
+what = "Exe constants read by the main loop 0x80012C74: +0 0x800490D0 (module base), +4 0x801F45C8 (PP's counterpart of MoA's 0x801F8EB0; no reader found on either disc). PP has no third constant: MoA's main loop reads the end of the menu's clear (0x801FC898) from +8, PP's uses a fixed 0x801F8000 instead, and +8 is the start of the text 'CdInit: …'"
 status = "code"
-src = "ram-map.md (exe xref, 2026-11-21), mapping/boot-loads.md rule 1; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (exe xref, 2026-11-21), mapping/boot-loads.md rule 1; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x800112F0
 
 [[var]]
@@ -2938,9 +2940,9 @@ size = 24
 type = "bytes"
 name = "link_sio"
 disc = "PP"
-what = "Link-cable packet buffers in exe_sys: +0x3A4 … +0x3AF receive buffer (read from the sio: read handle, exe_sys +0x39C), +0x3B0 … +0x3BB send buffer (written to the sio: write handle, +0x3A0). Packets start with 'R' and end with 'C'. Handshake (MoA 0x80055578, 8 bytes): send +1 = role 'S' / 'M', 'C' at +7, the other side's role arrives at +0x3A5. Data packets (MoA 0x80055428): 'C' at +9, checked on receive by 0x8004A218; +0x3B8 word cleared by the link start 0x8004A2B8 (likely). Netplay lead"
+what = "Link-cable packet buffers in exe_sys: +0x3A4 … +0x3AF receive buffer (read from the sio: read handle, exe_sys +0x39C), +0x3B0 … +0x3BB send buffer (written to the sio: write handle, +0x3A0). Packets start with 'R' and end with 'C'. Handshake (link 0x8004DB20, 8 bytes): send +1 = role 'S' / 'M', 'C' at +7, the other side's role arrives at +0x3A5. Data packets (link 0x8004D9D0): 'C' at +9, checked on receive by 0x8004A218; +0x3B8 word cleared by the link start 0x8004A2B8 (at 0x8004A504). The exe_sys offsets here are MoA's; on PP add 0x58 (this row is +0x3FC, the cleared word +0x410). Netplay lead"
 status = "code"
-src = "ram-map.md (module scan 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (module scan 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x80044014
 
 [[var]]
@@ -2960,9 +2962,9 @@ size = 4
 type = "ptr"
 name = "disc_buffer_ptr"
 disc = "PP"
-what = "Disc work buffer pointer (exe_sys +0x4AC), set to disc_buffer by MoA 0x80016C10; the fight engines save it, point it elsewhere around a file load (0x80017244 (likely)) and put it back (VS 0x8004D820)"
+what = "Disc work buffer pointer (exe_sys +0x504 on PP), set to disc_buffer by 0x800173A0; the fight engines save it, point it elsewhere around a file load (0x80017244, which saves and restores it at the same spots as MoA's twin) and put it back (VS 0x8004D820)"
 status = "code"
-src = "ram-map.md (module scan 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (module scan 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8004411C
 
 [[var]]
@@ -2971,9 +2973,9 @@ size = 1
 type = "u8"
 name = "disc_in_drive"
 disc = "PP"
-what = "Which disc is in the drive, = MoA 0x80058B04() at every menu start"
+what = "MoA: which disc is in the drive (MoA's disc check 0x80058B04() at every menu start; MoA ships on 2 discs). PP is a one-disc game and has no such check: its menu never calls CdControl, and nothing on PP reads or writes 0x80041451 by address. Likely unused on PP (?)"
 status = "guess"
-src = "mapping/README.md; PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/README.md; PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x80044121
 
 [[var]]
@@ -2993,9 +2995,9 @@ size = 40
 type = "VECTOR[2]"
 name = "eye_copies"
 disc = "PP"
-what = "Copies of the two cameras' eyes, 0x80041548 / 0x8004155C; the sound listener (distance falloff MoA 0x80052A10 / MoA 0x80052C88 measures from them)"
+what = "Copies of the two cameras' eyes, 0x80041548 / 0x8004155C; the sound listener (distance falloff, VS 0x8004B05C / 0x8004B2D4 and the same routines in the other engines, measures from them)"
 status = "code"
-src = "mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x800441D8
 
 [[var]]
@@ -3026,9 +3028,9 @@ size = 368
 type = "struct[23]"
 name = "sound_voice_slots"
 disc = "PP"
-what = "23 × 16-byte sound slot records, walked each frame by MoA 0x800535F4"
+what = "23 × 16-byte sound slot records, walked each frame by VS 0x8004BC00 (same routine in the other engines)"
 status = "code"
-src = "mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x80044428
 
 [[var]]
@@ -3103,9 +3105,9 @@ size = 20076
 type = "struct"
 name = "arena_maker"
 disc = "PP"
-what = "Arena Maker arena (was called 'VS staging'; its reset MoA 0x800C566C is Arena Maker code): +0 arena name (buffer given to ARENA NAME entry MoA 0x8008E8D8), +0x14 ranker count, +0x18 the rankers"
+what = "Arena Maker arena (was called 'VS staging'; its reset MoA's 0x800C566C is Arena Maker code, no PP twin): +0 arena name (buffer given to ARENA NAME entry 0x80080210; PP-only 0x80050608, 0x80099D74, 0x800AE59C also use it), +0x14 ranker count, +0x18 the rankers"
 status = "code"
-src = "ram-map.md (module scan 2026-11-21), mapping/menus-screens.md §2e, mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, medium); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (module scan 2026-11-21), mapping/menus-screens.md §2e, mapping/boot-loads.md; PP address from xdisc/globals.tsv (exact, medium); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x80045958
 
 [[var]]
@@ -3180,9 +3182,9 @@ size = 36
 type = "struct"
 name = "opponent_ai"
 disc = "PP"
-what = "Current opponent's 36-byte AI record: +0 its Human PLUS level (menu MoA 0x8007DE4C (no PP twin) puts it in 0x8003BD24 before compiling; arena AI setup MoA 0x80055768 (no PP twin) puts it in P2's stat block +0x03), +1 … percentages (× 4096 ÷ 100); written by arena / Arena Maker code (0x800B08E0 (likely), MoA 0x800C5FB8 …)"
+what = "MoA: the current opponent's 36-byte AI record (+0 Human PLUS level, +1 … percentages × 4096 ÷ 100), filled by MoA's arena / Arena Maker code (0x800C5FB8 …) and read by MoA's menu 0x8007DE4C and arena AI setup 0x80055768. PP has no such copy: nothing in PP's menu or arena reads or writes 0x80043138 by address. PP's own arena AI setup 0x8004DDBC (the counterpart of MoA's 0x80055768) reads the record straight from a table of 60-byte records in the arena engine at 0x8008E498, entry = the byte at 0x80042AEC (player 2's block), puts byte +0 into 0x80042AEB and converts +1 … as percent × 4096 ÷ 100. PP's twin of MoA's writer 0x800BF85C is 0x800B08E0 (low match), and it doesn't touch this address. Opponent records: round 3 topic 4"
 status = "guess"
-src = "ram-map.md (module scan 2026-11-21), mapping/README.md (36-byte AI records); PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (module scan 2026-11-21), mapping/README.md (36-byte AI records); PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8004AC80
 
 [[var]]
@@ -3246,9 +3248,9 @@ size = 50
 type = "u8[50]"
 name = "arena_rank_table"
 disc = "PP"
-what = "Per-rank byte table (Ex Arena …), entry n at MoA 0x8004B5D5 + n"
+what = "Per-rank byte table (Ex Arena …), entry n at 0x80043AAD + n (one byte before this row, as on MoA)"
 status = "guess"
-src = "mapping/missions.md; PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/missions.md; PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8004B5D6
 
 [[var]]
@@ -3301,9 +3303,9 @@ size = 96
 type = "struct[2]"
 name = "vs_paint"
 disc = "PP"
-what = "Per VS player paint, 48 bytes each (P2 at +0x30) of 3-byte colours (VS setup MoA 0x800B0FE4 fills them); written back to the garage when leaving AC SETUP"
+what = "Per VS player paint, 48 bytes each (P2 at +0x30) of 3-byte colours (VS setup 0x800A460C fills them); written back to the garage when leaving AC SETUP"
 status = "code"
-src = "mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/menus-screens.md §2p; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8004B730
 
 [[var]]
@@ -3436,9 +3438,9 @@ size = 16
 type = "struct"
 name = "vs_view_camera"
 disc = "PP"
-what = "[VS] Camera of the view being drawn: 16 bytes copied in by the scene render 0x8005F838 (likely) before each view (eye / look-at), read by the per-view draw 0x8005F4FC and 0x8005BAE0"
+what = "[VS] Camera of the view being drawn: 16 bytes copied in by the scene render 0x8005F838 (PP frame-buffer offsets: it fills this as +0x7544) before each view (eye / look-at), read by the per-view draw 0x8005F4FC and 0x8005BAE0"
 status = "code"
-src = "mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x801A9AB0
 arena = 0x8019AE14
 link = 0x80191F1C
@@ -3451,9 +3453,9 @@ size = 32768
 type = "struct[512]"
 name = "mission_stage_sections"
 disc = "PP"
-what = "[missions] Stage sections: 512 records of 52 bytes at a 64-byte stride (copied by 0x8006FBA8), data after them at 0x801C4328. Was listed as VS; VS keeps its areas at MoA 0x801BDFD0"
+what = "[missions] Stage sections: 512 records of 52 bytes at a 64-byte stride (copied by 0x8006FBA8), data after them at 0x801C4328. Was listed as VS; VS keeps its areas at 0x801B46F0"
 status = "code"
-src = "mapping/missions.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/missions.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x801CFAB0
 
 [[var]]
@@ -3528,9 +3530,9 @@ size = 26
 type = "struct"
 name = "arena_ai_vars"
 disc = "PP"
-what = "[arena] Opponent AI globals, all set by AI init MoA 0x8008DC98 (no PP twin): +0 u32 the biggest of one halfword over player 1's weapon list (doubled for weapon kinds 43 / 62; likely the longest range, ?), +4 u32 starts at 110 and is counted by the per-frame AI MoA 0x8008D4AC (no PP twin), +8 u32, +0x0C / +0x0D / +0x10 / +0x18 bytes the per-frame AI reads and writes. No twin in VS (arena engine only)"
+what = "[arena] MoA: opponent AI globals set by MoA's AI init 0x8008DC98 (+0 the longest weapon range ?, +4 a counter starting at 110 and counted by the per-frame AI, more bytes after). PP has no such block: PP's AI init 0x80083DF4 sets none of these, and 0x801DB838 is the start of PP's AI state itself (see arena_ai)"
 status = "guess"
-src = "ram-map.md (arena module read 2026-11-21), mapping/battle-system.md (AI routines); PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (arena module read 2026-11-21), mapping/battle-system.md (AI routines); PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x801E2730
 
 [[var]]
@@ -3539,9 +3541,9 @@ size = 632
 type = "struct"
 name = "arena_ai"
 disc = "PP"
-what = "[arena] Opponent AI state (AI Battle / arena opponent), arena engine only. AI init MoA 0x8008DC98 (no PP twin) clears the first 584 bytes; +0x28 a track of recent AC positions, 16 bytes each, shifted down every frame by the per-frame AI MoA 0x8008D4AC (no PP twin), newest at the pointer in +0x228 (start + 16 × +0x26E); +0x000 … +0x047 and +0x22C … +0x24C work values used by about 30 decision routines MoA 0x800896AC (no PP twin) … 0x80084528; +0x24E … +0x26E the opponent's personality, converted by AI setup MoA 0x80055768 (no PP twin) from opponent_ai 0x80043138 (bytes 1–9 as percent × 4096 ÷ 100, bytes 10–15 copied or scaled)"
+what = "[arena] Opponent AI state (AI Battle / arena opponent), arena engine only. AI init 0x80083DF4 (PP's own routine, matched by hand: same steps as MoA's 0x8008DC98) clears the first 586 bytes; +0x28 a track of recent AC positions, 16 bytes each, shifted down every frame by the per-frame AI 0x80083A40 (PP's own; it uses the track pointer +0x228), newest at the pointer in +0x228 (start + 16 × +0x26E); +0x000 … +0x047 and +0x22C … +0x24C work values used by about 30 decision routines (MoA's 0x800896AC …; PP's are mostly its own, 0x80081180 … 0x80084528); +0x24E … +0x26E the opponent's personality, converted by AI setup 0x8004DDBC (PP's own) from the arena engine's 60-byte AI records at 0x8008E498 (MoA: from opponent_ai). Field offsets are MoA's; PP's init writes +0x228 and +0x22E … +0x232 as MoA's does (bytes 1–9 as percent × 4096 ÷ 100, bytes 10–15 copied or scaled)"
 status = "code"
-src = "ram-map.md (arena module read 2026-11-21), mapping/battle-system.md (AI routines), hook-addresses.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (arena module read 2026-11-21), mapping/battle-system.md (AI routines), hook-addresses.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x801E2750
 
 [[var]]
@@ -3583,9 +3585,9 @@ size = 236
 type = "bytes"
 name = "sp_temp"
 disc = "PP"
-what = "Per-routine scratch 0x00 … 0xEB: each fight routine lays it out its own way, nothing lasts. Mesh drawers keep the primitive allocator's next-free pointer at +0x04 and the end at +0x08 (written back when done); also SPU voice status (MoA 0x80052EB4), animation deltas (MoA 0x80058E90)"
+what = "Per-routine scratch 0x00 … 0xEB: each fight routine lays it out its own way, nothing lasts. Mesh drawers keep the primitive allocator's next-free pointer at +0x04 and the end at +0x08 (written back when done); also SPU voice status (VS 0x8004B500), animation deltas (VS 0x800513B0)"
 status = "code"
-src = "mapping/scratchpad.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/scratchpad.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x1F800000
 
 [[var]]
@@ -3594,9 +3596,9 @@ size = 32
 type = "MATRIX"
 name = "sp_model_matrix"
 disc = "PP"
-what = "Object matrix of the model being drawn (rotation, translation at +0x14), copied from 0x800A26E8 by the AC mesh draw MoA 0x8006A5A8"
+what = "Object matrix of the model being drawn (rotation, translation at +0x14), copied from 0x800A26E8 by the AC mesh draw (VS 0x80062988)"
 status = "code"
-src = "mapping/scratchpad.md, mapping/renderer.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/scratchpad.md, mapping/renderer.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x1F8000EC
 
 [[var]]
@@ -3616,9 +3618,9 @@ size = 80
 type = "bytes"
 name = "sp_missions_work"
 disc = "PP"
-what = "Missions-only work 0x1F800120 … 0x1F800187 (origin at 0x120, point − origin at 0x128 …), routines MoA 0x80093C94 … 0x8008BA7C; purpose open"
+what = "Missions-only work 0x1F800120 … 0x1F800187 (origin at 0x120, point − origin at 0x128 …), routines 0x8008A994 … 0x8008BA7C; purpose open"
 status = "code"
-src = "mapping/scratchpad.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/scratchpad.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x1F800138
 
 [[var]]
@@ -3627,9 +3629,9 @@ size = 16
 type = "struct"
 name = "sp_view_eye"
 disc = "PP"
-what = "Per-view draw MoA 0x800670C8: +0 SVECTOR −eye (then list points − eye), +8 eye as s16 x/y/z"
+what = "Per-view draw (VS 0x8005F4FC): +0 SVECTOR −eye (then list points − eye), +8 eye as s16 x/y/z"
 status = "code"
-src = "mapping/scratchpad.md, mapping/renderer.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/scratchpad.md, mapping/renderer.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x1F800200
 
 [[var]]
@@ -3638,9 +3640,9 @@ size = 32
 type = "MATRIX"
 name = "sp_view_ry"
 disc = "PP"
-what = "Camera yaw matrix Ry from 0x80014974, per view (MoA 0x800670C8)"
+what = "Camera yaw matrix Ry from 0x80014974, per view (VS 0x8005F4FC)"
 status = "code"
-src = "mapping/renderer.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/renderer.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x1F800210
 
 [[var]]
@@ -3649,9 +3651,9 @@ size = 12
 type = "VECTOR"
 name = "sp_cone_test"
 disc = "PP"
-what = "View-cone test MoA 0x8006647C: object position in view space, z + radius at +8"
+what = "View-cone test (VS 0x8005E8EC): object position in view space, z + radius at +8"
 status = "code"
-src = "mapping/scratchpad.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/scratchpad.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x1F800300
 
 [[var]]
@@ -3660,9 +3662,9 @@ size = 68
 type = "struct"
 name = "sp_near_stage"
 disc = "PP"
-what = "Near (lit) stage-area draw context for MoA 0x8006CAEC / MoA 0x8006D8EC and their six subdividing helpers: polygon header, area record, CLUT / TPAGE, count, OT bases, depth shifts, four split lists, light RGB + code byte"
+what = "Near (lit) stage-area draw context for VS 0x80064ECC / 0x80065CCC and their six subdividing helpers: polygon header, area record, CLUT / TPAGE, count, OT bases, depth shifts, four split lists, light RGB + code byte"
 status = "code"
-src = "mapping/scratchpad.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/scratchpad.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x1F800350
 
 [[var]]
@@ -3671,9 +3673,9 @@ size = 48
 type = "struct"
 name = "sp_sound_distance"
 disc = "PP"
-what = "Sound distance work: offset from the listener (0x80041548 / EC) squared (GTE SQR) at +0 / +0x10, vector at +0x20, then SquareRoot0 for volume (MoA 0x80052A10, MoA 0x80052C88)"
+what = "Sound distance work: offset from the listener (0x80041548 / EC) squared (GTE SQR) at +0 / +0x10, vector at +0x20, then SquareRoot0 for volume (VS 0x8004B05C, 0x8004B2D4)"
 status = "code"
-src = "mapping/scratchpad.md, sound-map.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/scratchpad.md, sound-map.md; PP address from xdisc/globals.tsv (same, medium); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x1F8003D0
 
 [[var]]
@@ -3907,9 +3909,9 @@ size = 192
 type = "struct[8]"
 name = "vs_texture_scroll"
 disc = "PP"
-what = "[VS] Scrolling stage textures, 8 slots × 24 bytes, all walked every frame by 0x8005411C (likely): +0 mode (255 = free slot; 0x80054474 frees all, 0x80053F6C finds a free one), +1 counter reload, +2 counter, +4 VRAM rectangle, then the step; +0x0E / +0x12 the two malloc'd buffers for StoreImage / LoadImage while it moves"
+what = "[VS] Scrolling stage textures, 8 slots × 24 bytes, all walked every frame by 0x8005411C: +0 mode (255 = free slot; 0x80054474 frees all, 0x80053F6C finds a free one), +1 counter reload, +2 counter, +4 VRAM rectangle, then the step; +0x0E / +0x12 the two malloc'd buffers for StoreImage / LoadImage while it moves"
 status = "code"
-src = "mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x801A8CC0
 arena = 0x8019A04C
 link = 0x80191154
@@ -3937,9 +3939,9 @@ size = 4
 type = "u32"
 name = "vs_cur_vertex_count"
 disc = "PP"
-what = "[VS] Vertex count of the mesh being drawn (set with vs_cur_vertices, e.g. area entry +0x66 at MoA 0x80061AD0); the transforms skip the mesh when 0"
+what = "[VS] Vertex count of the mesh being drawn (set with vs_cur_vertices, e.g. area entry +0x66 at 0x80059F88); the transforms skip the mesh when 0"
 status = "code"
-src = "ram-map.md (VS module read 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (VS module read 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x801A9A80
 arena = 0x8019AE0C
 link = 0x80191F14
@@ -4057,9 +4059,9 @@ size = 828
 type = "struct"
 name = "menu_shop_work"
 disc = "PP"
-what = "[menu] Shop / part-description work area 0x80188418 … 0x80188753: BUY / SELL lists (count +0x5C, per-kind counts +0xAC (10 bytes), starts +0xB6, kinds +0x13C, ids +0x23C, 256 bytes each); +0x20 the part-texts loading flag (own row), +0x21 … +0x24 bytes read by every shop screen (0x8008D0F4, 0x80091940 …), +0xDC … +0x12F two sets of 9 u32 filled by 0x8008AE3C (likely) / 0x8008BED0 and read by the list drawers (?)"
+what = "[menu] Shop / part-description work area 0x80188418 … 0x80188753: BUY / SELL lists (count +0x5C, per-kind counts +0xAC (10 bytes), starts +0xB6, kinds +0x13C, ids +0x23C, 256 bytes each); +0x20 the part-texts loading flag (own row), +0x21 … +0x24 bytes read by every shop screen (0x8008D0F4, 0x80091940 …), +0xDC … +0x12F two sets of 9 u32 filled by 0x8008AE3C / 0x8008BED0 and read by the list drawers (?)"
 status = "code"
-src = "mapping/menus-screens.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/menus-screens.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8019FFE0
 
 [[var]]
@@ -4156,9 +4158,9 @@ size = 4
 type = "u8[4]"
 name = "menu_emblem_colour_undo"
 disc = "PP"
-what = "[menu] The colour as it was when colour editing opened (written by the drawing state 0x8006866C (likely) on □); ○ in 0x8006ABF4 puts it back"
+what = "[menu] The colour as it was when colour editing opened (written by the drawing state 0x8006866C on □); ○ in 0x8006ABF4 puts it back"
 status = "code"
-src = "ram-map.md (menu module read 2026-11-21), mapping/menus-screens.md §2m; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (menu module read 2026-11-21), mapping/menus-screens.md §2m; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8019EA48
 
 [[var]]
@@ -4167,9 +4169,9 @@ size = 2
 type = "u16"
 name = "menu_card_file_count"
 disc = "PP"
-what = "[menu] Number of this game's files (bu00: / bu10: BASLUS-01030*) found by the last card scan (MoA 0x800706FC from MoA 0x8005B424, emblem screen MoA 0x800C3E3C (no PP twin)); the card list screens loop up to it (MoA 0x8005F224 (no PP twin) …)"
+what = "[menu] Number of this game's files (bu00: / bu10: BASLUS-01030*) found by the last card scan (0x80065948 from 0x80051A9C; MoA's emblem-screen scan 0x800C3E3C has no PP twin); the card list screens loop up to it (0x80052398, 0x800528F0 …, PP-only 0x80065ECC; MoA's 0x8005F224 has no PP twin)"
 status = "guess"
-src = "ram-map.md (menu module read 2026-11-21), mapping/menus-screens.md §2n; PP address from xdisc/globals.tsv (between, low); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (menu module read 2026-11-21), mapping/menus-screens.md §2n; PP address from xdisc/globals.tsv (between, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x801B1CE4
 
 [[var]]
@@ -4191,9 +4193,9 @@ size = 4
 type = "s32"
 name = "arena_replay_cam"
 disc = "PP"
-what = "[arena] Replay camera view, changed with □ while a replay plays (MoA 0x8007F370 steps it when player 1's pad word is exactly 0x8000 = □ and the replay flag is set): 0 = player 1's own view, 1 = player 2's (read from code 2026-11-22: the frame routine MoA 0x80052378 sets cur_player to player1 for 0 and to player2 for 1, and 0x8004BBA4 runs its per-player part only for that player), 2 = outside camera placed at the midpoint of both ACs and aimed by their distance and angle (MoA 0x8008E720 …, both AC positions at +0xB8), 3 = a camera tied to the stage area (MoA 0x8008E9F0 …: takes the current area record from the stage areas, builds its visible-area set with 0x8006D0A4 and only follows the other AC while that AC's area is in view) (see arena_replay_cam_angle); the frame routine also knows 3 → player 1, 4 → player 2 for cur_player. The order comes from a table at MoA 0x80099FBC picked by the match byte 0x800956D0. Below 2 the HUD (0x8005039C) and 0x80060FFC (likely) draw as normal. Reset at match start (0x80077270). Not in VS: VS replays run in the replay engine"
+what = "[arena] Replay camera view, changed with □ while a replay plays (0x800771C8 steps it when player 1's pad word is exactly 0x8000 = □ and the replay flag is set): 0 = player 1's own view, 1 = player 2's (read from code 2026-11-22: the frame routine 0x8004A654 sets cur_player to player1 for 0 and to player2 for 1, and 0x8004BBA4 runs its per-player part only for that player), 2 = outside camera placed at the midpoint of both ACs and aimed by their distance and angle (0x800846EC …, both AC positions at +0xB8), 3 = a camera tied to the stage area (0x800849BC …: takes the current area record from the stage areas, builds its visible-area set with 0x8006D0A4 and only follows the other AC while that AC's area is in view) (see arena_replay_cam_angle); the frame routine also knows 3 → player 1, 4 → player 2 for cur_player. The order comes from a byte table at 0x8008DCE8 picked by the match byte 0x800956D0 (read in 0x800771C8; MoA's step reads its table at 0x800980BC, so the MoA row's 0x80099FBC looks like a slip). Below 2 the HUD (0x8005039C) and 0x80060FFC draw as normal. Reset at match start (0x80077270). Not in VS: VS replays run in the replay engine"
 status = "code"
-src = "ram-map.md (arena module read 2026-11-21; user: □ switches the replay view, 2026-11-22); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (arena module read 2026-11-21; user: □ switches the replay view, 2026-11-22); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x801E2728
 link = 0x801CB14C
 replay = 0x801CA4C4
@@ -4204,9 +4206,9 @@ size = 4
 type = "u32"
 name = "vs_hud_on"
 disc = "PP"
-what = "[VS] 1 while the HUD is drawn: set at setup (0x800546B8, frame buffers +0x66BC), cleared when the match end starts (0x8008738C, which also sets match flags 0x2400); read by the HUD 0x8004ED48, the per-view HUD 0x8005EF80 (likely) and the scene render 0x8005F838 (likely)"
+what = "[VS] 1 while the HUD is drawn: set at setup (0x800546B8, frame buffers +0x66BC), cleared when the match end starts (0x8008738C, which also sets match flags 0x2400); read by the HUD 0x8004ED48, the per-view HUD 0x8005EF80 and the scene render 0x8005F838"
 status = "code"
-src = "ram-map.md (VS module read 2026-11-21), mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (VS module read 2026-11-21), mapping/renderer.md; PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x801A8C24
 arena = 0x80199FB4
 
@@ -4238,9 +4240,9 @@ size = 4
 type = "u32"
 name = "vs_scene_flag"
 disc = "PP"
-what = "[VS] Word the scene render 0x8005F838 (likely) reads and writes (frame buffers +0x751C), cleared at setup 0x800546B8; meaning open"
+what = "[VS] Word the scene render 0x8005F838 reads and writes (frame buffers +0x7518 on PP, +0x751C on MoA; PP's render keeps a second such word at +0x752C), cleared at setup 0x800546B8; meaning open"
 status = "code"
-src = "ram-map.md (VS module read 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (VS module read 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x801A9A84
 
 [[var]]
@@ -4271,9 +4273,9 @@ size = 64
 type = "struct"
 name = "vs_decode_work"
 disc = "PP"
-what = "[VS] Work area of 0x8006A620 (likely) / 0x8006A3A0 (likely) (called from 0x8007FEC8 (likely)): pointers into 0x801D7E18 / 0x801D80E0, counts and limits; meaning open"
+what = "[VS] Work area of 0x8006A620 / 0x8006A3A0 (called from 0x8007FEC8): pointers into 0x801D7E18 / 0x801D80E0, counts and limits; meaning open"
 status = "code"
-src = "ram-map.md (VS module read 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (VS module read 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x801ADF8C
 
 [[var]]
@@ -4304,9 +4306,9 @@ size = 60
 type = "ptr[15]"
 name = "vs_model_buffers"
 disc = "PP"
-what = "Heap buffers of those 15 loaded part models (right after vs_file_table): set by 0x800A5364, freed by 0x800A96C4 (MoA 0x800583F8)"
+what = "Heap buffers of those 15 loaded part models (right after vs_file_table): set by 0x800A5364, freed by 0x800A96C4 (menu 0x8004F114)"
 status = "guess"
-src = "ram-map.md (menu module read 2026-11-21); PP address from xdisc/globals.tsv (between, low); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (menu module read 2026-11-21); PP address from xdisc/globals.tsv (between, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8004ABD8
 
 [[var]]
@@ -4322,13 +4324,13 @@ moa = 0x80045178
 
 [[var]]
 addr = 0x80041450
-size = 1
-type = "u8"
+size = 4
+type = "u32"
 name = "cd_paused"
 disc = "PP"
-what = "1 = the drive was put to rest: the menu's MoA 0x80058AB4 (no PP twin) waits for the disc queue to empty (0x800166AC), then CdControl Setmode 0, VSync(4), Pause, and sets it. The disc check MoA 0x80058B04 then only polls Getstat (shell open = bit 0x10); when it's 0 it sets double speed (mode 0xA0), clears it and searches the disc again. The exe system init MoA 0x80016C10 clears it at boot. Was cd_setup_done"
-status = "guess"
-src = "ram-map.md (menu module read 2026-11-21); PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+what = "MoA: 1 = the drive was put to rest (MoA's menu routine 0x80058AB4: CdControl Setmode 0, VSync(4), Pause), cleared by MoA's disc check 0x80058B04 and at boot. On PP this word is not a pause flag: PP's menu never calls CdControl (one disc, no disc check). PP uses it as a count (exe_sys +0x508): cleared at boot by 0x800173A0; the menu's 0x8004F8B8 takes one off and passes the 4-byte entry at 0x80041454 + 4 × (new count) to 0x8002CAE0. Who adds entries is not found yet (?)"
+status = "code"
+src = "ram-map.md (menu module read 2026-11-21); PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x80044120
 
 [[var]]
@@ -4337,20 +4339,20 @@ size = 8
 type = "SVECTOR"
 name = "pose_none"
 disc = "PP"
-what = "Exe data (0, 0, 0, −1): every fight engine's MoA 0x80065C44 hands it through the model draw MoA 0x80061F64 to the pose routine MoA 0x80059624, where +0 / +2 / +4 are angle offsets added to the joint angles (0 = none) and +6 a pose slot (−1 = none). So: draw this model in its plain pose. Was zero_svector"
+what = "Exe data (0, 0, 0, −1): every fight engine's model call (VS 0x8005E0D4) hands it through the model draw (VS 0x8005A41C) to the pose routine (VS 0x80051B44), where +0 / +2 / +4 are angle offsets added to the joint angles (0 = none) and +6 a pose slot (−1 = none). So: draw this model in its plain pose. Was zero_svector"
 status = "code"
-src = "ram-map.md (module read 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (module read 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8003EA3C
 
 [[var]]
 addr = 0x8003BCA4
-size = 4
-type = "u32"
+size = 8
+type = "bytes"
 name = "const_zero4"
 disc = "PP"
-what = "Exe data, 4 zero bytes: the compiler's source for a struct assignment. The menu's MoA 0x800AB7B8 (no PP twin), MoA 0x800AB92C and MoA 0x800ABEEC copy it (lwl / lwr) into +0x18 … +0x1B of the window records made by MoA 0x8006527C, so those 4 bytes start at 0 (their meaning is the record's, still open). Was menu_window_word"
-status = "guess"
-src = "ram-map.md (menu module read 2026-11-21); PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+what = "On PP these are not MoA's 4-byte menu constant (MoA's 0x8003EA44): PP's bytes here are the twin of MoA's 0x8003EA48, 8 zero bytes that the fight engines copy as a block (lwl / lwr; missions 0x80072724, 0x800806E8 …, link 0x8007175C …, more than 15 users per engine). PP's menu has no counterpart of MoA's three window routines that copied the 4-byte one (0x800AB7B8, 0x800AB92C, 0x800ABEEC, MoA-only), and nothing in PP's menu reads 0x8003BCA4. MoA's window-record maker 0x8006527C is PP 0x8005B100"
+status = "code"
+src = "ram-map.md (menu module read 2026-11-21); PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8003EA44
 
 [[var]]
@@ -4370,9 +4372,9 @@ size = 8
 type = "RECT"
 name = "rect_lower_screen"
 disc = "PP"
-what = "RECT (0, 240, 320, 240): the lower 320 × 240 of the display VRAM, cleared to black by the picture screen MoA 0x80012348 (no PP twin) (ClearImage 0x8002D400) before it shows a loading picture there"
-status = "guess"
-src = "ram-map.md (exe read 2026-11-22), mapping/mode-launch.md; PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+what = "RECT (0, 240, 320, 240): the lower 320 × 240 of the display VRAM, cleared to black (ClearImage 0x8002D400) by the picture screen before it shows a loading picture there. On PP the picture screen is 0x80012B04 (the tools found no twin; matched by hand to MoA's 0x80012348: same calls in the same order) and it passes 0x8003BC8C, so PP's RECT sits 4 bytes after this row's address (0x8003BC88 holds 5, 0)"
+status = "code"
+src = "ram-map.md (exe read 2026-11-22), mapping/mode-launch.md; PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8003EA2C
 
 [[var]]
@@ -4443,9 +4445,9 @@ size = 20
 type = "struct"
 name = "vs_fight_sys"
 disc = "PP"
-what = "[VS] Fight bookkeeping (vs_loaded_files +0x23A0): +0 next free byte in vs_fight_heap; +4 the object being updated and +8 the second argument of that update (MoA 0x8007CE84, called for each AC by the per-frame 0x800759D4; 0 from there); +0xC frame counter, +1 per frame in 0x80075AF8, many routines use its low byte for timing; +0x10 a 0 / 1 shift the stage hit tests 0x80070DA4 / 0x800715B0 apply to coordinates (0x8007B42C sets it around one test, 0x80073B00 sets it, meaning `?`). 0x800704C4 resets +0, +0xC, +0x10 at fight start"
+what = "[VS] Fight bookkeeping (vs_loaded_files +0x23A0): +0 next free byte in vs_fight_heap; +4 the object being updated and +8 the second argument of that update (0x80075050, twin of MoA's 0x8007CE84 matched by hand: it stores them at 0x801DA3C4 / 0x801DA3C8; called for each AC by the per-frame 0x800759D4; 0 from there); +0xC frame counter, +1 per frame in 0x80075AF8, many routines use its low byte for timing; +0x10 a 0 / 1 shift the stage hit tests 0x80070DA4 / 0x800715B0 apply to coordinates (0x8007B42C sets it around one test, 0x80073B00 sets it, meaning `?`). 0x800704C4 resets +0, +0xC, +0x10 at fight start"
 status = "code"
-src = "ram-map.md (VS module read 2026-11-22); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (VS module read 2026-11-22); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x801D6EB0
 arena = 0x801D4000
 link = 0x801CB108
@@ -4473,9 +4475,9 @@ size = 8
 type = "RECT"
 name = "vs_clear_rect"
 disc = "PP"
-what = "[VS] RECT (0, 0, 320, 480): both display buffers, cleared to black (ClearImage) by the VS start 0x8004A228 (likely)"
+what = "[VS] RECT (0, 0, 320, 480): both display buffers, cleared to black (ClearImage) by the VS start 0x8004A228"
 status = "guess"
-src = "ram-map.md (VS module read 2026-11-22); PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (VS module read 2026-11-22); PP address from xdisc/globals.tsv (near, low); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8008FC90
 
 [[var]]
@@ -4484,9 +4486,9 @@ size = 4
 type = "ptr"
 name = "vs_saved_cd_callback"
 disc = "PP"
-what = "[VS] The CD callback that was set before the fight music stream started: 0x8004C210 installs 0x8004C12C with 0x8001859C and keeps the old one here; 0x8004C12C and the VS end (0x8004A228 (likely)) put it back and clear this"
+what = "[VS] The CD callback that was set before the fight music stream started: 0x8004C210 installs 0x8004C12C with 0x8001859C and keeps the old one here; 0x8004C12C and the VS end (0x8004A228) put it back and clear this"
 status = "code"
-src = "ram-map.md (VS module read 2026-11-22); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "ram-map.md (VS module read 2026-11-22); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked); MoA addresses in the text matched by hand on PP, round 3 topic 2 (2026-11-26)"
 moa = 0x8008FC98
 arena = 0x8008C7D4
 link = 0x80088724
