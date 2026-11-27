@@ -133,6 +133,14 @@ target_sources(psx-runtime PRIVATE
 # registered as the title's in-game menu provider).
 target_sources(psx-runtime PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/game/acg_escape.c")
+# Game-side code: missions from other games on Phantasma's missions engine (AC1 import pilot,
+# docs/ac1-import.md): files from the content packs, the engine's fixed message lines, the per-mission
+# value, and the mission chain table. Project Phantasma USA addresses; each hook checks its code words.
+if(NOT ACG_REGION STREQUAL "JP")
+    target_sources(psx-runtime PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/game/acg_mission_files.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/game/acg_mission_chain.c")
+endif()
 target_include_directories(psx-runtime PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/game"
     "${CMAKE_CURRENT_SOURCE_DIR}/launcher"
