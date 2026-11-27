@@ -61,9 +61,9 @@ bool   mouse_moved();
 void   note(const char* s);
 void   clear_note();
 
-struct Input { bool up, down, left, right, confirm, back, start, x, y; };
+struct Input { bool up, down, left, right, confirm, back, start, x, y, tab_prev, tab_next; };
 Input read_input();
-/* Simulated presses for tests: up, down, left, right, confirm, back, x, y. */
+/* Simulated presses for tests: up, down, left, right, confirm, back, start, x, y, l1, r1. */
 void inject(const char* what);
 /* Ignore every press for this many frames, and until nothing is held (after
  * the game closes, so the button that closed it doesn't choose anything here). */

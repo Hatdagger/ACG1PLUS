@@ -1,4 +1,4 @@
-/* ACG1PLUS launcher (launcher2), ladder step 0.2.3: START GAME.
+/* ACG1PLUS launcher (launcher2), ladder step 0.2.5: SETTINGS.
  *
  * A program of its own with no game code in it (docs/launcher-plan.md): one
  * window (1280x800, or full screen), the Armored Core system menu (menu.cpp),
@@ -8,7 +8,8 @@
  * (play.cpp): the launcher's window is hidden while it runs and comes back when
  * it closes. 0.2.4 adds UPDATES (update.cpp): newer launchers from GitHub
  * Releases (and a hidden TEST channel), the launcher replacing itself and
- * starting again, then rebuilding the game. Later: settings (0.2.5), mods (0.2.6).
+ * starting again, then rebuilding the game. 0.2.5: the game's settings pages
+ * (settings.cpp). Later: mods (0.2.6).
  *
  * SDL3 for the window, controllers and input; Dear ImGui (the copy in
  * recomp-ui) with its SDL3 + OpenGL 3 backends for drawing. Both are linked
@@ -59,6 +60,7 @@
 #include "menu.h"
 #include "platform.h"
 #include "play.h"
+#include "settings.h"
 #include "setup.h"
 #include "ui.h"
 #include "update.h"
@@ -386,6 +388,10 @@ int main(int argc, char** argv) {
 
         SDL_Event ev;
         while (SDL_PollEvent(&ev)) {
+            /* SETTINGS > BUTTON LAYOUT waiting for a press: it takes the event. */
+            if (ev.type != SDL_EVENT_QUIT && ev.type != SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
+                settings::capture_event(ev))
+                continue;
             ImGui_ImplSDL3_ProcessEvent(&ev);
             switch (ev.type) {
                 case SDL_EVENT_QUIT: running = false; break;
@@ -485,7 +491,9 @@ int main(int argc, char** argv) {
         /* --test-shots: a picture of every new page / step (a few frames after it
          * appears, so it has drawn), and one every 2 minutes while preparing. */
         if (test_shots) {
-            const std::string k = firstrun::active() ? firstrun::shot_key() : "menu" + std::to_string(menu::page());
+            const std::string k = firstrun::active() ? firstrun::shot_key()
+                                : settings::active() ? settings::shot_key()
+                                : "menu" + std::to_string(menu::page());
             if (k != shot_key_seen) { shot_key_seen = k; shot_due = frame + 12; }
             const double t = ImGui::GetTime();
             if (firstrun::preparing() && t >= next_prep_shot) {

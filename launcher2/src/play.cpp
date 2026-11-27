@@ -2,6 +2,7 @@
 
 #include "ini.h"
 #include "platform.h"
+#include "settings.h"
 #include "setup.h"
 
 #include <SDL3/SDL.h>
@@ -48,27 +49,6 @@ void on_line(int stream, const std::string& line) {
 
 fs::path log_path() { return P().launcher / "logs" / "game-last.log"; }
 
-/* game.toml says nothing about the window or the volume (those are the
- * player's own), so the first start would be a 1920x1440 window at the
- * framework's default volume. The game's own launcher used to write these on
- * its first run; it is skipped now, so this one does: borderless full screen,
- * full volume. Only when the game has no settings.toml yet: anything the player
- * changed later stays. */
-void first_start_settings() {
-    const fs::path f = P().game / "settings.toml";
-    std::error_code ec;
-    if (fs::exists(f, ec)) return;
-    if (FILE* out = plat::open_file(f, "wb")) {
-        std::fputs("# Written by the ACG1PLUS launcher on the first start (full screen, full volume).\n"
-                   "settings_format = 2\n\n"
-                   "[video]\n"
-                   "fullscreen        = 1\n\n"
-                   "[audio]\n"
-                   "volume = 100\n", out);
-        std::fclose(out);
-    }
-}
-
 } /* namespace */
 
 bool full_boot() {
@@ -98,7 +78,8 @@ bool start(const fs::path& disc_cue, std::string* error) {
     }
     fs::create_directories(cards, ec);
     fs::create_directories(log_path().parent_path(), ec);
-    first_start_settings();
+    /* First start: borderless full screen, full volume (settings.cpp). */
+    settings::ensure_file();
 #if !defined(_WIN32)
     plat::make_executable(exe);
 #endif
