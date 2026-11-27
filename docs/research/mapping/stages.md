@@ -130,10 +130,39 @@ inits allocate behaviour blocks through the engine). The 4–6 KB code files are
 and 18 are free (no files), so a MoA stage needs a number ≥ 40 (checks on the
 stage byte in the engines: open) or replaces a PP stage. For the disc patch track: FDAT.T would need new entries.
 
+## 5a. Collision polygons and surface flags (round 2 review, 2026-11-26)
+
+**Where the stage's collision lives (code + data).** Not in the area models: in **chunk 6** (the area finder;
+mission maps block 6 too, MoA one later). Its 1,024 offset pairs are turned into pointers at load (`0x8006A700`);
+the second of each pair points at a **collision block**: u16 polygon count at +0, three 32-byte bit masks at
++4 / +0x24 / +0x44 (x / y / z slices, tested by `0x8006C3CC`), then the **polygons, 20 bytes each from +0x64**.
+An area record's +0x1E picks its block. The hit-list builder (`0x8006E6E4`, VS) walks the block (`0x8006E368`)
+and fills the hit list `0x801CC6FC` (28-byte records, +0 = polygon). **Polygon +0x0E bits 0–2 = surface flags.**
+
+**Two walkers read the flags (code, VS; same in every engine):**
+- `0x8006E958` (via `0x8006E9D0`): nearest hit, **skipping** surfaces that share a bit with the mask. The AC
+  passes its +0x3A (PP 7) / +0x43 (MoA 5); one missions-engine caller passes a fixed 7 (PP `0x8008A148`) / 5
+  (MoA `0x8009331C`). So: flags 1 and 4 are passed through on both discs; **flag 2 stops MoA ACs, PP ACs pass it.**
+- `0x8006A23C` (via `0x80074B44`, missions `0x800762F4` / MoA `0x8007E238`): the opposite, nearest hit
+  **with** flag 1 (called with mask 1, next to a ground-height query). Flag 1 = some special ground `?`.
+
+**Which maps have which flags (data; `tools/mapping/stages/surface_flags.py`, polygon counts):**
+- **Flag 2 appears only on MoA mission maps**: 1 Defend Submarine (15), 2 Destroy Berserk MTs (32), 7 Retrieve
+  Secret Files (6), 9 Enter Abandoned Mine (2), **15 Destroy Giant Tank (104)**, 18 Enter Factory (22),
+  19 Final Mission (4). **No PP map and no fight stage on either disc has any.** What they are in the level
+  (invisible walls, barriers `guess`) is not read yet.
+- Flag 1: on many maps of both discs (e.g. PP 13: 557 of 1,261). Flag 4: mission maps of both, PP 21 / MoA 34.
+
+**What it means.** PP's mask 7 against MoA's 5 changes nothing on any PP map or any fight stage (so imported
+MoA *fight* stages feel the same). It matters only for **imported MoA missions**: on PP's engine the AC would pass
+surfaces MoA built to stop it. Simplest fix in the import: rewrite flag 2 → 0 in those polygons of our converted
+map (data only; no other reader of bit 2 found so far `?`), instead of patching the engine's masks.
+
 ## 6. Open
 
 - What chunk 4, 10 and 12 hold; what classes 250, 241, 247 … are.
-- The extra data after the 512 area records (neighbour lists and collision `guess`) and the area finder's bit format.
+- The extra data after the 512 area records (neighbour lists) and the area finder's bit format (the collision
+  blocks behind it are read, §5a); what MoA's flag-2 surfaces are in the level; what flag 1 is.
 - The 80-byte chunk MoA added.
 - Whether the engines accept stage numbers ≥ 40 (table sizes, RTIM index = stage).
 - Mission maps (0–19) follow the same chunk scheme with more chunks (16 on PP) — topic 4.

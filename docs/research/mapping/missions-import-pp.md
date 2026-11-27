@@ -197,6 +197,11 @@ common file, blocks 4 / 5 / 6 (one per COM voice), 250 entries on both.
 
 ## 6. What has to change, piece by piece
 
+*Added in the round 2 review:* **surface flag 2** (`stages.md` §5a). Seven MoA maps have collision polygons
+with flag 2, which MoA's AC stops on and PP's AC passes through (mask 5 vs 7): Defend Submarine, Destroy Berserk
+MTs, Retrieve Secret Files, Enter Abandoned Mine, **Destroy Giant Tank (104 polygons, the second pilot)**, Enter
+Factory, Final Mission. The map converter should clear flag 2 in those polygons (data only).
+
 | Piece | Work | Kind |
 |---|---|---|
 | MoA mission code (FDAT 5*n*) | relocate, retarget engine calls and data, convert object fields (§7) → a PP-ready mission file | converter, run on the player's PC |

@@ -365,8 +365,9 @@ VS copy are the same on both discs:
 Read in `battle-system.md` (AC object): it is the **surface mask** the AC passes to the stage hit query
 (`0x8006E9D0` → `0x8006E958`, VS): hit results whose surface flags share a bit with the mask are skipped.
 PP's 7 skips surfaces flagged 1, 2 or 4; MoA's 5 does not skip surfaces flagged only 2. So on a stage with
-"flag 2" surfaces, a MoA AC stops where a PP AC passes. Which stages have such surfaces is for `stages.md`.
-Status code (mask use), effect in game `guess`.
+"flag 2" surfaces, a MoA AC stops where a PP AC passes. **Which maps have them (review, `stages.md` §5a): only
+seven MoA mission maps; no PP map and no fight stage on either disc.** So the mask changes nothing in VS, arena
+or PP missions; it matters only for imported MoA missions. Status code (mask use), effect in game `guess`.
 
 ### 10.4 Handed over to the build chat (routine starts found in topic 5, PP, all `code`)
 FDAT 205 (arena): `0x800799C4`, `0x8007E920`, `0x8007EE8C`, `0x80079190`, `0x80079580`, `0x80077D18`, `0x800777BC`,
