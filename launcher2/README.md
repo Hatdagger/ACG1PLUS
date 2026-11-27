@@ -10,8 +10,11 @@ and keyboard as a fallback, a 1280x800 window or full screen, EXIT.
 Step **0.2.2** added the **first run**: it finds the player's disc, checks it, and builds the game
 from it on a "Preparing game" screen, all inside the launcher (no scripts, no git).
 
-Step **0.2.3** (this folder today) adds **START GAME**: the launcher starts the game it built and comes
-back when the game closes. SETTINGS, MODS and UPDATES say which step brings them; VERSUS and ROGUE
+Step **0.2.3** added **START GAME**: the launcher starts the game it built and comes back when the
+game closes.
+
+Step **0.2.5** (this folder today; it comes before 0.2.4 UPDATES) adds **SETTINGS**: the game's settings
+pages and its button layout, in the launcher. MODS and UPDATES say which step brings them; VERSUS and ROGUE
 ARENA are marked COMING.
 
 ## The first run
@@ -75,8 +78,8 @@ START on the controller starts the game straight from the main menu. The game (`
   instead of opening the old in-game launcher;
 - `PSX_BIOS_HLE_KEEP_INTRO=1` / `0` for FULL BOOT on / off.
 
-Before the first start, when the game has no `settings.toml` yet, the launcher writes one with
-borderless full screen and full volume (what the game's own launcher used to do on its first run;
+Before the first start (or the first visit to SETTINGS), when the game has no `settings.toml` yet, the
+launcher writes one with borderless full screen and full volume (what the game's own launcher used to do on its first run;
 `game.toml` can't carry those two).
 
 The launcher's window is hidden while the game runs and comes back when it closes; what was pressed
@@ -84,6 +87,54 @@ to close the game is ignored for a moment so it doesn't choose anything. A norma
 the START GAME page. If the game ends with an error (or can't be started), a page says so with the
 exit code, the game's last lines and the log file: START AGAIN / BACK. Everything the game prints
 goes to `RecompData/launcher/logs/game-last.log` (the run before: `game-previous.log`).
+
+## SETTINGS
+
+The pages of the game's old in-game settings menu (`launcher/moa_menu.inc`, the owner's design), in the
+launcher (`src/settings.cpp`). Four tabs, switched with L1 / R1 (Q / E on the keyboard) or a click:
+
+| Tab | Rows |
+|---|---|
+| DISPLAY | ASPECT (fixed at 4:3 until the game has widescreen support), FULLSCREEN, WINDOW SIZE, RENDERER, INTERNAL RESOLUTION, AUTOMATIC RESOLUTION, VSYNC, SMOOTH MOTION, SMOOTH MOTION RATE |
+| PICTURE | TEXTURE FILTER, DITHERING, STEADY POLYGONS, STEADY TEXTURES, MOVIE FILTER, SCREEN MODEL, SCANLINES, SCANLINE STRENGTH |
+| SOUND / SYSTEM | VOLUME, HIGH-QUALITY SOUND, BUTTON LAYOUT, REWIND, RESTORE DEFAULTS |
+| ADVANCED | anisotropic filter, mipmaps, FXAA, smooth scaling, bloom, accurate blending, movie colour smoothing, supersampling, lowest auto resolution, smooth motion method, texture batching, the PGXP options, audio buffer, anti-deadzone, SELECT shortcuts, low latency input, rewind buffer and interval |
+
+LEFT / RIGHT (or A) changes a row. A row that only matters with another one on (WINDOW SIZE, SCANLINE
+STRENGTH, the PGXP rows...) shows only then. A value the player chose is amber; the game's default is
+white, and INFO says "(Game default.)". RESTORE DEFAULTS (press A twice) takes every row's line out of the
+file again and puts back the first start's full screen and full volume.
+
+**Where it is saved**: beside the game, in `RecompData/<os>/` (Windows and the Deck each keep their own,
+for their own screens). Changes apply the next time the game starts.
+
+| File | What | Read by |
+|---|---|---|
+| `settings.toml` | the four tabs | the game at start (psxrecomp `config_loader.cpp`, `load_user_settings`) |
+| `input.ini` | controller buttons, `[mapping]` | the game (`runtime/src/main.cpp`, `load_input_config`) |
+| `keybinds.ini` | keyboard keys, `[player1]` | the game (`runtime/src/psx_keybinds.c`) |
+
+Only the lines a row owns are changed (`src/kvfile.cpp`): comments, other keys and other sections stay as
+they were. `settings_format = 2` is written at the top (the framework's current file format).
+
+**Nothing typed in twice**: rows that are framework player settings take their allowed values from
+`psxrecomp/recompiler/src/player_settings.h`, built in, and are checked with its `player_setting_valid`, so
+the launcher never offers a value the game would refuse; if a framework update drops one of those settings,
+its row disappears instead of writing a line nobody reads. The game's own defaults come from `game.toml`,
+built in (or the copy beside the built game, once there is one).
+
+**BUTTON LAYOUT** (on SOUND / SYSTEM): one page for player 1, each PlayStation button with its controller
+button and its keyboard key side by side. LEFT / RIGHT picks the column, A waits for the new button or key
+(6 seconds; Esc or a right click leaves it as it was), Y puts that one back to the game's default, ALL BACK
+TO DEFAULT (A twice) does every one. The controller column takes buttons, triggers and stick directions
+under the names the game reads (`a`, `lefttrigger`, `leftx-`...); buttons the game can't read (back
+paddles) are refused with a note. Esc can't be a key: it closes the game. A second key already in
+`keybinds.ini` (`cross = X, Mouse1`) is kept when the first is changed.
+
+Left out on purpose, with why: SKIP BIOS INTRO (START GAME's FULL BOOT), SKIP THIS MENU (the game's own menu
+is always skipped), the framework's stock settings page (hotkeys, post-effect chains, raw tuning numbers:
+there is no in-game menu to open it from any more), MSAA (the PlayStation build never offered it), MENU
+SOUNDS (they need the disc's sound files read; later).
 
 ## The source zip
 
@@ -126,6 +177,10 @@ The mouse pointer hides while a controller is used and comes back when the mouse
 | `src/disc.cpp` | finding and checking the disc, copying it into `Disc/` |
 | `src/setup.cpp` | the "Preparing game" steps |
 | `src/play.cpp` | START GAME: starting the built game, waiting for it, its log |
+| `src/settings.cpp` | SETTINGS: the tabs and BUTTON LAYOUT |
+| `src/kvfile.cpp` | changing single lines of `settings.toml`, `input.ini`, `keybinds.ini`, keeping the rest |
+| `player_settings.h` (psxrecomp, built in) | the framework's player settings: allowed values |
+| `game.toml` (built in) | the game's own defaults, for the SETTINGS pages |
 | `src/platform.cpp` | child programs (process group / job object), drives, free space; Windows + Linux |
 | `src/hash.cpp` | SHA-256 and MD5 |
 | `src/unzip.cpp` + `third_party/miniz` | unpacking; miniz 3.0.2 (MIT licence, `third_party/miniz/LICENSE`) |
@@ -156,7 +211,7 @@ both launchers with it built in, `manifest.json` and `SHA256SUMS.txt`.
 It downloads the Linux compiler pack (CMake, Ninja, Clang, SteamOS sysroot, SDL3), the Windows pack's
 `deps/` (SDL3 for Windows) and llvm-mingw 20261117, each checked against a pinned SHA-256, into
 `WORK_DIR/downloads/`, and leaves `WORK_DIR/out/linux/ACG1PLUS` and `WORK_DIR/out/windows/ACG1PLUS.exe`.
-`recomp-ui` must be checked out (`git submodule update --init recomp-ui`).
+`recomp-ui` and `psxrecomp` must be checked out (`git submodule update --init recomp-ui psxrecomp`).
 
 ## Options
 

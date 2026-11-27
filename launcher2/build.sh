@@ -56,6 +56,8 @@ fetch() {   # url file sha256
 
 [ -f "$HERE/../recomp-ui/src/third_party/imgui/imgui.cpp" ] ||
     fail "recomp-ui is missing: git submodule update --init recomp-ui"
+[ -f "$HERE/../psxrecomp/recompiler/src/player_settings.h" ] ||
+    fail "psxrecomp is missing: git submodule update --init psxrecomp"
 
 linux_pack() {
     local pack="$DL/linux-pack"

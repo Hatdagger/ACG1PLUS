@@ -19,6 +19,11 @@ string(STRIP "${ACG_LAUNCHER_VERSION}" ACG_LAUNCHER_VERSION)
 set(RECOMP_UI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../recomp-ui" CACHE PATH "recomp-ui checkout")
 set(IMGUI_DIR "${RECOMP_UI_DIR}/src/third_party/imgui")
 set(FONT_DIR "${RECOMP_UI_DIR}/assets/common/fonts")
+# The framework: the SETTINGS pages read its player settings (player_settings.h).
+set(PSXRECOMP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../psxrecomp" CACHE PATH "psxrecomp checkout")
+if(NOT EXISTS "${PSXRECOMP_DIR}/recompiler/src/player_settings.h")
+    message(FATAL_ERROR "psxrecomp not found in ${PSXRECOMP_DIR}: run `git submodule update --init psxrecomp`")
+endif()
 if(NOT EXISTS "${IMGUI_DIR}/imgui.cpp")
     message(FATAL_ERROR "Dear ImGui not found in ${IMGUI_DIR}: run `git submodule update --init recomp-ui`")
 endif()
@@ -57,6 +62,16 @@ add_custom_command(
             "${CMAKE_CURRENT_SOURCE_DIR}/cmake/embed_fonts.cmake"
     COMMENT "Building the menu fonts into the program")
 
+# game.toml built in: the game's own defaults, shown on the SETTINGS pages.
+set(GAME_TOML_C "${CMAKE_CURRENT_BINARY_DIR}/game_toml.c")
+add_custom_command(
+    OUTPUT "${GAME_TOML_C}"
+    COMMAND "${CMAKE_COMMAND}" -DOUT=${GAME_TOML_C} -DIN=${CMAKE_CURRENT_SOURCE_DIR}/../game.toml
+            -DNAME=acg_game_toml -DNAME_OF_FILE=game.toml
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/embed_text.cmake"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../game.toml" "${CMAKE_CURRENT_SOURCE_DIR}/cmake/embed_text.cmake"
+    COMMENT "Building game.toml into the program")
+
 add_executable(acg1plus_launcher WIN32
     src/main.cpp
     src/menu.cpp
@@ -65,11 +80,14 @@ add_executable(acg1plus_launcher WIN32
     src/disc.cpp
     src/setup.cpp
     src/play.cpp
+    src/settings.cpp
+    src/kvfile.cpp
     src/platform.cpp
     src/hash.cpp
     src/unzip.cpp
     third_party/miniz/miniz.c
     "${FONTS_C}"
+    "${GAME_TOML_C}"
     "${IMGUI_DIR}/imgui.cpp"
     "${IMGUI_DIR}/imgui_draw.cpp"
     "${IMGUI_DIR}/imgui_tables.cpp"
@@ -78,7 +96,7 @@ add_executable(acg1plus_launcher WIN32
     "${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp")
 set_target_properties(acg1plus_launcher PROPERTIES OUTPUT_NAME "ACG1PLUS")
 target_include_directories(acg1plus_launcher PRIVATE "${IMGUI_DIR}" "${IMGUI_DIR}/backends" src
-    third_party/miniz)
+    third_party/miniz "${PSXRECOMP_DIR}/recompiler/src")
 target_compile_definitions(acg1plus_launcher PRIVATE
     ACG_LAUNCHER_VERSION="${ACG_LAUNCHER_VERSION}"
     ACG_DISC_SIZES="${ACG_DISC_SIZES}"

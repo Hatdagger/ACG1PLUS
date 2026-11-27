@@ -18,11 +18,13 @@
  *     GAME and FULL BOOT, as the old START GAME page had; LOAD GAME and NEW
  *     GAME need game-side hooks at Phantasma's addresses and come with 0.3.
  *     START on the controller from the main menu starts the game at once.
+ *   - 0.2.5: SETTINGS opens the settings pages (settings.cpp).
  */
 #include "menu.h"
 
 #include "firstrun.h"
 #include "play.h"
+#include "settings.h"
 #include "setup.h"
 
 #include <algorithm>
@@ -81,10 +83,10 @@ const Entry kMain[] = {
     { MAIN_ROGUE, "ROGUE ARENA", "COMING", "0.8",
       "A roguelike run: a random AC, a ladder of opponents from every arena, prizes "
       "along the way, and one loss ends it. Coming in version 0.8." },
-    { MAIN_SETTINGS, "SETTINGS", nullptr, "0.2.5",
-      "Display, picture, sound and controls: every settings page of the game's own menu "
-      "moves here in 0.2.5. Until then: F11 or ALT+ENTER (or the controller's VIEW / "
-      "SELECT button) switches between a window and full screen." },
+    { MAIN_SETTINGS, "SETTINGS", nullptr, nullptr,
+      "The game's display, picture, sound and system settings, and its button layout. "
+      "Changes apply the next time the game starts. (This menu's own window: F11, "
+      "ALT+ENTER or the controller's VIEW / SELECT button.)" },
     { MAIN_MODS, "MODS", nullptr, "0.2.6",
       "Switch installed mods on or off, and install new ones from the Mods folder. "
       "Coming in 0.2.6." },
@@ -202,6 +204,9 @@ void draw_main(const Gfx& g, const Input& in, Requests& req) {
         case MAIN_VERSUS:
             g_state.page = PAGE_VERSUS;
             clear_note();
+            break;
+        case MAIN_SETTINGS:
+            settings::open();
             break;
         case MAIN_EXIT:
             req.quit = true;
@@ -416,12 +421,15 @@ void inject(const char* what) { ui::inject(what); }
 void draw(const Host& host, Requests& req) {
     const Gfx g = ui::begin(host);
     const Input in = read_input();
-    if (!holding() && ImGui::IsKeyPressed(ImGuiKey_GamepadBack, false)) req.toggle_fullscreen = true;
+    /* VIEW / SELECT: this menu's window or full screen (not while a button is being set). */
+    if (!holding() && !settings::capture_event_pending() && ImGui::IsKeyPressed(ImGuiKey_GamepadBack, false))
+        req.toggle_fullscreen = true;
     /* The disc page was opened by START GAME (the disc had moved), or START
      * GAME was chosen on the "ready" page: carry on starting the game. */
     if (firstrun::take_disc_ready() && g_state.launch_after_disc) { g_state.launch_after_disc = false; launch(req); }
     if (firstrun::take_start_now()) launch(req);
     if (firstrun::active()) { firstrun::draw(g, in, req); return; }
+    if (settings::active() && !play::running()) { settings::draw(g, in); return; }
     g_state.launch_after_disc = false;
     if (play::running() && g_state.page != PAGE_RUNNING) g_state.page = PAGE_RUNNING;
     switch (g_state.page) {

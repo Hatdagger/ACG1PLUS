@@ -80,15 +80,15 @@ game from the player's disc.
 | 0.2.2 | First run: disc finder (Disc/, beside the launcher, USB drives, a controller-friendly file picker), disc check, "Preparing game" screen with plain stage names, progress, time estimate, cancel/resume, log, retry. **Built** (`launcher2/src/firstrun.cpp`, `disc.cpp`, `setup.cpp`; the source zip and `launcher2/release.sh`); whole first run checked on Linux in the sandbox with a test disc; not yet run on Windows or a real Deck |
 | 0.2.3 | START GAME: launches the built game straight into the game (its own menu skipped, `--no-launcher`), memory cards in `Memory Card/`, the launcher returns when the game closes; FULL BOOT toggle. **Built** (`launcher2/src/play.cpp`, START GAME page in `menu.cpp`; `game/acg_escape.c`: started by the launcher, Esc or holding SELECT + START for 2 s closes the game). FULL BOOT = the PlayStation start-up screen only (the game's own logos need 0.3 hooks). First start writes `settings.toml` with full screen + full volume. Checked on Linux in the sandbox with the real game (test disc): started, booted, memory cards made, Esc closed it and the launcher came back; not yet on Windows or a real Deck, SELECT + START hold not checked |
 | 0.2.4 | UPDATES: releases + hidden TEST channel, rebuild-on-update with the old game kept, launcher self-update |
-| 0.2.5 | SETTINGS: every page from the current menu (DISPLAY, PICTURE, SOUND / SYSTEM, ADVANCED, controller mapping), saved into the game's `settings.toml`; menu sounds read from the disc |
+| 0.2.5 | SETTINGS: every page from the current menu (DISPLAY, PICTURE, SOUND / SYSTEM, ADVANCED, controller mapping), saved into the game's `settings.toml`; menu sounds read from the disc. **Built** before 0.2.4 (`launcher2/src/settings.cpp`, `kvfile.cpp`): the four tabs into `settings.toml`, BUTTON LAYOUT (player 1, controller + keyboard) into `input.ini` / `keybinds.ini`, only the launcher's own lines changed; allowed values read from `player_settings.h`, the game's defaults from `game.toml`, both built in. Menu sounds left for later. Checked in the sandbox (Linux, keyboard; every row changed once, the file parsed as TOML; keys and the default / reset rows); not yet with the real game, on Windows, a real Deck or a real controller |
 | 0.2.6 | MODS page |
 | 0.2.7 | The game's in-game launcher menu removed; first stable Release (0.2.x) |
 
 Start GAME's LOAD GAME / NEW GAME (quick starts) stay ladder 0.3.
 
 ## Open, to settle while building
-- Exact settings list and how the launcher reads the game's setting definitions (from
-  `psxrecomp/recompiler/src/player_settings.h`), so settings aren't typed in by hand twice.
+- ~~Exact settings list and how the launcher reads the game's setting definitions~~ Settled in 0.2.5:
+  `player_settings.h` is built into the launcher (README "SETTINGS").
 - Windows SmartScreen warns about any new unsigned program ("Windows protected your PC" → More info → Run
   anyway); signing costs money. Some antivirus tools distrust small downloader programs.
 - Text entry with a controller (avoid it where possible; an on-screen keyboard where needed).
