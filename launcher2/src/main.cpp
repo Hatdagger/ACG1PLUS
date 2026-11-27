@@ -6,7 +6,9 @@
  * run (firstrun.cpp): finding the disc (disc.cpp) and the "Preparing game"
  * screen that builds the game from it (setup.cpp). 0.2.3 starts the built game
  * (play.cpp): the launcher's window is hidden while it runs and comes back when
- * it closes. Later steps: updates (0.2.4), settings (0.2.5) and mods (0.2.6).
+ * it closes. 0.2.4 adds UPDATES (update.cpp): newer launchers from GitHub
+ * Releases (and a hidden TEST channel), the launcher replacing itself and
+ * starting again, then rebuilding the game. Later: settings (0.2.5), mods (0.2.6).
  *
  * SDL3 for the window, controllers and input; Dear ImGui (the copy in
  * recomp-ui) with its SDL3 + OpenGL 3 backends for drawing. Both are linked
@@ -21,6 +23,11 @@
  * Options:
  *   --fullscreen / --windowed   start that way (not saved)
  *   --version                   print the version and stop
+ *   --version-file FILE         write only the version into FILE and stop (the
+ *                               old launcher asks a new one this before an update)
+ *   --no-update-check           don't look for updates at start this time
+ *   --test-releases-url URL     (tests) read the list of releases from URL
+ *                               (file:// works) instead of GitHub's
  *   --test-keys a,b,c           (tests) simulated presses: up, down, left,
  *                               right, confirm, back, x, y; waitN pauses N seconds
  *   --test-shot FILE.bmp        (tests) save a picture of the window after the
@@ -54,6 +61,7 @@
 #include "play.h"
 #include "setup.h"
 #include "ui.h"
+#include "update.h"
 
 #include <algorithm>
 #include <cmath>
@@ -202,8 +210,23 @@ int main(int argc, char** argv) {
     bool no_first_run = false, test_auto = false, test_exit = false, test_no_hide = false;
     std::vector<std::string> test_keys;
     setup::Options opts;
+    bool no_update_check = false;
+    /* For the restart after an update: the same options, without the test
+     * presses and picture (they were for this run). */
+    std::vector<std::string> all_args;
+    for (int i = 1; i < argc; ++i) {
+        if ((!std::strcmp(argv[i], "--test-keys") || !std::strcmp(argv[i], "--test-shot")) && i + 1 < argc) { ++i; continue; }
+        all_args.push_back(argv[i]);
+    }
     for (int i = 1; i < argc; ++i) {
         const char* a = argv[i];
+        if (!std::strcmp(a, "--version-file") && i + 1 < argc) {
+            /* Before anything else (no window): the updater's "does it start here" check. */
+            FILE* f = plat::open_file(plat::u8path(argv[i + 1]), "wb");
+            if (!f) return 1;
+            std::fprintf(f, "%s\n", ACG_LAUNCHER_VERSION);
+            return std::fclose(f) == 0 ? 0 : 1;
+        }
         if (!std::strcmp(a, "--version")) {
             std::printf("ACG1PLUS launcher %s (source %s)\n", ACG_LAUNCHER_VERSION,
                         setup::source_known() ? setup::source_version().c_str() : "none: developer build");
@@ -222,6 +245,8 @@ int main(int argc, char** argv) {
         else if (!std::strcmp(a, "--test-disc-md5") && i + 1 < argc) disc::accept_md5(argv[++i]);
         else if (!std::strcmp(a, "--test-game-args") && i + 1 < argc) play::set_test_args(split_commas(argv[++i]));
         else if (!std::strcmp(a, "--test-no-hide")) test_no_hide = true;
+        else if (!std::strcmp(a, "--no-update-check")) no_update_check = true;
+        else if (!std::strcmp(a, "--test-releases-url") && i + 1 < argc) update::set_releases_url(argv[++i]);
     }
     setup::init_paths(program_dir());
     setup::set_options(opts);
@@ -305,8 +330,15 @@ int main(int argc, char** argv) {
     ImGui_ImplSDL3_SetGamepadMode(ImGui_ImplSDL3_GamepadMode_AutoAll);
     ImGui_ImplOpenGL3_Init(glsl);
 
+    /* After an update: the UPDATES page says so (and offers UPDATE THE GAME). */
+    update::init(all_args);
+    const std::string updated_from = update::take_updated_from();
+    if (!updated_from.empty()) menu::open_updates(updated_from);
+    if (!no_update_check && update::check_at_start()) update::check();
+
     /* First start (no game built yet): straight into the first run. */
     if (!no_first_run && !setup::game_built(nullptr)) firstrun::open();
+    bool restart_after = false;
 
     std::string controller;
     bool running = true;
@@ -424,6 +456,8 @@ int main(int argc, char** argv) {
         menu::Requests req;
         menu::draw(host, req);
         if (req.quit) running = false;
+        /* A new launcher is in place: close this one and start it. */
+        if (update::take_restart()) { restart_after = true; running = false; }
         if (req.game_started && !test_no_hide) hidden_for_game = true;
         if (req.toggle_fullscreen) {
             fullscreen = !fullscreen;
@@ -460,7 +494,10 @@ int main(int argc, char** argv) {
             }
             if (frame == shot_due) {
                 char name[256];
-                std::snprintf(name, sizeof name, "%s/%03d-%s.bmp", test_shots, shot_count++, k.c_str());
+                std::error_code fe;
+                do   /* after an update's restart, the new launcher carries on numbering */
+                    std::snprintf(name, sizeof name, "%s/%03d-%s.bmp", test_shots, shot_count++, k.c_str());
+                while (fs::exists(plat::u8path(name), fe));
                 if (!save_shot(win, name)) std::fprintf(stderr, "could not save %s\n", name);
                 shot_due = -1;
             }
@@ -489,6 +526,7 @@ int main(int argc, char** argv) {
     }
     setup::reap();
     disc::stop();
+    if (!restart_after) update::shutdown();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
@@ -496,5 +534,6 @@ int main(int argc, char** argv) {
     SDL_GL_DestroyContext(gl);
     SDL_DestroyWindow(win);
     SDL_Quit();
+    if (restart_after) update::restart();   /* Linux: doesn't come back unless it failed */
     return 0;
 }

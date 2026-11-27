@@ -45,6 +45,7 @@ set(ACG_SOURCE_URL "" CACHE STRING "URL of the source zip on the release")
 set(ACG_SOURCE_SHA256 "" CACHE STRING "SHA-256 of the source zip")
 set(ACG_SOURCE_SIZE "0" CACHE STRING "Size of the source zip in bytes")
 set(ACG_SOURCE_VERSION "" CACHE STRING "Version in the source zip's name")
+set(ACG_REPO "Hatdagger/ACG1PLUS" CACHE STRING "GitHub repo the launcher looks for updates in (0.2.4)")
 
 # The menu fonts (LatoLatin Regular + Bold, SIL Open Font License 1.1) built into the program.
 set(FONTS_C "${CMAKE_CURRENT_BINARY_DIR}/fonts.c")
@@ -65,6 +66,7 @@ add_executable(acg1plus_launcher WIN32
     src/disc.cpp
     src/setup.cpp
     src/play.cpp
+    src/update.cpp
     src/platform.cpp
     src/hash.cpp
     src/unzip.cpp
@@ -87,6 +89,7 @@ target_compile_definitions(acg1plus_launcher PRIVATE
     ACG_SOURCE_SHA256="${ACG_SOURCE_SHA256}"
     ACG_SOURCE_SIZE=${ACG_SOURCE_SIZE}ull
     ACG_SOURCE_VERSION="${ACG_SOURCE_VERSION}"
+    ACG_REPO="${ACG_REPO}"
     IMGUI_DISABLE_OBSOLETE_FUNCTIONS
     MINIZ_NO_ZLIB_COMPATIBLE_NAMES)
 # miniz (unzip, MIT licence, third_party/miniz): plain C, quiet about its own style.

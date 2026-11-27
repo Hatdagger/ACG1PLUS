@@ -569,4 +569,56 @@ std::string curl_program() {
 #endif
 }
 
+fs::path self_exe() {
+#if defined(_WIN32)
+    std::wstring buf(32768, L'\0');
+    const DWORD n = GetModuleFileNameW(nullptr, &buf[0], (DWORD)buf.size());
+    if (n == 0 || n >= buf.size()) return fs::path();
+    buf.resize(n);
+    return fs::path(buf);
+#else
+    std::error_code ec;
+    const fs::path p = fs::read_symlink("/proc/self/exe", ec);
+    return ec ? fs::path() : p;
+#endif
+}
+
+bool rename_retry(const fs::path& from, const fs::path& to, std::string* error) {
+    std::error_code ec;
+    for (int i = 0; i < 30; ++i) {
+        ec.clear();
+        fs::rename(from, to, ec);
+        if (!ec) return true;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    if (error) *error = "couldn't rename " + u8str(from) + " to " + u8str(to) + ": " + ec.message();
+    return false;
+}
+
+bool restart_self(const fs::path& exe, const std::vector<std::string>& args) {
+#if defined(_WIN32)
+    std::wstring cmd = quote_arg(exe.wstring());
+    for (const auto& a : args) { cmd += L' '; cmd += quote_arg(widen(a)); }
+    STARTUPINFOW si = {};
+    si.cb = sizeof si;
+    PROCESS_INFORMATION pi = {};
+    const std::wstring dir = exe.parent_path().wstring();
+    if (!CreateProcessW(exe.wstring().c_str(), &cmd[0], nullptr, nullptr, FALSE, 0, nullptr,
+                        dir.empty() ? nullptr : dir.c_str(), &si, &pi))
+        return false;
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    return true;
+#else
+    std::vector<std::string> copy;
+    copy.push_back(exe.string());
+    copy.insert(copy.end(), args.begin(), args.end());
+    std::vector<char*> argv;
+    for (auto& s : copy) argv.push_back(&s[0]);
+    argv.push_back(nullptr);
+    execv(exe.c_str(), argv.data());
+    return false;
+#endif
+}
+
 } /* namespace plat */

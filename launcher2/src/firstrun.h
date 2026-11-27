@@ -31,6 +31,11 @@ void find_disc();
 bool take_disc_ready();
 bool take_start_now();
 
+/* 0.2.4 UPDATES: build the game again (from this launcher's source) with the
+ * disc chosen last time, or the disc page first if it has moved. The game that
+ * is there now stays until the new one is in place. */
+void rebuild();
+
 /* For the main menu's STATUS panel. */
 std::string disc_status(bool* ok);
 

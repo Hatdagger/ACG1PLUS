@@ -74,5 +74,9 @@ void reap();
 
 /* Is a game built in RecompData/<os>/ (and from which source)? */
 bool game_built(std::string* info);
+/* 0.2.4: the game was built from another source than this launcher's (it was
+ * updated): it should be built again. *built_version: the source it was built
+ * from. Always false in a developer build (no source baked in). */
+bool game_outdated(std::string* built_version);
 
 } /* namespace setup */

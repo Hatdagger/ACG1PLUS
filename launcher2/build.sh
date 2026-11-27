@@ -19,6 +19,7 @@
 # baked in from these, when set (launcher2/release.sh sets them):
 #   ACG_SOURCE_URL ACG_SOURCE_SHA256 ACG_SOURCE_SIZE ACG_SOURCE_VERSION
 # Without them it is a developer build that needs --source-zip FILE.
+# ACG_REPO (owner/name, default Hatdagger/ACG1PLUS): where UPDATES looks (0.2.4).
 set -euo pipefail
 
 WORK="${1:?usage: launcher2/build.sh WORK_DIR [linux|windows|both]}"
@@ -41,7 +42,8 @@ MINGW_SHA256="${ACG_MINGW_SHA256:-e7a15a49a2ea95e9f3d8a9d0cfabe5052a4b10fb4777cc
 fail() { echo "build.sh: $*" >&2; exit 1; }
 
 SOURCE_ARGS=(-DACG_SOURCE_URL="${ACG_SOURCE_URL:-}" -DACG_SOURCE_SHA256="${ACG_SOURCE_SHA256:-}"
-             -DACG_SOURCE_SIZE="${ACG_SOURCE_SIZE:-0}" -DACG_SOURCE_VERSION="${ACG_SOURCE_VERSION:-}")
+             -DACG_SOURCE_SIZE="${ACG_SOURCE_SIZE:-0}" -DACG_SOURCE_VERSION="${ACG_SOURCE_VERSION:-}"
+             -DACG_REPO="${ACG_REPO:-Hatdagger/ACG1PLUS}")
 
 fetch() {   # url file sha256
     local url="$1" file="$2" sha="$3"
