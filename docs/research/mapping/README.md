@@ -39,7 +39,7 @@ AC surface mask: flag-2 surfaces exist only on seven MoA mission maps, so it mat
 
 | # | Topic | Doc | Status |
 |---|---|---|---|
-| 1 | Build helpers: code files to pre-compile, link "me" side | `performance.md`, `boot-loads.md` | claimed 2026-11-26 |
+| 1 | Build helpers: code files to pre-compile, link "me" side | `performance.md` §7, `boot-loads.md` PP-8a | done 2026-11-26 (static; tests 30–31 in `ROUND1.md`) |
 | 2 | The 60 "MoA 0x…" rows in `ram-map.toml` | `ram-map.toml` | open |
 | 3 | Parts batch: part model archives, shop stock, bytes after the weapon-name table | `content-data.md`, `menus-screens.md` | open |
 | 4 | Opponents: AI record per arena rank | `ai.md` | open |

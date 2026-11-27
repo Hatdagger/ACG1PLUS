@@ -48,6 +48,10 @@ places at `0x80090070` "in FDAT 100" is really FDAT 101 +0xAA0 (VS); FDAT 100 ha
 stage all 8 point to one `jr ra`; the loader calls +0x14 as the stage's init after the data is in, VS `0x8004E228`),
 then from **+0xA0 one init routine per object type** (0 = none). The link files also use word +0x60.
 
+**Never-loaded arena files (round 3 topic 1, `performance.md` §7):** the arena code files (k = 2) of the 7 stages the
+arena doesn't use (21, 22, 26, 27, 31, 37, 38) were built for another address (about `0x801C9DD8`), not the arena's
+`0x800956F0`, so they would crash if loaded. Adding one of these stages to the arena needs a fresh arena file. (code)
+
 ## 2. The stage data file: 13 chunks (data; consumers code)
 
 Each chunk is `u32 size` + data. VS reads them in this order at `0x8004E0D4` … `0x8004E214` (the arena does the same

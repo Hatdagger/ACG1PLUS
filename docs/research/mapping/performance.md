@@ -124,10 +124,47 @@ the measured version of §3.
 ## 6. Open
 
 - Everything in §3 needs Tests A–C.
-- Which FDAT entries below 201 are code on PP (per-stage / per-mission code) and where they load: Lane 1 / 3
-  (needed for the pre-compile profile).
+- ~~Which FDAT entries below 201 are code on PP and where they load~~: §7 (round 3 topic 1).
 - Whether `DrawSync` in the frame end costs anything in the recomp (it waits on emulated GPU work; `?`).
+
+## 7. Code files to pre-compile (round 3 topic 1a, 2026-11-26)
+
+Static read of FDAT.T on PP (disc file `GG/COM/FDAT.T`). Tool: `tools/mapping/code_files.py` (rerun, don't commit
+its output). Load addresses are the stage loaders' (`stages.md` §1); each file was checked by its 8 header
+handlers (they must point inside the file at that address) and by where its calls go.
+
+**In plain words:** besides the boot program and the six big modules (FDAT 201–206), the game's code sits in
+**78 small files**: one per mission map and one per fight stage and engine. **71 of them can ever be loaded;
+61 are different** (some stages share identical files), **about 0.94 MB** in all (0.70 MB of it mission code).
+These are what the first-run build should translate ahead of time, next to the six modules. Nothing else on the
+disc holds code (every other archive was scanned for code patterns; none found). (code)
+
+| FDAT | What | Loaded by | At | Size | Count |
+|---|---|---|---|---|---|
+| 5 × m, m = 0–16 and 19 | **mission code**, one per mission map (map 19 = the garage test fight; 17 and 18 are empty) | missions 202 | `0x80097A38` | 18–54 KB | 18 |
+| 5 × s + 0, s = 20–39 | stage code for the **link** engine | link 203 | `0x800904B0` | 4–6 KB | 20 |
+| 5 × s + 1, s = 20–29 | stage code for **VS** | VS 204 | `0x8008F5D0` | 4–6 KB | 10 |
+| 5 × s + 2, the 12 arena stages | stage code for the **arena** | arena 205 | `0x800956F0` | 4–6 KB | 12 |
+| 5 × s + 3, s = 20–29 | stage code for the **VS replay** | replay 206 | `0x8008F828` | 4–6 KB | 10 |
+| 5 × s + 2, s = 21, 22, 26, 27, 31, 37, 38 | **never loaded**: arena files for the 7 stages the arena doesn't use (stage table `0x800BD6D4`: 20, 23, 24, 25, 28, 29, 30, 32, 33, 34, 35, 36). Built for another address (about `0x801C9DD8`): their handlers point outside the file at `0x800956F0` | — | — | 4–6 KB | 7 |
+
+- **Identical files** (same bytes): FDAT 120–123 = 115–118 (stage 24 = stage 23), 175 / 177 and 180 / 182 =
+  165 / 167 (stages 35, 36 = 33), 195 / 197 = 170 / 172 (stage 39 = 34). (data)
+- **All mission files share one address**, and the link and VS-replay files each share one too: the recomp has to
+  tell them apart by content (which file is in memory), not by address. (code)
+- **Every call leaves the file only for the boot program or its own engine** (checked per file: no stage file
+  calls into another engine). So each file is translated together with the engine named in its row. A handful of
+  call-shaped words in mission files point elsewhere (0–6 per file): data, not calls `guess`. (code)
+- **For a MoA stage import / a new arena stage:** an arena stage needs a working arena file. The 7 stale ones show
+  that the disc's arena files for unused stages can't simply be switched on; they need a fresh build (as
+  `stages.md` already says for MoA stages). (code)
 
 ## Handed over (to this lane)
 
 (none yet)
+
+## Handed over to the build chat (round 3 topic 1)
+
+- **Pre-compile list** = the 71 loadable files of §7 (61 distinct), with their engine and load address, plus the
+  six modules 201–206 at `0x800490D0`. Skip the 7 never-loaded arena files. Mission files need the missions
+  engine's addresses, stage files their engine's.

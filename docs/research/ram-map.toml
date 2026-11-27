@@ -2663,9 +2663,9 @@ size = 8
 type = "ptr[2]"
 name = "link_players"
 disc = "PP"
-what = "Link cable: +0 this console's player block, +4 the other console's. The link start 0x8004DB20 sets them: master = player1 (0x800424E8) / player2 (0x80042890); slave first copies its own AC from player1 into player2, then +0 = player2, +4 = player1. +0 + 0x250 (stat block) is what gets sent (MoA 0x80055428). Read by 16 more link routines (camera MoA 0x80088988 …). VS sets +0 once (MoA 0x800558C0). Was link_state"
+what = "[link] me / other: +0 this console's player block, +4 the other one's. Link start 0x8004DB20 (FDAT 203 +0x4A50): master = player1 (0x800424E8) / player2 (0x80042890); slave first copies its player1 block into player2 (0x3A8 bytes), then +0 = player2, +4 = player1. 0x8004D9D0 sends +0 + 0x258 (stat block) and receives into +4 + 0x258. 55 reads in the link engine (time-up result 0x8004A84C, HUD 0x8004F86C, marker setup 0x8005FF78 …). VS sets +0 once (MoA 0x800558C0)"
 status = "code"
-src = "ram-map.md (module scan, 2026-11-21); PP address from xdisc/globals.tsv (exact, high); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/boot-loads.md PP-8a (read on PP, round 3 topic 1, 2026-11-26); first from ram-map.md (MoA module scan, 2026-11-21)"
 moa = 0x8003EAA4
 
 [[var]]
@@ -4359,9 +4359,9 @@ size = 1
 type = "u8"
 name = "link_is_master"
 disc = "PP"
-what = "Link cable role, 1 = this console is the master (player 1). Handshake in MoA 0x80055578: each side starts on 'S' and switches to 'M' while it hears nothing; after a same-role clash both wait a random 3–18 frames and retry; the side that ends on 'M' sets this to 1, the other to 0. With flow_flag_91 set (rematch) the handshake is skipped and this is reused. Zero at boot (main clears 0x8003BCF0 …). Was link_flag_90"
+what = "Link cable role, 1 = this console is the master (player 1). Handshake in the link start 0x8004DB20: each side sends R, its role (starts 'S'), C over exe_sys +0x408; with no answer it switches to 'M' and retries, giving up after 1,800 VBlanks (link_lost); on a same-role clash both wait rand & 15 + 3 frames (3–18) and retry; the side that ends on 'M' sets this to 1, the other to 0. With flow_flag_91 (0x8003BCF1) set (rematch) the handshake is skipped and this is reused"
 status = "code"
-src = "ram-map.md (link module read 2026-11-21); PP address from xdisc/globals.tsv (exact, medium); text addresses put into PP terms 2026-11-26 (MoA where marked)"
+src = "mapping/boot-loads.md PP-8a (read on PP, round 3 topic 1, 2026-11-26); first from ram-map.md (MoA link module read 2026-11-21)"
 moa = 0x8003EA90
 
 [[var]]
@@ -5815,3 +5815,35 @@ disc = "AC1"
 what = "[menu] Movies: 9 x {name pointer, frame count}: ACOPA, DEMOPLAY, ACOPB, ACED1-5, STAFF; player 0x800A448C(index) (FDAT 201 +0x72EC8)"
 status = "code"
 src = "ac1/import-outlook.md"
+
+# ───────────── PP rows from mapping round 3 (topic 1, 2026-11-26) ─────────────
+
+[[var]]
+addr = 0x80088714
+size = 4
+type = "u32"
+name = "link_wait_start"
+disc = "PP"
+what = "[link] VBlank count (exe_sys +4) when the current cable wait started (FDAT 203 +0x3F644, bss); compared by 0x80016E58: 1,800 in the handshake, 300 in later waits"
+status = "code"
+src = "mapping/boot-loads.md PP-8a"
+
+[[var]]
+addr = 0x80088718
+size = 1
+type = "u8"
+name = "link_lost"
+disc = "PP"
+what = "[link] 1 = the other console didn't answer in time (handshake 30 s, later waits 5 s); cleared at 0x8004A1D4 (FDAT 203 +0x3F648, bss)"
+status = "code"
+src = "mapping/boot-loads.md PP-8a"
+
+[[var]]
+addr = 0x800BD6D4
+size = 24
+type = "u8[12][2]"
+name = "arena_stage_list"
+disc = "PP"
+what = "[menu] The arena's 12 stages as (stage, stage − 20) byte pairs: 20, 23, 24, 25, 28, 29, 30, 32, 33, 34, 35, 36 (FDAT 201 +0x74604). Only these stages have a loadable arena code file"
+status = "code"
+src = "mapping/stages.md §1, mapping/performance.md §7"
