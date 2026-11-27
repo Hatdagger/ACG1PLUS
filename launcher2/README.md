@@ -7,10 +7,12 @@ downloaded ready-made from a Release.
 Step **0.2.1** was the shell: the Armored Core system menu with every entry, controller first with mouse
 and keyboard as a fallback, a 1280x800 window or full screen, EXIT.
 
-Step **0.2.2** (this folder today) adds the **first run**: it finds the player's disc, checks it, and
-builds the game from it on a "Preparing game" screen, all inside the launcher (no scripts, no git).
-Starting the game comes in 0.2.3; SETTINGS, MODS and UPDATES say which step brings them; VERSUS and
-ROGUE ARENA are marked COMING.
+Step **0.2.2** added the **first run**: it finds the player's disc, checks it, and builds the game
+from it on a "Preparing game" screen, all inside the launcher (no scripts, no git).
+
+Step **0.2.3** (this folder today) adds **START GAME**: the launcher starts the game it built and comes
+back when the game closes. SETTINGS, MODS and UPDATES say which step brings them; VERSUS and ROGUE
+ARENA are marked COMING.
 
 ## The first run
 
@@ -51,6 +53,38 @@ Opens by itself while no game is built (and from START GAME).
    `RecompData/build/state/` let a stopped build carry on from its step; downloads resume. On a failure:
    the reason in plain words, RETRY / SHOW LOG / BACK, and the log file in `RecompData/build/logs/`.
 
+## START GAME
+
+START GAME opens the first run until the game is built; after that, its page:
+
+| Row | |
+|---|---|
+| LAUNCH GAME | starts the game at its title screen |
+| FULL BOOT | ON: the PlayStation start-up screen plays first; OFF (default): skipped. Saved in `launcher.ini` (`full_boot=`) |
+| LOAD GAME, NEW GAME | shown as COMING IN 0.3 (they need game-side hooks at Phantasma's addresses) |
+
+START on the controller starts the game straight from the main menu. The game (`src/play.cpp`) is
+`RecompData/<os>/ACG1PLUS_Game` started with:
+
+- `--no-launcher`: straight into the game, the game's own in-game launcher skipped;
+- `--disc <the .cue chosen last time>` (`launcher.ini` `disc=`); if it isn't there any more, the disc
+  page opens first (choosing one there carries on starting the game);
+- `--memcard-dir "<folder>/Memory Card"`: memory cards shared by the Windows and Deck builds;
+- `ACG1PLUS_LAUNCHER=1`: the game's Esc handler (`game/acg_escape.c`) then **closes the game** on Esc,
+  or when SELECT and START are held together for two seconds (for the Deck, which has no Esc key),
+  instead of opening the old in-game launcher;
+- `PSX_BIOS_HLE_KEEP_INTRO=1` / `0` for FULL BOOT on / off.
+
+Before the first start, when the game has no `settings.toml` yet, the launcher writes one with
+borderless full screen and full volume (what the game's own launcher used to do on its first run;
+`game.toml` can't carry those two).
+
+The launcher's window is hidden while the game runs and comes back when it closes; what was pressed
+to close the game is ignored for a moment so it doesn't choose anything. A normal close goes back to
+the START GAME page. If the game ends with an error (or can't be started), a page says so with the
+exit code, the game's last lines and the log file: START AGAIN / BACK. Everything the game prints
+goes to `RecompData/launcher/logs/game-last.log` (the run before: `game-previous.log`).
+
 ## The source zip
 
 `acg1plus-source-<version>.zip` (`tools/release/make_source_zip.py`, about 70 MB) is this repo at the
@@ -67,7 +101,7 @@ programs). `.github/` is left out.
 | move | D-pad / left stick | arrows, W / S | point at a row |
 | choose | A | Enter, Space | left click |
 | back | B | Esc, Backspace | right click |
-| START GAME | START | | |
+| START GAME (starts the game at once) | START | | |
 | window / full screen | VIEW (SELECT) | F11, Alt+Enter | |
 
 The mouse pointer hides while a controller is used and comes back when the mouse moves.
@@ -91,6 +125,7 @@ The mouse pointer hides while a controller is used and comes back when the mouse
 | `src/firstrun.cpp` | the first-run pages |
 | `src/disc.cpp` | finding and checking the disc, copying it into `Disc/` |
 | `src/setup.cpp` | the "Preparing game" steps |
+| `src/play.cpp` | START GAME: starting the built game, waiting for it, its log |
 | `src/platform.cpp` | child programs (process group / job object), drives, free space; Windows + Linux |
 | `src/hash.cpp` | SHA-256 and MD5 |
 | `src/unzip.cpp` + `third_party/miniz` | unpacking; miniz 3.0.2 (MIT licence, `third_party/miniz/LICENSE`) |
@@ -131,6 +166,8 @@ It downloads the Linux compiler pack (CMake, Ninja, Clang, SteamOS sysroot, SDL3
 | `--no-first-run` | don't open the first run by itself |
 | `--source-zip FILE` | developers / tests: build from this source zip (any checksum) |
 | `--force-translate` | translate the game again even if nothing changed |
+| `--test-game-args a,b` | tests: extra words for the game's command line (for example `--headless`) |
+| `--test-no-hide` | tests: keep the launcher's window up while the game runs |
 | `--version` | print the version and the source it builds |
 
 ## Test options

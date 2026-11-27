@@ -11,19 +11,27 @@
  *     font as a bitmap, which went soft at 1280x800 and above).
  *   - 0.2.2: the drawing helpers moved to ui.cpp, START GAME opens the first
  *     run (firstrun.cpp) until the game is built, and STATUS shows the disc
- *     and the game. Starting the game comes in 0.2.3; SETTINGS, MODS and
- *     UPDATES say which step brings them. VERSUS and ROGUE ARENA are marked as
- *     coming, with the version numbers of the current ladder (docs/versioning.md).
+ *     and the game. SETTINGS, MODS and UPDATES say which step brings them.
+ *     VERSUS and ROGUE ARENA are marked as coming, with the version numbers of
+ *     the current ladder (docs/versioning.md).
+ *   - 0.2.3: START GAME starts the built game (play.cpp). Its page has LAUNCH
+ *     GAME and FULL BOOT, as the old START GAME page had; LOAD GAME and NEW
+ *     GAME need game-side hooks at Phantasma's addresses and come with 0.3.
+ *     START on the controller from the main menu starts the game at once.
  */
 #include "menu.h"
 
 #include "firstrun.h"
+#include "play.h"
 #include "setup.h"
 
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <string>
+
+#include "platform.h"
 
 namespace menu {
 
@@ -31,11 +39,15 @@ using namespace ui;
 
 namespace {
 
-enum Page { PAGE_MAIN = 0, PAGE_VERSUS, PAGE__COUNT };
+enum Page { PAGE_MAIN = 0, PAGE_VERSUS, PAGE_START, PAGE_RUNNING, PAGE_CLOSED, PAGE__COUNT };
 
 struct State {
     Page page = PAGE_MAIN;
     int  cursor[PAGE__COUNT] = {0};
+    bool launch_after_disc = false;   /* the disc page was opened to start the game */
+    /* PAGE_CLOSED: why the game couldn't start, or how it closed. */
+    std::string closed_title, closed_text;
+    play::Result closed;
 };
 State g_state;
 
@@ -60,9 +72,9 @@ struct Entry {
 };
 
 const Entry kMain[] = {
-    { MAIN_START, "START GAME", nullptr, "0.2.3",
-      "The first time: find your Project Phantasma disc and build the game from it (PREPARING GAME). "
-      "Once it is built, starting it from here comes with launcher 0.2.3." },
+    { MAIN_START, "START GAME", nullptr, nullptr,
+      "Play Project Phantasma. The first time it finds your disc and builds the game from it "
+      "(PREPARING GAME). START on the controller starts the game straight away." },
     { MAIN_VERSUS, "VERSUS", "COMING", nullptr,
       "Two-player and computer-player fights: local link on two monitors, network, "
       "player vs AI and AI vs AI. Not ready yet; see what's coming." },
@@ -89,6 +101,34 @@ void not_ready(const char* when) {
     note(buf);
 }
 
+void show_closed(const std::string& title, const std::string& text) {
+    g_state.closed_title = title;
+    g_state.closed_text = text;
+    g_state.closed = play::Result();
+    g_state.cursor[PAGE_CLOSED] = 0;
+    g_state.page = PAGE_CLOSED;
+}
+
+/* Start the game with the disc chosen last time; if it isn't there any more,
+ * the disc page first (and then this again). */
+void launch(Requests& req) {
+    clear_note();
+    const std::filesystem::path cue = firstrun::chosen_disc();
+    if (cue.empty()) {
+        g_state.launch_after_disc = true;
+        firstrun::find_disc();
+        return;
+    }
+    std::string err;
+    if (play::start(cue, &err)) {
+        req.game_started = true;
+        g_state.page = PAGE_RUNNING;
+        g_state.cursor[PAGE_RUNNING] = 0;
+    } else {
+        show_closed("THE GAME COULD NOT START", err);
+    }
+}
+
 void draw_main(const Gfx& g, const Input& in, Requests& req) {
     move_cursor(PAGE_MAIN, kMainCount, in);
     int& cur = g_state.cursor[PAGE_MAIN];
@@ -107,7 +147,8 @@ void draw_main(const Gfx& g, const Input& in, Requests& req) {
         if (hovered && mouse_moved()) cur = i;
     }
     if (in.confirm) activate = cur;
-    if (in.start) activate = MAIN_START;
+    const bool start_now = in.start && built && setup::snapshot().status != setup::Status::Running;
+    if (in.start && !start_now) activate = MAIN_START;
 
     /* Status. */
     panel(g, 310.0f, 76.0f, 306.0f, 150.0f, "STATUS");
@@ -149,13 +190,14 @@ void draw_main(const Gfx& g, const Input& in, Requests& req) {
 
     footer(g, "A / ENTER  SELECT      D-PAD  MOVE      VIEW / F11  FULL SCREEN");
 
+    if (start_now) { cur = MAIN_START; launch(req); return; }
     if (activate < 0) return;
     cur = activate;
     const Entry& e = kMain[activate];
     switch (e.id) {
         case MAIN_START:
             if (!built || setup::snapshot().status == setup::Status::Running) firstrun::open();
-            else note("THE GAME IS BUILT. STARTING IT COMES IN 0.2.3");
+            else { g_state.page = PAGE_START; g_state.cursor[PAGE_START] = 0; clear_note(); }
             break;
         case MAIN_VERSUS:
             g_state.page = PAGE_VERSUS;
@@ -222,7 +264,147 @@ void draw_versus(const Gfx& g, const Input& in) {
     note(buf);
 }
 
+/* ---- the START GAME page ---------------------------------------------------- */
+
+enum StartEntry { START_LAUNCH = 0, START_FULL_BOOT, START_LOAD, START_NEW, START__COUNT };
+
+void draw_start(const Gfx& g, const Input& in, Requests& req) {
+    move_cursor(PAGE_START, START__COUNT, in);
+    int& cur = g_state.cursor[PAGE_START];
+    const bool fb = play::full_boot();
+    header(g, "START GAME", "PROJECT PHANTASMA");
+    panel(g, 24.0f, 76.0f, 270.0f, 124.0f, "SELECT");
+    struct R { const char* label; const char* value; ImU32 vc; bool enabled; };
+    const R rows[START__COUNT] = {
+        { "LAUNCH GAME", nullptr, kDim, true },
+        { "FULL BOOT", fb ? "ON" : "OFF", fb ? kOn : kOff, true },
+        { "LOAD GAME", "COMING IN 0.3", kOff, false },
+        { "NEW GAME", "COMING IN 0.3", kOff, false },
+    };
+    int activate = -1;
+    for (int i = 0; i < START__COUNT; ++i) {
+        bool hovered = false;
+        if (row(g, 25.0f, 90.0f + kRowH * i, 268.0f, i == cur, rows[i].enabled, rows[i].label, rows[i].value,
+                rows[i].vc, &hovered))
+            activate = i;
+        if (hovered && mouse_moved()) cur = i;
+    }
+
+    panel(g, 310.0f, 76.0f, 306.0f, 124.0f, "DISC");
+    {
+        bool ok = false;
+        const std::string d = firstrun::disc_status(&ok);
+        text(g, 324.0f, 92.0f, 11.0f, ok ? kText : kWarn, fit(g, 11.0f, d, 278.0f).c_str());
+        const std::string where = ok ? plat::u8str(firstrun::chosen_disc().parent_path())
+                                     : std::string("START GAME will ask for it.");
+        text(g, 324.0f, 110.0f, 10.0f, kDim, fit(g, 10.0f, where, 278.0f).c_str());
+        text(g, 324.0f, 140.0f, 10.0f, kDim, "MEMORY CARDS");
+        text(g, 324.0f, 156.0f, 10.0f, kText,
+             fit(g, 10.0f, plat::u8str(setup::paths().root / "Memory Card"), 278.0f).c_str());
+    }
+
+    static const char* kInfo[START__COUNT] = {
+        "Start the game at its title screen. To come back here, press Esc, or hold SELECT and START "
+        "together for two seconds. Progress since your last save in the game is not kept.",
+        "ON: the PlayStation start-up screen plays before the game, as on the console. OFF: it is "
+        "skipped. (Skipping the game's own logos and intro movie comes with 0.3.)",
+        "Pick your data on memory card 1 and start straight in the garage, without the title and "
+        "memory card screens. Coming in version 0.3.",
+        "Start a new game straight away, without the title screen. Coming in version 0.3.",
+    };
+    panel(g, 24.0f, 216.0f, 592.0f, 120.0f, "INFO");
+    text(g, 38.0f, 232.0f, 11.0f, kHi, rows[cur].label);
+    text(g, 38.0f, 254.0f, 11.0f, kText, kInfo[cur], 560.0f);
+    footer(g, "A / ENTER  SELECT      D-PAD  MOVE      START  LAUNCH      B / ESC  BACK");
+
+    if (in.back) { g_state.page = PAGE_MAIN; clear_note(); return; }
+    if (cur == START_FULL_BOOT && (in.left || in.right)) { play::set_full_boot(!fb); return; }
+    if (in.start) { launch(req); return; }
+    if (in.confirm) activate = cur;
+    if (activate < 0) return;
+    cur = activate;
+    switch (activate) {
+        case START_LAUNCH:    launch(req); break;
+        case START_FULL_BOOT: play::set_full_boot(!fb); break;
+        default:              note("NOT READY YET. COMING IN VERSION 0.3"); break;
+    }
+}
+
+/* ---- while the game runs ----------------------------------------------------
+ * The launcher's window is hidden while the game runs (main.cpp), so this is
+ * seen only for a moment, or where a window can't be hidden. */
+void draw_running(const Gfx& g, const Input& in) {
+    header(g, "START GAME", "THE GAME IS RUNNING");
+    panel(g, 24.0f, 76.0f, 592.0f, 120.0f, "PLAYING");
+    text(g, 38.0f, 92.0f, 13.0f, kOn, "THE GAME IS RUNNING", 0.0f, true);
+    text(g, 38.0f, 116.0f, 11.0f, kText,
+         "This menu comes back when the game closes: press Esc in the game, or hold SELECT and START "
+         "together for two seconds.", 560.0f);
+    panel(g, 24.0f, 212.0f, 270.0f, 40.0f, "SELECT");
+    bool hovered = false;
+    const bool clicked = row(g, 25.0f, 224.0f, 268.0f, true, true, "STOP THE GAME", nullptr, kDim, &hovered);
+    footer(g, "A / ENTER  STOP THE GAME");
+    if (clicked || in.confirm) { play::stop(); note("STOPPING THE GAME..."); }
+}
+
+/* ---- the game couldn't start, or closed with an error ----------------------- */
+void draw_closed(const Gfx& g, const Input& in, Requests& req) {
+    int& cur = g_state.cursor[PAGE_CLOSED];
+    move_cursor(PAGE_CLOSED, 2, in);
+    header(g, "START GAME", "PROBLEM");
+    panel(g, 24.0f, 76.0f, 592.0f, 236.0f, "WHAT HAPPENED");
+    text(g, 38.0f, 92.0f, 13.0f, kWarn, g_state.closed_title.c_str(), 0.0f, true);
+    text(g, 38.0f, 114.0f, 11.0f, kText, g_state.closed_text.c_str(), 560.0f);
+    const auto& tail = g_state.closed.tail;
+    if (!tail.empty()) {
+        text(g, 38.0f, 162.0f, 10.0f, kDim, "THE GAME'S LAST LINES");
+        const int n = std::min((int)tail.size(), 9);
+        for (int i = 0; i < n; ++i)
+            text(g, 38.0f, 176.0f + 14.0f * i, 10.0f, kText,
+                 fit(g, 10.0f, tail[tail.size() - n + i], 560.0f).c_str());
+    }
+    static const char* labels[2] = { "START AGAIN", "BACK" };
+    panel(g, 24.0f, 322.0f, 270.0f, 64.0f, "SELECT");
+    int activate = -1;
+    for (int i = 0; i < 2; ++i) {
+        bool hovered = false;
+        if (row(g, 25.0f, 334.0f + kRowH * i, 268.0f, i == cur, true, labels[i], nullptr, kDim, &hovered))
+            activate = i;
+        if (hovered && mouse_moved()) cur = i;
+    }
+    if (!g_state.closed.log_file.empty()) {
+        panel(g, 310.0f, 322.0f, 306.0f, 64.0f, "LOG FILE");
+        text(g, 324.0f, 338.0f, 10.0f, kDim, fit(g, 10.0f, g_state.closed.log_file, 278.0f).c_str());
+    }
+    footer(g, "A / ENTER  SELECT      D-PAD  MOVE      B / ESC  BACK");
+    if (in.back) { g_state.page = PAGE_START; clear_note(); return; }
+    if (in.confirm) activate = cur;
+    if (activate == 0) launch(req);
+    else if (activate == 1) { g_state.page = PAGE_START; clear_note(); }
+}
+
 } /* namespace */
+
+int page() { return (int)g_state.page; }
+
+void game_closed(const play::Result& r) {
+    if (r.code == 0) {
+        /* A normal close (Esc, SELECT + START, the window's close button):
+         * back to the START GAME page. */
+        if (g_state.page == PAGE_RUNNING) g_state.page = PAGE_START;
+        return;
+    }
+    char t[200];
+    if (r.seconds < 10.0)
+        std::snprintf(t, sizeof t, "It closed %.0f seconds after it started, with error code %d. "
+                      "The lines below and the log file may say why.", r.seconds, r.code);
+    else
+        std::snprintf(t, sizeof t, "It closed after %d min %02d s with error code %d. "
+                      "The lines below and the log file may say why.",
+                      (int)r.seconds / 60, (int)r.seconds % 60, r.code);
+    show_closed("THE GAME CLOSED WITH AN ERROR", t);
+    g_state.closed = r;
+}
 
 float scale_for(int width, int height) {
     const float s = std::min((float)width / kW, (float)height / kH);
@@ -234,11 +416,20 @@ void inject(const char* what) { ui::inject(what); }
 void draw(const Host& host, Requests& req) {
     const Gfx g = ui::begin(host);
     const Input in = read_input();
-    if (ImGui::IsKeyPressed(ImGuiKey_GamepadBack, false)) req.toggle_fullscreen = true;
+    if (!holding() && ImGui::IsKeyPressed(ImGuiKey_GamepadBack, false)) req.toggle_fullscreen = true;
+    /* The disc page was opened by START GAME (the disc had moved), or START
+     * GAME was chosen on the "ready" page: carry on starting the game. */
+    if (firstrun::take_disc_ready() && g_state.launch_after_disc) { g_state.launch_after_disc = false; launch(req); }
+    if (firstrun::take_start_now()) launch(req);
     if (firstrun::active()) { firstrun::draw(g, in, req); return; }
+    g_state.launch_after_disc = false;
+    if (play::running() && g_state.page != PAGE_RUNNING) g_state.page = PAGE_RUNNING;
     switch (g_state.page) {
-        case PAGE_VERSUS: draw_versus(g, in); break;
-        default:          draw_main(g, in, req); break;
+        case PAGE_VERSUS:  draw_versus(g, in); break;
+        case PAGE_START:   draw_start(g, in, req); break;
+        case PAGE_RUNNING: draw_running(g, in); break;
+        case PAGE_CLOSED:  draw_closed(g, in, req); break;
+        default:           draw_main(g, in, req); break;
     }
 }
 

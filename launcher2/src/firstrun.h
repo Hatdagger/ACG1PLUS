@@ -6,6 +6,7 @@
 
 #include "ui.h"
 
+#include <filesystem>
 #include <string>
 
 namespace firstrun {
@@ -20,6 +21,15 @@ void set_test_auto(bool on, bool exit_when_done);
 /* Changes whenever the page, the step or the outcome changes (test screenshots). */
 std::string shot_key();
 bool preparing();
+
+/* 0.2.3 START GAME. The disc chosen last time, if it is still there (empty if
+ * not). find_disc(): the disc page on its own, to choose the disc again;
+ * take_disc_ready() is true once after one was chosen there. take_start_now()
+ * is true once after START GAME was chosen on the "ready" page. */
+std::filesystem::path chosen_disc();
+void find_disc();
+bool take_disc_ready();
+bool take_start_now();
 
 /* For the main menu's STATUS panel. */
 std::string disc_status(bool* ok);
