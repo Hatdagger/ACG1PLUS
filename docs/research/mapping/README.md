@@ -35,6 +35,19 @@ disc (`feel-diff.md` §11).
 AC surface mask: flag-2 surfaces exist only on seven MoA mission maps, so it matters only for the MoA missions import
 (`stages.md` §5a).
 
+## Round 3 (2026-11-26, one mapping chat, topics in order; `PLAN-ROUND3.md`)
+
+| # | Topic | Doc | Status |
+|---|---|---|---|
+| 1 | Build helpers: code files to pre-compile, link "me" side | `performance.md`, `boot-loads.md` | open |
+| 2 | The 60 "MoA 0x…" rows in `ram-map.toml` | `ram-map.toml` | open |
+| 3 | Parts batch: part model archives, shop stock, bytes after the weapon-name table | `content-data.md`, `menus-screens.md` | open |
+| 4 | Opponents: AI record per arena rank | `ai.md` | open |
+| 5 | Stages batch: MoA's extra chunk, chunks 4 / 10 / 12, stage numbers ≥ 40, flags 1 / 2 | `stages.md` | open |
+| 6 | Paint / emblem layout | `content-data.md`, `menus-screens.md` | open |
+| 7 | Missions batch: PP message codes, per-mission u16 table | `missions-import-pp.md` | open |
+| 8 | The 57 animation names (if room) | `pa-archives.md` | open |
+
 ## AC1 mapping (2026-11-26, one chat, topics in order; `PLAN-AC1.md`)
 
 | # | Topic | Doc | Status |
