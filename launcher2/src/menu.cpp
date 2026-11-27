@@ -134,12 +134,15 @@ void launch(Requests& req) {
         firstrun::find_disc();
         return;
     }
+    /* 0.2.5.1: a new game being swapped in (a few seconds) can't be started from. */
+    if (!setup::begin_game()) { note("THE NEW GAME IS BEING PUT IN PLACE. TRY AGAIN IN A MOMENT"); return; }
     std::string err;
     if (play::start(cue, &err)) {
         req.game_started = true;
         g_state.page = PAGE_RUNNING;
         g_state.cursor[PAGE_RUNNING] = 0;
     } else {
+        setup::end_game();
         show_closed("THE GAME COULD NOT START", err);
     }
 }
@@ -169,7 +172,8 @@ void draw_main(const Gfx& g, const Input& in, Requests& req) {
         if (hovered && mouse_moved()) cur = i;
     }
     if (in.confirm) activate = cur;
-    const bool start_now = in.start && built && setup::snapshot().status != setup::Status::Running;
+    /* 0.2.5.1: the game that is there can be played while a new one builds. */
+    const bool start_now = in.start && built;
     if (in.start && !start_now) activate = MAIN_START;
 
     /* Status. */
@@ -185,7 +189,8 @@ void draw_main(const Gfx& g, const Input& in, Requests& req) {
         y += 19.0f;
         text(g, 324.0f, y, 11.0f, kDim, "GAME");
         const setup::Snapshot s = setup::snapshot();
-        if (s.status == setup::Status::Running) text(g, 424.0f, y, 11.0f, kHi, "PREPARING...");
+        if (s.status == setup::Status::Running)
+            text(g, 424.0f, y, 11.0f, kHi, built ? "BUILDING THE NEW ONE..." : "PREPARING...");
         else if (built && outdated) text(g, 424.0f, y, 11.0f, kHi, ("BUILT  " + upper(built_info) + "  (OLDER)").c_str());
         else if (built) text(g, 424.0f, y, 11.0f, kOn, ("BUILT  " + upper(built_info)).c_str());
         else text(g, 424.0f, y, 11.0f, kWarn, "NOT BUILT YET");
@@ -238,7 +243,7 @@ void draw_main(const Gfx& g, const Input& in, Requests& req) {
     const Entry& e = kMain[activate];
     switch (e.id) {
         case MAIN_START:
-            if (!built || setup::snapshot().status == setup::Status::Running) firstrun::open();
+            if (!built) firstrun::open();
             else { g_state.page = PAGE_START; g_state.cursor[PAGE_START] = 0; clear_note(); }
             break;
         case MAIN_VERSUS:
@@ -718,6 +723,7 @@ void draw(const Host& host, Requests& req) {
     if (firstrun::take_disc_ready() && g_state.launch_after_disc) { g_state.launch_after_disc = false; launch(req); }
     if (firstrun::take_start_now()) launch(req);
     if (firstrun::active()) { firstrun::draw(g, in, req); return; }
+    firstrun::take_ready_note();
     if (settings::active() && !play::running()) { settings::draw(g, in); return; }
     g_state.launch_after_disc = false;
     if (play::running() && g_state.page != PAGE_RUNNING) g_state.page = PAGE_RUNNING;

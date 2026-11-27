@@ -120,7 +120,13 @@ target_link_libraries(acg1plus_launcher PRIVATE SDL3::SDL3-static)
 
 if(WIN32)
     # Version information and the manifest (UTF-8 file names, sharp on high-DPI screens).
-    string(REPLACE "." "," ACG_VER_COMMAS "${ACG_LAUNCHER_VERSION},0")
+    # Four numbers for Windows' version information: 0.2.5 -> 0,2,5,0; 0.2.5.1 -> 0,2,5,1.
+    string(REPLACE "." "," ACG_VER_COMMAS "${ACG_LAUNCHER_VERSION}")
+    string(REGEX MATCHALL "," _acg_commas "${ACG_VER_COMMAS}")
+    list(LENGTH _acg_commas _acg_n)
+    if(_acg_n LESS 3)
+        set(ACG_VER_COMMAS "${ACG_VER_COMMAS},0")
+    endif()
     set(ACG_RES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/res")
     configure_file(res/launcher.rc.in "${CMAKE_CURRENT_BINARY_DIR}/launcher.rc" @ONLY)
     target_sources(acg1plus_launcher PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/launcher.rc")

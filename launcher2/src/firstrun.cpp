@@ -40,6 +40,10 @@ struct State {
     bool   find_only = false;
     bool   disc_ready = false;
     bool   start_now = false;    /* START GAME chosen on the DONE page */
+    /* 0.2.5.1: building again over a game that is there (an update): B on
+     * "Preparing game" can go back to the menu while it builds. */
+    bool   update = false;
+    bool   ready_note = false;
 };
 State S;
 
@@ -105,6 +109,7 @@ void start_build(const fs::path& cue) {
         go(P_NONE);
         return;
     }
+    S.update = setup::game_built(nullptr);
     setup::start(cue);
     S.show_log = false;
     go(P_PREP);
@@ -462,25 +467,39 @@ void draw_prep(const Gfx& g, const Input& in, Requests& req) {
         bar(g, 406.0f, 198.0f, 196.0f, 8.0f, overall(s), kOn);
         text(g, 406.0f, 214.0f, 11.0f, kBright,
              s.status == setup::Status::Cancelling ? "STOPPING..." : left_text(s.eta).c_str());
-        text(g, 406.0f, 256.0f, 10.0f, kDim,
-             "You can leave this running. If it is stopped, it carries on from the step it was on.", 196.0f);
+        if (s.waiting_for_game)
+            text(g, 406.0f, 240.0f, 10.0f, kHi, "THE NEW GAME IS READY: CLOSE THE GAME TO PUT IT IN PLACE.", 196.0f);
+        text(g, 406.0f, 276.0f, 10.0f, kDim, S.update
+             ? "The game you have stays playable until the new one is ready (B: back to the menu, it keeps building)."
+             : "You can leave this running. If it is stopped, it carries on from the step it was on.", 196.0f);
     }
     bar(g, 24.0f, 372.0f, 592.0f, 6.0f, overall(s), kOn);
-    footer(g, S.show_log ? "B  STOP      Y  HIDE LOG" : "B  STOP      Y  SHOW LOG");
+    footer(g, S.update ? (S.show_log ? "B  STOP / MENU      Y  HIDE LOG" : "B  STOP / MENU      Y  SHOW LOG")
+                       : (S.show_log ? "B  STOP      Y  HIDE LOG" : "B  STOP      Y  SHOW LOG"));
 
     if (s.status == setup::Status::Done) { go(P_DONE); return; }
     if (s.status == setup::Status::Failed) { go(P_FAILED); return; }
     if (s.status == setup::Status::Cancelled) { go(P_STOPPED); return; }
 
     if (S.ask_cancel) {
-        panel(g, 150.0f, 160.0f, 340.0f, 120.0f, "STOP?");
-        g.dl->AddRectFilled(at(g, 151.0f, 161.0f), at(g, 489.0f, 279.0f), IM_COL32(11, 18, 24, 250));
-        text(g, 166.0f, 174.0f, 11.0f, kText, "Stop preparing the game? Next time it carries on from this step.", 310.0f);
-        static const char* rows[] = { "KEEP GOING", "STOP" };
+        /* With a game already there (an update), the menu can come back while
+         * the new one builds: the old one can be played meanwhile. */
+        const bool can_leave = S.update && setup::game_built(nullptr);
+        const float h = can_leave ? 150.0f : 120.0f;
+        panel(g, 150.0f, 150.0f, 340.0f, h, "STOP?");
+        g.dl->AddRectFilled(at(g, 151.0f, 151.0f), at(g, 489.0f, 149.0f + h), IM_COL32(11, 18, 24, 250));
+        text(g, 166.0f, 164.0f, 11.0f, kText, can_leave
+             ? "Stop building the new game? Next time it carries on from this step. Or go back to the menu "
+               "and let it build: the game you have can be played meanwhile."
+             : "Stop preparing the game? Next time it carries on from this step.", 310.0f);
+        static const char* rows2[] = { "KEEP GOING", "STOP" };
+        static const char* rows3[] = { "KEEP GOING", "BACK TO THE MENU (KEEPS BUILDING)", "STOP" };
         Input in2 = in;
-        const int a = menu_rows(g, 151.0f, 214.0f, 338.0f, rows, 2, &S.ask_cursor, in2);
+        const int a = can_leave ? menu_rows(g, 151.0f, 214.0f, 338.0f, rows3, 3, &S.ask_cursor, in2)
+                                : menu_rows(g, 151.0f, 204.0f, 338.0f, rows2, 2, &S.ask_cursor, in2);
         if (in.back || a == 0) S.ask_cancel = false;
-        else if (a == 1) { S.ask_cancel = false; setup::cancel(); }
+        else if (can_leave && a == 1) { S.ask_cancel = false; S.ready_note = true; go(P_NONE); }
+        else if (a == (can_leave ? 2 : 1)) { S.ask_cancel = false; setup::cancel(); }
         return;
     }
     if (in.y) S.show_log = !S.show_log;
@@ -554,6 +573,16 @@ void draw_done(const Gfx& g, const Input& in, Requests& req) {
 }
 
 } /* namespace */
+
+bool take_ready_note() {
+    if (!S.ready_note || S.page != P_NONE) return false;
+    const setup::Status st = setup::snapshot().status;
+    if (st == setup::Status::Running || st == setup::Status::Cancelling) return false;
+    S.ready_note = false;
+    if (st == setup::Status::Done) note("THE NEW GAME IS READY");
+    else if (st == setup::Status::Failed) note("BUILDING THE NEW GAME STOPPED: SEE UPDATES");
+    return true;
+}
 
 void open() {
     const setup::Snapshot s = setup::snapshot();

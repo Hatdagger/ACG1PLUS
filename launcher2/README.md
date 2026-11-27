@@ -183,6 +183,12 @@ then swaps it in with renames (the old files go to `<os>.replaced/` meanwhile, a
 rename fails). The player's own files there (`settings.toml`, saves, caches, `mods/installed/`) stay.
 START GAME still starts the older game until then.
 
+**Playing while it builds (0.2.5.1).** B on "Preparing game" offers BACK TO THE MENU (KEEPS BUILDING) when a
+game is already there; START GAME then plays the old one (STATUS says BUILDING THE NEW ONE...). Only the
+swap touches the game folder: "Putting the game in place" waits until the game is closed ("THE NEW GAME IS
+READY: CLOSE THE GAME TO PUT IT IN PLACE"), and the game can't start during the few seconds of the swap
+(`setup::begin_game()` / `end_game()`). When a build left running ends, the menu says so in a note.
+
 Nothing is downloaded or installed while the game is being prepared; the launcher can't update
 itself while the game runs (its window is hidden then).
 

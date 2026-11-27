@@ -362,6 +362,7 @@ int main(int argc, char** argv) {
          * close the game is not taken as a choice here. */
         play::Result game_result;
         if (play::ended(&game_result)) {
+            setup::end_game();
             if (hidden_for_game) {
                 SDL_ShowWindow(win);
                 SDL_RaiseWindow(win);

@@ -1,4 +1,4 @@
 # One short line: what this launcher version brings. Shown by the launcher on its
 # main menu and UPDATES page (release.sh puts it in manifest.json). Lines starting
 # with # are skipped. Update it with each test build, like test-notes.md.
-SETTINGS: the game's settings pages and button layout, in the launcher
+Play the game you have while the new one builds after an update
