@@ -40,7 +40,7 @@ messages, sound ids and shared models in FDAT 200.
 - **Recommended way:** the same converter idea as the MoA plan (convert on the player's PC from their own disc,
   a checker refuses any undecided address), **starting with AC1**, because it is the easy case and proves the
   chain: pilot "Stop Terrorist Threat" (slot 1).
-- **Decisions for you** are in §9 (own AC1 mission list or mixed in, AC1 sounds or Phantasma's, endings).
+- **Decisions** (owner, 2026-11-26) are in §9: own AC1 list, AC1 sounds for enemies, endings later, separate progress.
 
 | Kind of AC1 content | How hard | Why |
 |---|---|---|
@@ -261,17 +261,21 @@ no message-code conversion; the chain needs a table instead of the two-immediate
 
 Pilot: **Stop Terrorist Threat (slot 1)**: 21 KB, no hidden part, 1 event point, no story rules.
 
-## 9. Decisions for the owner
+## 9. Decisions (owner, 2026-11-26)
 
-1. **Mission list:** AC1 missions in their own list (mission source picker: Phantasma / Master of Arena /
-   Armored Core), or mixed in? AC1's list is already in PP's format (64 slots, its own chapter windows), so its
-   own list is the natural fit; mixing needs new windows for 49 missions.
-2. **Sound for AC1 missions:** AC1's whole fight bank and sound table (AC1 sound throughout, including your own
-   guns and boosters), or PP's bank with AC1's sound table (PP's gun sounds, AC1's mission sounds; small risk on 4
-   ids, 122–125)?
-3. **Ending missions:** rebuild AC1's endings (movies ACED1–5 and STAFF, needs the movie packs at build time) or
-   leave the last missions as ordinary missions first?
-4. **Progress:** keep AC1 story progress apart from Phantasma's (needs space in the save's unused 4 KB)?
+1. **Mission list: AC1 gets its own list** (mission source picker: Phantasma / Master of Arena / Armored Core),
+   using AC1's own `MIS.T` 0 (64 slots, its own chapter windows). No new windows needed.
+2. **Sound: AC1 sounds for enemies, Phantasma's for the player.** So: PP's fight bank stays (the player's guns,
+   boosters, lock tones), and AC1 missions get **AC1's sound-id table** in their common file, so mission objects
+   and enemies play AC1's sounds from the map's banks. Catch: ids 0–55 (shots, hits, explosions) are shared by
+   everyone and play from the fight bank, so an enemy firing the same weapon as you sounds like Phantasma.
+   Giving enemies AC1's recordings for those too would need a second fight bank and a per-object choice in the
+   engine: later, if wanted. Check ids 122–125 in game (they name fight-bank tones).
+3. **Endings: later.** First version runs the last missions as ordinary missions (normal messages and results
+   screen); the 48 → 49 chain still goes in (it is needed to reach "Destruction of Ravens"). Movies ACED1–5 and
+   STAFF, and AC1's special handling of missions 21/22/47–49, come in a later step (§5 has the code).
+4. **Progress: separate.** AC1 story progress (mission record, chapter, score, mail state) gets its own block in
+   the save's unused space, apart from Phantasma's.
 
 ## 10. Open
 
