@@ -30,6 +30,8 @@
 
 Round 2 review (2026-11-26): copied PP rows in `ram-map.toml` may now be corrected in place (rule at the top of
 that file). Done once: 3 sizes fixed, the text of 103 copied rows put into PP terms (`tools/xdisc/ram_text_xlate.py`).
+Movement code in all five fight engines compared (missions, link, replay against VS): same logic and numbers on each
+disc (`feel-diff.md` §11).
 
 ## AC1 mapping (2026-11-26, one chat, topics in order; `PLAN-AC1.md`)
 

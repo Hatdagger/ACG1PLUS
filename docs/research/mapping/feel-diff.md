@@ -358,8 +358,8 @@ VS copy are the same on both discs:
 - Arena fights on PP feel the same as VS fights on PP; PP-vs-MoA feel differences in the arena are exactly the
   VS ones (stun, jam / burn, blade, interceptor, back-right walk start in the PA data).
 - A movement change (for example Kaze "Both sides", §8) has to be made in **five copies** (missions, link, VS,
-  arena, replay; VS was compared in round 1, arena now; the missions, link and replay copies are not compared
-  yet). VS and arena are the same code, so one hook written for VS fits the arena copy at the addresses above.
+  arena, replay; VS was compared in round 1, arena now, missions / link / replay in §11). All five are the
+  same code, so one hook written for VS fits every copy (addresses in §10.1 and §11.2).
 
 ### 10.3 AC +0x3A (PP 7, MoA +0x43 = 5), from topic 5
 Read in `battle-system.md` (AC object): it is the **surface mask** the AC passes to the stage hit query
@@ -378,6 +378,78 @@ FDAT 204 (VS): `0x8004B8D0` (play sound), `0x8004C06C` (music volume), `0x8004AE
 set-up). FDAT 201: `0x80098EF0` (menu entry), `0x8009A238` (stat-block builder), `0x800AA428` (settings
 defaults), `0x8004F2D8` (menu file loader). Exe: `0x80017244` (register a file name), `0x800179B0` (vibration),
 `0x80020578` (master volume), `0x80017D2C` (sound reset, inside its routine).
+
+## 11. Missions, link and replay engines (round 2 review, 2026-11-26)
+
+**Answer: all five fight engines move the same way on each disc.** Every §3 movement routine has a copy in the
+missions (PP 202 / MoA 207), link (203 / 208) and replay (206 / 211) modules, with the same logic and the same
+numbers as the VS copy. The Phantasma-vs-MoA differences inside each copy are the VS ones (§4), in every engine.
+So §3–§8 hold for missions, link and replay too, and a movement change (Kaze) is one change written five times
+at the addresses below.
+
+### 11.1 How we know (code)
+Same method as §10.1, per disc: each VS routine's twin found by code shape over every routine of the module,
+then VS ↔ twin compared raw (addresses masked) and the twins compared across the discs. A second pass compared
+the small numbers each routine uses (constants under 0x4000, not stack offsets), VS copy against each other copy.
+
+- **Link and replay** are VS with other addresses: shape match 1.00 for most routines (0.95–0.99 for the hit
+  callback, 0.81 for the link damage routine, which only drops VS's second-player lookups), and their numbers
+  match VS's except data-address halves.
+- **Missions** looks more different (shape 0.78–0.97 in a few routines), but the numbers agree once read right:
+  the missions copy fetches player 1's block once (only one player in a mission) instead of going through the
+  "current player" pointer (`0x8003BD00`) each time, so the same stat fields show up rebased (e.g. 9504 − 9448 =
+  field +56, as in VS). The pad routine stores the same 5 at block +0x12; the extra −6 is reordered compiler
+  output. One real extra: the VS copy of the stat scale-in also does the model set-up (`0x80051B44`, AC +0x60),
+  which the missions engine does elsewhere. Not movement.
+- **Two-player bits** (only VS has two ACs): the VS hit callback / damage / walk-stepper pick the second AC
+  (+0x170, MoA +0x178) and its vibration port (PP 0x10, MoA 1). Link and replay use one fixed slot, like the arena.
+- **PP vs MoA in each engine** shows the same differences everywhere: stun length (§4 #4), hit callback, damage
+  (MoA jam / burn), per-frame interceptor cone, blade (§4.4), gun fire (MoA alternate-side fire), walk-stepper
+  reason-5 callback, of the same size in all four non-arena engines.
+
+### 11.2 The five copies (all `code`, static)
+| Routine | PP VS 204 | PP missions 202 | PP link 203 | PP replay 206 | MoA VS 209 | MoA missions 207 | MoA link 208 | MoA replay 211 |
+|---|---|---|---|---|---|---|---|---|
+| State setter | `0x80077D94` | `0x800795E4` | `0x80078AA0` | `0x80077A5C` | `0x8007FFF0` | `0x80081944` | `0x80080D70` | `0x8007FC9C` |
+| Pad → wanted state | `0x8007CD10` | `0x8007E2D0` | `0x8007DA08` | `0x8007C9B8` | `0x80085180` | `0x80086840` | `0x80085EEC` | `0x80084E0C` |
+| Ground-boost state handler | `0x8007D27C` | `0x8007E7E4` | `0x8007DF74` | `0x8007CF24` | `0x80085704` | `0x80086D3C` | `0x80086470` | `0x80085390` |
+| Ground boost | `0x80077560` | `0x80078DF0` | `0x8007826C` | `0x80077228` | `0x8007F7BC` | `0x80081150` | `0x8008053C` | `0x8007F468` |
+| Rise / air / gravity / air boost | `0x80077950` | `0x800791BC` | `0x8007865C` | `0x80077618` | `0x8007FBAC` | `0x8008151C` | `0x8008092C` | `0x8007F858` |
+| Turning | `0x800760E8` | `0x80077A1C` | `0x80076DF4` | `0x80075DB0` | `0x8007E1DC` | `0x8007FC98` | `0x8007EF5C` | `0x8007DE88` |
+| Turn helper | `0x80075B8C` | `0x800774C0` | `0x80076898` | `0x80075854` | `0x8007DC80` | `0x8007F73C` | `0x8007EA00` | `0x8007D92C` |
+| Recover turn | `0x800762EC` | `0x80077C20` | `0x80076FF8` | `0x80075FB4` | `0x8007E3E0` | `0x8007FE9C` | `0x8007F160` | `0x8007E08C` |
+| Animation-finished callback | `0x8007B42C` | `0x8007CA28` | `0x8007C124` | `0x8007B0D4` | `0x8008389C` | `0x80084F98` | `0x80084608` | `0x80083528` |
+| Stepper installer (walk, wall test) | `0x80073878` | `0x80075004` | `0x80074090` | `0x8007381C` | `0x8007B60C` | `0x8007CEBC` | `0x8007BEAC` | `0x8007B5E0` |
+| Stepper installer a | `0x80073B00` | `0x8007528C` | `0x80074318` | `0x80073AA4` | `0x8007B8B0` | `0x8007D160` | `0x8007C150` | `0x8007B884` |
+| Stepper installer b | `0x80073374` | `0x80074B00` | `0x80073B8C` | `0x80073318` | `0x8007B108` | `0x8007C9B8` | `0x8007B9A8` | `0x8007B0DC` |
+| Stepper installer c | `0x800736C0` | `0x80074E4C` | `0x80073ED8` | `0x80073664` | `0x8007B454` | `0x8007CD04` | `0x8007BCF4` | `0x8007B428` |
+| Stepper installer d | `0x8007D56C` | `0x8007EAC4` | `0x8007E264` | `0x8007D214` | `0x800859F4` | `0x8008701C` | `0x80086760` | `0x80085680` |
+| Stepper installer e | `0x80076620` | `0x80077F3C` | `0x8007732C` | `0x800762E8` | `0x8007E714` | `0x800801B8` | `0x8007F494` | `0x8007E3C0` |
+| Wall test | `0x80070F40` | `0x80072724` | `0x8007175C` | `0x80070EE4` | `0x80078C4C` | `0x8007A580` | `0x800794E0` | `0x80078C20` |
+| Floor test | `0x80070DA4` | `0x80072588` | `0x800715C0` | `0x80070D48` | `0x80078AB0` | `0x8007A3E4` | `0x80079344` | `0x80078A84` |
+| Stun countdown | `0x80077C70` | `0x800794C4` | `0x8007897C` | `0x80077938` | `0x8007FECC` | `0x80081824` | `0x80080C4C` | `0x8007FB78` |
+| Stun setter | `0x80073E6C` | `0x800755E8` | `0x80074680` | `0x80073E00` | `0x8007BC1C` | `0x8007D4BC` | `0x8007C4B8` | `0x8007BBE0` |
+| Knock-back setter | `0x80073EBC` | `0x80075638` | `0x800746D0` | `0x80073E50` | `0x8007BC6C` | `0x8007D50C` | `0x8007C508` | `0x8007BC30` |
+| Stun length from impact | `0x80071D0C` | `0x80073498` | `0x80072524` | `0x80071CB0` | `0x80079AA4` | `0x8007B354` | `0x8007A344` | `0x80079A78` |
+| AC hit callback | `0x80079FE8` | `0x8007B714` | `0x8007ACEC` | `0x80079CA0` | `0x80082430` | `0x80083C68` | `0x800831A8` | `0x800820CC` |
+| Damage routine | `0x800718D0` | `0x800730A4` | `0x800720EC` | `0x80071874` | `0x800795DC` | `0x8007AF00` | `0x80079E70` | `0x800795B0` |
+| Per-frame AC routine (energy) | `0x8007A48C` | `0x8007BB58` | `0x8007B184` | `0x8007A134` | `0x800828BC` | `0x80084094` | `0x80083628` | `0x80082548` |
+| Stat scale-in | `0x8007AFD0` | `0x8007C628` | `0x8007BCC8` | `0x8007AC78` | `0x8008342C` | `0x80084B8C` | `0x80084198` | `0x800830B8` |
+| Blade swing | `0x80076A54` | `0x80078350` | `0x80077760` | `0x8007671C` | `0x8007EB48` | `0x800805CC` | `0x8007F8C8` | `0x8007E7F4` |
+| Lock-on guns | `0x80077E84` | `0x800796CC` | `0x80078B90` | `0x80077B4C` | `0x800800E4` | `0x80081A30` | `0x80080E64` | `0x8007FD90` |
+| Lock-on missiles | `0x800783D0` | `0x80079BE8` | `0x800790DC` | `0x80078098` | `0x80080638` | `0x80081F54` | `0x800813B8` | `0x800802E4` |
+| Gun fire | `0x80078B8C` | `0x8007A340` | `0x80079898` | `0x80078854` | `0x80080DF4` | `0x800826AC` | `0x80081B74` | `0x80080AA0` |
+
+The arena copies are in §10.1. "Stepper installer a–e" = the five installers of §10.1, in order.
+
+### 11.3 What it means
+- Kaze "Both sides" (§8) or any other movement change: the same edit at 29 places in each of five engines per
+  disc, but only one version of it. A hook written for VS fits the other four copies; the missions copy starts
+  from player 1's block directly.
+- Nothing found that makes missions, link or replay feel different from VS on the same disc.
+
+### 11.4 Handed over to the build chat (PP routine starts, all `code`)
+The PP missions, link and replay columns of §11.2 (87 starts in FDAT 202, 203 and 206).
 
 ## Handed over
 
