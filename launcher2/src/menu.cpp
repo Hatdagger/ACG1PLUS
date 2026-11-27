@@ -9,174 +9,35 @@
  *     knows in a Host.
  *   - Fonts are baked at the size they are drawn at (ImGui 1.91 scales a baked
  *     font as a bitmap, which went soft at 1280x800 and above).
- *   - Step 0.2.1 is only the shell: START GAME, SETTINGS, MODS and UPDATES say
- *     which step brings them. VERSUS and ROGUE ARENA are marked as coming,
- *     with the version numbers of the current ladder (docs/versioning.md):
- *     Link Versus moved from 0.4 to 0.5 when the ladder was rewritten.
+ *   - 0.2.2: the drawing helpers moved to ui.cpp, START GAME opens the first
+ *     run (firstrun.cpp) until the game is built, and STATUS shows the disc
+ *     and the game. Starting the game comes in 0.2.3; SETTINGS, MODS and
+ *     UPDATES say which step brings them. VERSUS and ROGUE ARENA are marked as
+ *     coming, with the version numbers of the current ladder (docs/versioning.md).
  */
 #include "menu.h"
 
+#include "firstrun.h"
+#include "setup.h"
+
 #include <algorithm>
-#include <cctype>
-#include <cfloat>
-#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <string>
 
 namespace menu {
 
+using namespace ui;
+
 namespace {
-
-/* Design grid. */
-const float kW = 640.0f, kH = 480.0f;
-const float kRowH = 26.0f;
-
-const ImU32 kBg     = IM_COL32(6, 9, 13, 255);
-const ImU32 kGrid   = IM_COL32(26, 43, 51, 110);
-const ImU32 kPanel  = IM_COL32(11, 18, 24, 225);
-const ImU32 kLine   = IM_COL32(47, 74, 85, 255);
-const ImU32 kText   = IM_COL32(185, 212, 207, 255);
-const ImU32 kBright = IM_COL32(255, 244, 220, 255);
-const ImU32 kTitle  = IM_COL32(223, 238, 234, 255);
-const ImU32 kDim    = IM_COL32(95, 127, 128, 255);
-const ImU32 kHi     = IM_COL32(240, 160, 32, 255);
-const ImU32 kOn     = IM_COL32(95, 224, 138, 255);
-const ImU32 kOff    = IM_COL32(61, 84, 88, 255);
-const ImU32 kWarn   = IM_COL32(226, 91, 58, 255);
 
 enum Page { PAGE_MAIN = 0, PAGE_VERSUS, PAGE__COUNT };
 
 struct State {
-    Page   page = PAGE_MAIN;
-    int    cursor[PAGE__COUNT] = {0};
-    char   note[200] = {0};
-    double note_until = 0.0;
-    /* Simulated presses for tests (inject()). */
-    bool   fake_up = false, fake_down = false, fake_left = false, fake_right = false;
-    bool   fake_confirm = false, fake_back = false;
+    Page page = PAGE_MAIN;
+    int  cursor[PAGE__COUNT] = {0};
 };
 State g_state;
-
-struct Gfx {
-    ImDrawList* dl;
-    const Host* host;
-    float       s;      /* window pixels per design unit */
-    ImVec2      o;      /* window position of design (0,0) */
-};
-
-ImVec2 at(const Gfx& g, float x, float y) {
-    return ImVec2(g.o.x + x * g.s, g.o.y + y * g.s);
-}
-
-ImFont* font_of(const Gfx& g, float size, bool bold) {
-    ImFont* f = g.host->font ? g.host->font(size, bold) : nullptr;
-    return f ? f : ImGui::GetFont();
-}
-
-float text_width(const Gfx& g, float size, const char* s, bool bold = false) {
-    return font_of(g, size, bold)->CalcTextSizeA(size * g.s, FLT_MAX, 0.0f, s).x / g.s;
-}
-
-void text(const Gfx& g, float x, float y, float size, ImU32 color,
-          const char* s, float wrap = 0.0f, bool bold = false) {
-    /* Whole pixels: a baked font drawn on a half pixel blurs. */
-    ImVec2 p = at(g, x, y);
-    p.x = std::floor(p.x + 0.5f);
-    p.y = std::floor(p.y + 0.5f);
-    g.dl->AddText(font_of(g, size, bold), size * g.s, p, color, s, nullptr,
-                  wrap > 0.0f ? wrap * g.s : 0.0f);
-}
-
-void text_right(const Gfx& g, float right, float y, float size, ImU32 color,
-                const char* s) {
-    text(g, right - text_width(g, size, s), y, size, color, s);
-}
-
-void note(const char* s) {
-    std::snprintf(g_state.note, sizeof g_state.note, "%s", s ? s : "");
-    g_state.note_until = ImGui::GetTime() + 4.0;
-}
-
-void panel(const Gfx& g, float x, float y, float w, float h, const char* caption) {
-    g.dl->AddRectFilled(at(g, x, y), at(g, x + w, y + h), kPanel);
-    g.dl->AddRect(at(g, x, y), at(g, x + w, y + h), kLine);
-    if (caption && caption[0]) {
-        const float cw = text_width(g, 10.0f, caption);
-        g.dl->AddRectFilled(at(g, x + 10.0f, y - 6.0f), at(g, x + 22.0f + cw, y + 6.0f), kBg);
-        text(g, x + 16.0f, y - 6.0f, 10.0f, kDim, caption);
-    }
-}
-
-void header(const Gfx& g, const char* title, const char* sub) {
-    text(g, 24.0f, 22.0f, 19.0f, kTitle, title, 0.0f, true);
-    text_right(g, kW - 24.0f, 32.0f, 10.0f, kDim, sub);
-    g.dl->AddLine(at(g, 24.0f, 52.0f), at(g, kW - 24.0f, 52.0f), kLine);
-}
-
-void footer(const Gfx& g, const char* hints) {
-    g.dl->AddLine(at(g, 24.0f, kH - 36.0f), at(g, kW - 24.0f, kH - 36.0f), kLine);
-    text(g, 24.0f, kH - 28.0f, 10.0f, kDim, hints);
-    if (g_state.note[0] && ImGui::GetTime() < g_state.note_until)
-        text_right(g, kW - 24.0f, kH - 28.0f, 10.0f, kHi, g_state.note);
-}
-
-/* One selectable row. Returns true when it was clicked with the mouse;
- * *hovered_out says whether the mouse is over it. */
-bool row(const Gfx& g, float x, float y, float w, bool selected, bool enabled,
-         const char* label, const char* value, ImU32 value_color, bool* hovered_out) {
-    const ImVec2 a = at(g, x, y), b = at(g, x + w, y + kRowH);
-    const bool hovered = ImGui::IsMouseHoveringRect(a, b, false);
-    if (hovered_out) *hovered_out = hovered;
-    if (selected) {
-        g.dl->AddRectFilledMultiColor(a, b, IM_COL32(240, 160, 32, 70), IM_COL32(240, 160, 32, 0),
-                                      IM_COL32(240, 160, 32, 0), IM_COL32(240, 160, 32, 70));
-        g.dl->AddTriangleFilled(at(g, x + 12.0f, y + 8.0f), at(g, x + 21.0f, y + 13.0f),
-                                at(g, x + 12.0f, y + 18.0f), kHi);
-    }
-    const ImU32 color = !enabled ? (selected ? kDim : kOff) : selected ? kBright : kText;
-    text(g, x + 30.0f, y + 6.0f, 13.0f, color, label);
-    if (value && value[0]) text_right(g, x + w - 14.0f, y + 6.0f, 10.0f, value_color, value);
-    return hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-}
-
-bool mouse_moved() {
-    const ImVec2 d = ImGui::GetIO().MouseDelta;
-    return d.x != 0.0f || d.y != 0.0f;
-}
-
-/* ---- input ---------------------------------------------------------------- */
-
-struct Input { bool up, down, left, right, confirm, back, start; };
-
-bool key(ImGuiKey k, bool repeat) { return ImGui::IsKeyPressed(k, repeat); }
-
-Input read_input() {
-    Input in = {};
-    in.up    = key(ImGuiKey_UpArrow, true) || key(ImGuiKey_GamepadDpadUp, true) ||
-               key(ImGuiKey_GamepadLStickUp, true) || key(ImGuiKey_W, true);
-    in.down  = key(ImGuiKey_DownArrow, true) || key(ImGuiKey_GamepadDpadDown, true) ||
-               key(ImGuiKey_GamepadLStickDown, true) || key(ImGuiKey_S, true);
-    in.left  = key(ImGuiKey_LeftArrow, true) || key(ImGuiKey_GamepadDpadLeft, true) ||
-               key(ImGuiKey_GamepadLStickLeft, true);
-    in.right = key(ImGuiKey_RightArrow, true) || key(ImGuiKey_GamepadDpadRight, true) ||
-               key(ImGuiKey_GamepadLStickRight, true);
-    /* Enter with Alt held is the full-screen key, not a choice. */
-    const bool alt = ImGui::GetIO().KeyAlt;
-    in.confirm = (!alt && (key(ImGuiKey_Enter, false) || key(ImGuiKey_KeypadEnter, false))) ||
-                 key(ImGuiKey_Space, false) || key(ImGuiKey_GamepadFaceDown, false);
-    in.back  = key(ImGuiKey_Escape, false) || key(ImGuiKey_Backspace, false) ||
-               key(ImGuiKey_GamepadFaceRight, false);
-    in.start = key(ImGuiKey_GamepadStart, false);
-
-    in.up |= g_state.fake_up;       in.down |= g_state.fake_down;
-    in.left |= g_state.fake_left;   in.right |= g_state.fake_right;
-    in.confirm |= g_state.fake_confirm;
-    in.back |= g_state.fake_back;
-    g_state.fake_up = g_state.fake_down = g_state.fake_left = g_state.fake_right = false;
-    g_state.fake_confirm = g_state.fake_back = false;
-    return in;
-}
 
 void move_cursor(Page page, int count, const Input& in) {
     int& c = g_state.cursor[page];
@@ -199,10 +60,9 @@ struct Entry {
 };
 
 const Entry kMain[] = {
-    { MAIN_START, "START GAME", nullptr, "0.2.2 AND 0.2.3",
-      "Build the game from your own Project Phantasma disc the first time, then play. "
-      "This test launcher can't do that yet: finding the disc and building come in "
-      "0.2.2, starting the game in 0.2.3." },
+    { MAIN_START, "START GAME", nullptr, "0.2.3",
+      "The first time: find your Project Phantasma disc and build the game from it (PREPARING GAME). "
+      "Once it is built, starting it from here comes with launcher 0.2.3." },
     { MAIN_VERSUS, "VERSUS", "COMING", nullptr,
       "Two-player and computer-player fights: local link on two monitors, network, "
       "player vs AI and AI vs AI. Not ready yet; see what's coming." },
@@ -229,23 +89,20 @@ void not_ready(const char* when) {
     note(buf);
 }
 
-std::string upper(const char* s) {
-    std::string out(s ? s : "");
-    for (char& c : out) c = (char)std::toupper((unsigned char)c);
-    return out;
-}
-
 void draw_main(const Gfx& g, const Input& in, Requests& req) {
     move_cursor(PAGE_MAIN, kMainCount, in);
     int& cur = g_state.cursor[PAGE_MAIN];
+    std::string built_info;
+    const bool built = setup::game_built(&built_info);
 
     header(g, "PROJECT PHANTASMA", "SYSTEM MENU");
     panel(g, 24.0f, 76.0f, 270.0f, 340.0f, "SELECT");
     int activate = -1;
     for (int i = 0; i < kMainCount; ++i) {
         bool hovered = false;
-        if (row(g, 25.0f, 90.0f + kRowH * i, 268.0f, i == cur, true, kMain[i].label,
-                kMain[i].tag, kDim, &hovered))
+        const char* tag = kMain[i].tag;
+        if (kMain[i].id == MAIN_START && !built) tag = "BUILD FIRST";
+        if (row(g, 25.0f, 90.0f + kRowH * i, 268.0f, i == cur, true, kMain[i].label, tag, kDim, &hovered))
             activate = i;
         if (hovered && mouse_moved()) cur = i;
     }
@@ -258,20 +115,24 @@ void draw_main(const Gfx& g, const Input& in, Requests& req) {
         const Host& h = *g.host;
         float y = 92.0f;
         char buf[160];
+        bool disc_ok = false;
+        const std::string d = firstrun::disc_status(&disc_ok);
         text(g, 324.0f, y, 11.0f, kDim, "DISC");
-        text(g, 424.0f, y, 11.0f, kWarn, "NOT LOOKED FOR YET (0.2.2)");
+        text(g, 424.0f, y, 11.0f, disc_ok ? kText : kWarn, fit(g, 11.0f, d, 180.0f).c_str());
         y += 19.0f;
         text(g, 324.0f, y, 11.0f, kDim, "GAME");
-        text(g, 424.0f, y, 11.0f, kWarn, "NOT BUILT YET (0.2.2)");
+        const setup::Snapshot s = setup::snapshot();
+        if (s.status == setup::Status::Running) text(g, 424.0f, y, 11.0f, kHi, "PREPARING...");
+        else if (built) text(g, 424.0f, y, 11.0f, kOn, ("BUILT  " + upper(built_info)).c_str());
+        else text(g, 424.0f, y, 11.0f, kWarn, "NOT BUILT YET");
         y += 19.0f;
         text(g, 324.0f, y, 11.0f, kDim, "CONTROLLER");
         const std::string pad = h.controller && h.controller[0] ? upper(h.controller)
                                                                  : std::string("NONE (KEYBOARD AND MOUSE)");
-        text(g, 424.0f, y, 11.0f, h.controller && h.controller[0] ? kText : kDim, pad.c_str());
+        text(g, 424.0f, y, 11.0f, h.controller && h.controller[0] ? kText : kDim, fit(g, 11.0f, pad, 180.0f).c_str());
         y += 19.0f;
         text(g, 324.0f, y, 11.0f, kDim, "DISPLAY");
-        std::snprintf(buf, sizeof buf, "%s  %dx%d", h.fullscreen ? "FULL SCREEN" : "WINDOW",
-                      h.width, h.height);
+        std::snprintf(buf, sizeof buf, "%s  %dx%d", h.fullscreen ? "FULL SCREEN" : "WINDOW", h.width, h.height);
         text(g, 424.0f, y, 11.0f, kText, buf);
         y += 19.0f;
         text(g, 324.0f, y, 11.0f, kDim, "SYSTEM");
@@ -292,9 +153,13 @@ void draw_main(const Gfx& g, const Input& in, Requests& req) {
     cur = activate;
     const Entry& e = kMain[activate];
     switch (e.id) {
+        case MAIN_START:
+            if (!built || setup::snapshot().status == setup::Status::Running) firstrun::open();
+            else note("THE GAME IS BUILT. STARTING IT COMES IN 0.2.3");
+            break;
         case MAIN_VERSUS:
             g_state.page = PAGE_VERSUS;
-            g_state.note[0] = '\0';
+            clear_note();
             break;
         case MAIN_EXIT:
             req.quit = true;
@@ -344,10 +209,9 @@ void draw_versus(const Gfx& g, const Input& in) {
     text(g, 38.0f, 256.0f, 11.0f, kText, kVersusModes[cur].info, 560.0f);
     footer(g, "A / ENTER  SELECT      D-PAD  MOVE      B / ESC  BACK");
 
-    const bool right_click = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
-    if (in.back || right_click) {
+    if (in.back) {
         g_state.page = PAGE_MAIN;
-        g_state.note[0] = '\0';
+        clear_note();
         return;
     }
     if (in.confirm || in.start) activate = cur;
@@ -365,36 +229,13 @@ float scale_for(int width, int height) {
     return s > 0.0f ? s : 1.0f;
 }
 
-void inject(const char* what) {
-    if (!what) return;
-    if (!std::strcmp(what, "up")) g_state.fake_up = true;
-    else if (!std::strcmp(what, "down")) g_state.fake_down = true;
-    else if (!std::strcmp(what, "left")) g_state.fake_left = true;
-    else if (!std::strcmp(what, "right")) g_state.fake_right = true;
-    else if (!std::strcmp(what, "confirm")) g_state.fake_confirm = true;
-    else if (!std::strcmp(what, "back")) g_state.fake_back = true;
-}
+void inject(const char* what) { ui::inject(what); }
 
 void draw(const Host& host, Requests& req) {
-    const ImGuiViewport* vp = ImGui::GetMainViewport();
-    Gfx g;
-    g.dl = ImGui::GetBackgroundDrawList();
-    g.host = &host;
-    g.s = scale_for((int)vp->Size.x, (int)vp->Size.y);
-    g.o = ImVec2(std::floor(vp->Pos.x + (vp->Size.x - kW * g.s) * 0.5f),
-                 std::floor(vp->Pos.y + (vp->Size.y - kH * g.s) * 0.5f));
-
-    /* Ground and grid across the whole window, not just the design area. */
-    const ImVec2 a = vp->Pos, b = ImVec2(vp->Pos.x + vp->Size.x, vp->Pos.y + vp->Size.y);
-    g.dl->AddRectFilled(a, b, kBg);
-    const float step = 32.0f * g.s;
-    for (float x = std::fmod(g.o.x, step); x < b.x; x += step)
-        g.dl->AddLine(ImVec2(x, a.y), ImVec2(x, b.y), kGrid);
-    for (float y = std::fmod(g.o.y, step); y < b.y; y += step)
-        g.dl->AddLine(ImVec2(a.x, y), ImVec2(b.x, y), kGrid);
-
+    const Gfx g = ui::begin(host);
     const Input in = read_input();
-    if (key(ImGuiKey_GamepadBack, false)) req.toggle_fullscreen = true;
+    if (ImGui::IsKeyPressed(ImGuiKey_GamepadBack, false)) req.toggle_fullscreen = true;
+    if (firstrun::active()) { firstrun::draw(g, in, req); return; }
     switch (g_state.page) {
         case PAGE_VERSUS: draw_versus(g, in); break;
         default:          draw_main(g, in, req); break;

@@ -1,27 +1,39 @@
-/* ACG1PLUS launcher (launcher2), ladder step 0.2.1: the shell.
+/* ACG1PLUS launcher (launcher2), ladder step 0.2.2: the first run.
  *
  * A program of its own with no game code in it (docs/launcher-plan.md): one
  * window (1280x800, or full screen), the Armored Core system menu (menu.cpp),
- * controller first with mouse and keyboard as a fallback. Later steps add the
- * disc finder and the "Preparing game" build screen (0.2.2), starting the game
- * (0.2.3), updates (0.2.4), settings (0.2.5) and mods (0.2.6).
+ * controller first with mouse and keyboard as a fallback. 0.2.2 adds the first
+ * run (firstrun.cpp): finding the disc (disc.cpp) and the "Preparing game"
+ * screen that builds the game from it (setup.cpp). Later steps: starting the
+ * game (0.2.3), updates (0.2.4), settings (0.2.5) and mods (0.2.6).
  *
  * SDL3 for the window, controllers and input; Dear ImGui (the copy in
  * recomp-ui) with its SDL3 + OpenGL 3 backends for drawing. Both are linked
  * in, and the menu font is built into the program, so the launcher is a single
  * file.
  *
- * Portable: the only thing it writes is RecompData/launcher/launcher.ini
- * beside itself (the window / full screen choice), and only when that choice
- * changes.
+ * Portable: everything it writes is inside its own folder: RecompData/launcher/
+ * (launcher.ini: window / full screen and the disc chosen; build-times.ini: how
+ * long each build step took here, for the estimate) and, while preparing the
+ * game, RecompData/build/ and Disc/ (docs/building.md).
  *
  * Options:
  *   --fullscreen / --windowed   start that way (not saved)
  *   --version                   print the version and stop
  *   --test-keys a,b,c           (tests) simulated presses: up, down, left,
- *                               right, confirm, back
+ *                               right, confirm, back, x, y; waitN pauses N seconds
  *   --test-shot FILE.bmp        (tests) save a picture of the window after the
  *                               presses, then close
+ *   --no-first-run              don't open the first run by itself
+ *   --source-zip FILE           (developers / tests) build from this source zip
+ *                               instead of the release's (any checksum)
+ *   --force-translate           translate the game again even if nothing changed
+ *   --test-disc-md5 HEX         (tests) also accept a disc image with this MD5
+ *                               (a test image from tools/build/packs_to_test_image.py)
+ *   --test-auto                 (tests) go through the first run by itself
+ *   --test-exit-when-done       (tests) close when the game is ready or the build stops
+ *   --test-shots DIR            (tests) save a picture of every new page and step
+ *                               into DIR, and one every 2 minutes while preparing
  */
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -29,7 +41,12 @@
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl3.h"
+#include "disc.h"
+#include "firstrun.h"
+#include "ini.h"
 #include "menu.h"
+#include "platform.h"
+#include "setup.h"
 
 #include <algorithm>
 #include <cmath>
@@ -62,7 +79,10 @@ namespace fs = std::filesystem;
 
 fs::path program_dir() {
     const char* base = SDL_GetBasePath();   /* owned by SDL, ends with a separator */
-    return base ? fs::u8path(base) : fs::current_path();
+    fs::path p = base ? plat::u8path(base) : fs::current_path();
+    /* No trailing separator, so paths shown to the player look plain. */
+    if (!p.has_filename() && p.has_parent_path() && p != p.root_path()) p = p.parent_path();
+    return p;
 }
 
 fs::path settings_file() {
@@ -88,21 +108,13 @@ const char* system_name() {
 
 /* launcher.ini: "fullscreen=0/1". -1 = no saved choice. */
 int load_fullscreen_choice() {
-    std::ifstream f(settings_file());
-    std::string line;
-    while (std::getline(f, line)) {
-        if (line.rfind("fullscreen=", 0) == 0) return line.size() > 11 && line[11] == '1' ? 1 : 0;
-    }
-    return -1;
+    const auto kv = ini::load(settings_file());
+    auto it = kv.find("fullscreen");
+    if (it == kv.end()) return -1;
+    return it->second == "1" ? 1 : 0;
 }
 
-void save_fullscreen_choice(bool on) {
-    std::error_code ec;
-    const fs::path p = settings_file();
-    fs::create_directories(p.parent_path(), ec);
-    std::ofstream f(p, std::ios::trunc);
-    if (f) f << "fullscreen=" << (on ? 1 : 0) << "\n";
-}
+void save_fullscreen_choice(bool on) { ini::set(settings_file(), "fullscreen", on ? "1" : "0"); }
 
 /* ---- fonts -------------------------------------------------------------------
  * ImGui 1.91 draws a font at another size by stretching its baked bitmap, so
@@ -179,15 +191,41 @@ bool save_shot(SDL_Window* win, const char* path) {
 int main(int argc, char** argv) {
     int force_fullscreen = -1;
     const char* test_shot = nullptr;
+    const char* test_shots = nullptr;
+    bool no_first_run = false, test_auto = false, test_exit = false;
     std::vector<std::string> test_keys;
+    setup::Options opts;
     for (int i = 1; i < argc; ++i) {
         const char* a = argv[i];
-        if (!std::strcmp(a, "--version")) { std::printf("ACG1PLUS launcher %s\n", ACG_LAUNCHER_VERSION); return 0; }
+        if (!std::strcmp(a, "--version")) {
+            std::printf("ACG1PLUS launcher %s (source %s)\n", ACG_LAUNCHER_VERSION,
+                        setup::source_known() ? setup::source_version().c_str() : "none: developer build");
+            return 0;
+        }
         else if (!std::strcmp(a, "--fullscreen")) force_fullscreen = 1;
         else if (!std::strcmp(a, "--windowed")) force_fullscreen = 0;
         else if (!std::strcmp(a, "--test-shot") && i + 1 < argc) test_shot = argv[++i];
         else if (!std::strcmp(a, "--test-keys") && i + 1 < argc) test_keys = split_commas(argv[++i]);
+        else if (!std::strcmp(a, "--test-shots") && i + 1 < argc) test_shots = argv[++i];
+        else if (!std::strcmp(a, "--no-first-run")) no_first_run = true;
+        else if (!std::strcmp(a, "--test-auto")) test_auto = true;
+        else if (!std::strcmp(a, "--test-exit-when-done")) test_exit = true;
+        else if (!std::strcmp(a, "--force-translate")) opts.force_translate = true;
+        else if (!std::strcmp(a, "--source-zip") && i + 1 < argc) opts.source_zip = fs::absolute(plat::u8path(argv[++i]));
+        else if (!std::strcmp(a, "--test-disc-md5") && i + 1 < argc) disc::accept_md5(argv[++i]);
     }
+    setup::init_paths(program_dir());
+    setup::set_options(opts);
+#if !defined(_WIN32)
+    /* Portable: Mesa (the Deck's and most Linux graphics drivers) keeps a shader
+     * cache in ~/.cache unless told otherwise; keep the launcher's in its folder
+     * (only if nobody, e.g. Steam, has chosen a place already). */
+    if (!SDL_getenv("MESA_SHADER_CACHE_DIR")) {
+        const std::string c = plat::u8str(setup::paths().launcher / "cache" / "mesa");
+        SDL_setenv_unsafe("MESA_SHADER_CACHE_DIR", c.c_str(), 1);
+    }
+#endif
+    firstrun::set_test_auto(test_auto, test_exit);
 
     SDL_SetAppMetadata("ACG1PLUS", ACG_LAUNCHER_VERSION, "io.github.hatdagger.acg1plus");
     /* The Deck's own controller and Steam's virtual one both come through as
@@ -258,12 +296,22 @@ int main(int argc, char** argv) {
     ImGui_ImplSDL3_SetGamepadMode(ImGui_ImplSDL3_GamepadMode_AutoAll);
     ImGui_ImplOpenGL3_Init(glsl);
 
+    /* First start (no game built yet): straight into the first run. */
+    if (!no_first_run && !setup::game_built(nullptr)) firstrun::open();
+
     std::string controller;
     bool running = true;
+    std::string shot_key_seen;
+    int shot_due = -1, shot_count = 0;
+    double next_prep_shot = 0.0;
     bool cursor_hidden = false;
     int frame = 0;
     size_t next_key = 0;
-    int shot_frame = test_shot ? 40 + 10 * (int)test_keys.size() + 30 : -1;
+    /* Test presses: one every 10 frames from frame 40; "waitN" pauses N seconds.
+     * The --test-shot picture is taken 30 frames after the last one. */
+    int key_frame = 40;
+    double key_wait_until = 0.0;
+    int shot_frame = -1;
 
     while (running) {
         SDL_Event ev;
@@ -312,8 +360,14 @@ int main(int argc, char** argv) {
         const float want = menu::scale_for(w, h) * density;
         if (std::fabs(want - g_font_scale) > 0.01f) bake_fonts(want);
 
-        if (next_key < test_keys.size() && frame >= 40 + 10 * (int)next_key)
-            menu::inject(test_keys[next_key++].c_str());
+        if (next_key < test_keys.size() && frame >= key_frame && SDL_GetTicks() / 1000.0 >= key_wait_until) {
+            const std::string& k = test_keys[next_key++];
+            if (k.rfind("wait", 0) == 0) key_wait_until = SDL_GetTicks() / 1000.0 + std::atof(k.c_str() + 4);
+            else menu::inject(k.c_str());
+            key_frame = frame + 10;
+        }
+        if (test_shot && shot_frame < 0 && next_key >= test_keys.size() && SDL_GetTicks() / 1000.0 >= key_wait_until)
+            shot_frame = std::max(frame, key_frame) + 30;
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
@@ -355,9 +409,37 @@ int main(int argc, char** argv) {
             if (!save_shot(win, test_shot)) std::fprintf(stderr, "could not save %s\n", test_shot);
             running = false;
         }
+        /* --test-shots: a picture of every new page / step (a few frames after it
+         * appears, so it has drawn), and one every 2 minutes while preparing. */
+        if (test_shots) {
+            const std::string k = firstrun::active() ? firstrun::shot_key() : std::string("menu");
+            if (k != shot_key_seen) { shot_key_seen = k; shot_due = frame + 12; }
+            const double t = ImGui::GetTime();
+            if (firstrun::preparing() && t >= next_prep_shot) {
+                if (next_prep_shot > 0.0 && shot_due < 0) shot_due = frame;
+                next_prep_shot = t + 120.0;
+            }
+            if (frame == shot_due) {
+                char name[256];
+                std::snprintf(name, sizeof name, "%s/%03d-%s.bmp", test_shots, shot_count++, k.c_str());
+                if (!save_shot(win, name)) std::fprintf(stderr, "could not save %s\n", name);
+                shot_due = -1;
+            }
+        }
         SDL_GL_SwapWindow(win);
         ++frame;
     }
+
+    /* Closing while preparing: stop the build (everything it started), so it
+     * carries on from that step next time. */
+    setup::cancel();
+    for (;;) {
+        const setup::Status st = setup::snapshot().status;
+        if (st != setup::Status::Running && st != setup::Status::Cancelling) break;
+        SDL_Delay(50);
+    }
+    setup::reap();
+    disc::stop();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();

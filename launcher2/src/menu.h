@@ -4,38 +4,25 @@
  * 640x480 design grid scaled to the window (as launcher/moa_menu.inc did), and
  * reads input through ImGui's key state: D-pad / stick / arrows to move, A /
  * Enter to choose, B / Esc to go back. Mouse: hover to point, click to choose.
+ * The drawing helpers live in ui.h; the first-run pages in firstrun.h.
  */
 #pragma once
 
-#include "imgui.h"
+#include "ui.h"
 
 namespace menu {
 
-/* What the menu needs from the program around it. */
-struct Host {
-    const char* version;          /* launcher version, e.g. "0.2.1" */
-    const char* system;           /* "WINDOWS", "STEAM DECK", "LINUX" */
-    const char* controller;       /* first controller's name, or "" */
-    bool        fullscreen;
-    int         width, height;    /* window size in pixels */
-    /* Fonts baked for the current scale; font(size) picks the nearest. */
-    ImFont*   (*font)(float design_size, bool bold);
-};
-
-/* Asked of the program after a frame. */
-struct Requests {
-    bool quit = false;
-    bool toggle_fullscreen = false;
-};
+using Host = ui::Host;
+using Requests = ui::Requests;
 
 /* Pixels per design unit for a window of this size (fonts are baked from it). */
 float scale_for(int width, int height);
 
-/* Draw one frame of the menu. */
+/* Draw one frame (the menu, or the first-run pages when they are open). */
 void draw(const Host& host, Requests& req);
 
 /* Feed simulated presses (tests): "down", "up", "left", "right", "confirm",
- * "back". Applied on the next draw(). */
+ * "back", "x", "y". Applied on the next draw(). */
 void inject(const char* what);
 
 } /* namespace menu */

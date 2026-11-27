@@ -31,8 +31,17 @@ set(PSX_SETUP_WIZARD OFF CACHE BOOL
 # the game folder (portable install). Each patch is applied to the submodule's
 # working tree here and left alone when already applied; a framework bump that
 # breaks one stops the configure so it gets refreshed.
-find_package(Git QUIET)
-foreach(_acg_sub recomp-ui psxrecomp)
+# The source zip on a release (tools/release/make_source_zip.sh) comes with the
+# patches already applied and says so in patches/APPLIED.txt; players have no
+# git, so nothing is applied then.
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/patches/APPLIED.txt")
+    set(_acg_patch_subs "")
+    message(STATUS "Framework patches already applied (patches/APPLIED.txt)")
+else()
+    set(_acg_patch_subs recomp-ui psxrecomp)
+    find_package(Git QUIET)
+endif()
+foreach(_acg_sub IN LISTS _acg_patch_subs)
     file(GLOB _acg_patches "${CMAKE_CURRENT_SOURCE_DIR}/patches/${_acg_sub}/*.patch")
     list(SORT _acg_patches)
     if(_acg_patches AND NOT GIT_FOUND)

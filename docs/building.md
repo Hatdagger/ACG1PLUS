@@ -1,8 +1,10 @@
 # Building the game on your PC (ladder 0.0.x)
 
 No game code is on GitHub (`docs/no-game-code.md`). The game is translated from **your own
-Project Phantasma USA disc (SLUS-00670)** and compiled on your PC. Today that is a script you start
-by hand; the launcher's own "preparing game" screen comes at ladder step 0.2.
+Project Phantasma USA disc (SLUS-00670)** and compiled on your PC. **From launcher 0.2.2 the launcher does all of
+this itself** (its "Preparing game" screen, `launcher2/README.md`): put `ACG1PLUS.exe` / `ACG1PLUS` from a
+release in an empty folder and start it. It downloads the source as a zip from the release, so no git is
+needed. The scripts below stay as developer tools and describe the same steps.
 
 ## Windows
 

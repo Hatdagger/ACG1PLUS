@@ -14,6 +14,11 @@
 #   - cmake-clang-v1 v1.0.14 windows-x64: only its deps/ folder (the static SDL3 3.4.10 for
 #     Windows that the Windows game uses).
 #   - llvm-mingw 20261117 (ucrt, Linux host): the compiler that makes Windows programs on Linux.
+#
+# The source zip that goes with the launcher (tools/release/make_source_zip.py) is
+# baked in from these, when set (launcher2/release.sh sets them):
+#   ACG_SOURCE_URL ACG_SOURCE_SHA256 ACG_SOURCE_SIZE ACG_SOURCE_VERSION
+# Without them it is a developer build that needs --source-zip FILE.
 set -euo pipefail
 
 WORK="${1:?usage: launcher2/build.sh WORK_DIR [linux|windows|both]}"
@@ -34,6 +39,9 @@ MINGW_URL="https://github.com/mstorsjo/llvm-mingw/releases/download/$MINGW_VERSI
 MINGW_SHA256="${ACG_MINGW_SHA256:-e7a15a49a2ea95e9f3d8a9d0cfabe5052a4b10fb4777cc54de5a8c27b64bb701}"
 
 fail() { echo "build.sh: $*" >&2; exit 1; }
+
+SOURCE_ARGS=(-DACG_SOURCE_URL="${ACG_SOURCE_URL:-}" -DACG_SOURCE_SHA256="${ACG_SOURCE_SHA256:-}"
+             -DACG_SOURCE_SIZE="${ACG_SOURCE_SIZE:-0}" -DACG_SOURCE_VERSION="${ACG_SOURCE_VERSION:-}")
 
 fetch() {   # url file sha256
     local url="$1" file="$2" sha="$3"
@@ -68,7 +76,7 @@ build_linux() {
         . "$pack/env.sh"
         cmake -S "$HERE" -B "$WORK/build-linux" -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_C_COMPILER="$pack/bin/clang" -DCMAKE_CXX_COMPILER="$pack/bin/clang++" \
-            -DCMAKE_SYSROOT="$pack/sysroot" -DSDL3_DIR="$pack/deps/lib/cmake/SDL3"
+            -DCMAKE_SYSROOT="$pack/sysroot" -DSDL3_DIR="$pack/deps/lib/cmake/SDL3" "${SOURCE_ARGS[@]}"
         cmake --build "$WORK/build-linux"
     )
     mkdir -p "$WORK/out/linux"
@@ -94,7 +102,7 @@ build_windows() {
     "$pack/bin/cmake" -S "$HERE" -B "$WORK/build-windows" -G Ninja -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_MAKE_PROGRAM="$pack/bin/ninja" \
         -DCMAKE_TOOLCHAIN_FILE="$HERE/cmake/mingw-w64-x86_64.cmake" -DLLVM_MINGW="$mingw" \
-        -DSDL3_DIR="$winsdl/deps/lib/cmake/SDL3"
+        -DSDL3_DIR="$winsdl/deps/lib/cmake/SDL3" "${SOURCE_ARGS[@]}"
     "$pack/bin/cmake" --build "$WORK/build-windows"
     mkdir -p "$WORK/out/windows"
     cp "$WORK/build-windows/ACG1PLUS.exe" "$WORK/out/windows/ACG1PLUS.exe"

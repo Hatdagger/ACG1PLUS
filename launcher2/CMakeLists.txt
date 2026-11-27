@@ -25,6 +25,27 @@ endif()
 
 find_package(SDL3 CONFIG REQUIRED COMPONENTS SDL3-static)
 
+# The disc this launcher looks for: game.toml [prepare_disc] known_sizes / known_md5
+# (the same values the build's verify-disc checks), read here so they are never
+# typed in twice.
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../game.toml" ACG_GAME_TOML)
+string(REGEX MATCH "known_sizes *= *\\[([^]]*)\\]" _m "${ACG_GAME_TOML}")
+string(REGEX REPLACE "[^0-9,]" "" ACG_DISC_SIZES "${CMAKE_MATCH_1}")
+string(REGEX MATCH "known_md5 *= *\\[([^]]*)\\]" _m "${ACG_GAME_TOML}")
+string(REGEX REPLACE "[^0-9a-fA-F,]" "" ACG_DISC_MD5 "${CMAKE_MATCH_1}")
+if(ACG_DISC_SIZES STREQUAL "" OR ACG_DISC_MD5 STREQUAL "")
+    message(FATAL_ERROR "Could not read known_sizes / known_md5 from game.toml")
+endif()
+message(STATUS "Disc: sizes ${ACG_DISC_SIZES}, md5 ${ACG_DISC_MD5}")
+
+# The source zip that goes with this launcher (acg1plus-source-<version>.zip on the
+# same release), baked in by the release workflow (launcher2/release.sh). Empty in a
+# local build: then the launcher needs --source-zip.
+set(ACG_SOURCE_URL "" CACHE STRING "URL of the source zip on the release")
+set(ACG_SOURCE_SHA256 "" CACHE STRING "SHA-256 of the source zip")
+set(ACG_SOURCE_SIZE "0" CACHE STRING "Size of the source zip in bytes")
+set(ACG_SOURCE_VERSION "" CACHE STRING "Version in the source zip's name")
+
 # The menu fonts (LatoLatin Regular + Bold, SIL Open Font License 1.1) built into the program.
 set(FONTS_C "${CMAKE_CURRENT_BINARY_DIR}/fonts.c")
 add_custom_command(
@@ -39,6 +60,14 @@ add_custom_command(
 add_executable(acg1plus_launcher WIN32
     src/main.cpp
     src/menu.cpp
+    src/ui.cpp
+    src/firstrun.cpp
+    src/disc.cpp
+    src/setup.cpp
+    src/platform.cpp
+    src/hash.cpp
+    src/unzip.cpp
+    third_party/miniz/miniz.c
     "${FONTS_C}"
     "${IMGUI_DIR}/imgui.cpp"
     "${IMGUI_DIR}/imgui_draw.cpp"
@@ -47,10 +76,24 @@ add_executable(acg1plus_launcher WIN32
     "${IMGUI_DIR}/backends/imgui_impl_sdl3.cpp"
     "${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp")
 set_target_properties(acg1plus_launcher PROPERTIES OUTPUT_NAME "ACG1PLUS")
-target_include_directories(acg1plus_launcher PRIVATE "${IMGUI_DIR}" "${IMGUI_DIR}/backends" src)
+target_include_directories(acg1plus_launcher PRIVATE "${IMGUI_DIR}" "${IMGUI_DIR}/backends" src
+    third_party/miniz)
 target_compile_definitions(acg1plus_launcher PRIVATE
     ACG_LAUNCHER_VERSION="${ACG_LAUNCHER_VERSION}"
-    IMGUI_DISABLE_OBSOLETE_FUNCTIONS)
+    ACG_DISC_SIZES="${ACG_DISC_SIZES}"
+    ACG_DISC_MD5="${ACG_DISC_MD5}"
+    ACG_SOURCE_URL="${ACG_SOURCE_URL}"
+    ACG_SOURCE_SHA256="${ACG_SOURCE_SHA256}"
+    ACG_SOURCE_SIZE=${ACG_SOURCE_SIZE}ull
+    ACG_SOURCE_VERSION="${ACG_SOURCE_VERSION}"
+    IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+    MINIZ_NO_ZLIB_COMPATIBLE_NAMES)
+# miniz (unzip, MIT licence, third_party/miniz): plain C, quiet about its own style.
+set_source_files_properties(third_party/miniz/miniz.c PROPERTIES COMPILE_OPTIONS "-w")
+if(NOT WIN32)
+    find_package(Threads REQUIRED)
+    target_link_libraries(acg1plus_launcher PRIVATE Threads::Threads)
+endif()
 target_link_libraries(acg1plus_launcher PRIVATE SDL3::SDL3-static)
 
 if(WIN32)

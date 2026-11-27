@@ -49,6 +49,13 @@ game from the player's disc.
 | `acg1plus-source-<version>.zip` | our code + the framework at its pinned versions + the library sources the build would otherwise download (libwebp etc.). **No game code**: checked with the no-game-code scan before upload |
 | `manifest.json` | version, checksums of every file above and of the compiler packs |
 
+- **Decided 2026-11-26 (0.2.2):** the source reaches the player as this zip, made first by the release
+  workflow (`launcher2/release.sh` → `tools/release/make_source_zip.py`); its address, SHA-256 and size
+  are built into both launchers, so each launcher builds exactly that source. The framework patches are
+  applied inside the zip (`patches/APPLIED.txt`, so CMake needs no git) and the library sources are in
+  `psxrecomp/third_party/` (the framework's own vendoring), so the build runs with `PSX_DEPS_OFFLINE=1`.
+- Disc outside the folder (owner decision 2026-11-26): the launcher **offers to copy it into `Disc/`**
+  (recommended) or uses it where it is.
 - **No git needed** on the player's PC, and no downloads during the build itself (fixes the open problem of
   libwebp being fetched from codeload.github.com at build time). Downloads: the launcher, the compiler pack
   (from the toolchain project, pinned checksum) and the source zip.
@@ -70,7 +77,7 @@ game from the player's disc.
 | Step | Done when |
 |---|---|
 | 0.2.1 | Launcher shell on Windows and Deck: AC-style main menu with every entry (VERSUS and ROGUE ARENA shown as "coming"), controller + mouse/keyboard, 1280x800 and full screen, EXIT. First upload as a test pre-release so the owner can see it. **Built** (`launcher2/`, see its README); not yet run on a real PC or Deck |
-| 0.2.2 | First run: disc finder (Disc/, beside the launcher, USB drives, a controller-friendly file picker), disc check, "Preparing game" screen with plain stage names, progress, time estimate, cancel/resume, log, retry |
+| 0.2.2 | First run: disc finder (Disc/, beside the launcher, USB drives, a controller-friendly file picker), disc check, "Preparing game" screen with plain stage names, progress, time estimate, cancel/resume, log, retry. **Built** (`launcher2/src/firstrun.cpp`, `disc.cpp`, `setup.cpp`; the source zip and `launcher2/release.sh`); whole first run checked on Linux in the sandbox with a test disc; not yet run on Windows or a real Deck |
 | 0.2.3 | START GAME: launches the built game straight into the game (its own menu skipped, `--no-launcher`), memory cards in `Memory Card/`, the launcher returns when the game closes; FULL BOOT toggle |
 | 0.2.4 | UPDATES: releases + hidden TEST channel, rebuild-on-update with the old game kept, launcher self-update |
 | 0.2.5 | SETTINGS: every page from the current menu (DISPLAY, PICTURE, SOUND / SYSTEM, ADVANCED, controller mapping), saved into the game's `settings.toml`; menu sounds read from the disc |
