@@ -122,7 +122,7 @@ sha256_of() {
 # ---- 0. can programs run from this folder? ---------------------------------------
 # Some drives are mounted so that nothing on them may run as a program ("noexec").
 # The compiler and the game both have to, so find out now instead of after a
-# long download. (ROUND1 test #8.)
+# long download. (ROUND1 test #32.)
 step '0/6  Checking that programs can run from this folder'
 PROBE="$TEMP/acg-probe.sh"
 printf '#!/bin/sh\necho ok\n' > "$PROBE" || fail "could not write into $TEMP"

@@ -22,8 +22,8 @@
 # ============================================================================
 set -u
 
-# Which version of the project to build. Change to main once build/deck-0.1 is merged.
-ACG_BRANCH="build/deck-0.1"
+# Which version of the project to build.
+ACG_BRANCH="main"
 ACG_REPO="https://github.com/Hatdagger/ACG1PLUS.git"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

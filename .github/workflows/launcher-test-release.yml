@@ -21,9 +21,9 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Branch to build (for example launcher/0.2)"
+        description: "Branch to build (main, or a pull request branch)"
         required: true
-        default: "launcher/0.2"
+        default: "main"
       tag:
         description: "Tag (leave empty for test-launcher-<launcher2/VERSION>)"
         required: false

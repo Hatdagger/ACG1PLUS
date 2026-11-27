@@ -14,8 +14,8 @@ rem  game is translated from your disc here. See docs/building.md.
 rem ============================================================================
 setlocal EnableExtensions
 
-rem Which version of the project to build. Change to main once build/pp-0.0 is merged.
-set "ACG_BRANCH=build/pp-0.0"
+rem Which version of the project to build.
+set "ACG_BRANCH=main"
 set "ACG_REPO=https://github.com/Hatdagger/ACG1PLUS.git"
 
 rem PortableGit, used only when this PC has no git. Pinned and checked.

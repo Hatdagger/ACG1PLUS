@@ -92,4 +92,4 @@ Start GAME's LOAD GAME / NEW GAME (quick starts) stay ladder 0.3.
 - Windows SmartScreen warns about any new unsigned program ("Windows protected your PC" → More info → Run
   anyway); signing costs money. Some antivirus tools distrust small downloader programs.
 - Text entry with a controller (avoid it where possible; an on-screen keyboard where needed).
-- Deck: launcher on an exFAT USB drive (execute permission, ROUND1 test #8).
+- Deck: launcher on an exFAT USB drive (execute permission, ROUND1 test #32).
