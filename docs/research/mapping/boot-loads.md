@@ -362,12 +362,52 @@ After the fight 0x8003BCD9 is still 1, so the menu reopens on the VS menu.
      back into the garage;
   6. free both buffers, 0x8003BCF4 = 0, music 17, `0x8005C5E4`.
   So on each console the other player's AC sits in the player 1 texture slots. Which side the link engine then
-  treats as "me" is the link engine's business (not read here).
+  treats as "me": **PP-8a** below (round 3).
 - **`0x8005C5E4` = "leave the menu for a fight"** (shared by the three above): kill task groups 2 … 20, a task
   whose first state `0x8005C750` waits for the disc queue and then `0x8005C788` sets **0x8019CEA0 = 1**;
   back-weapon VRAM moves; **StoreImage the hub's two blocks back into 0x80043B80 / 0x80043180** (rects
   0x800B46E8 / 0x800B46E0).
 
+
+### PP-8a. Link engine: which console is "me" (round 3 topic 1b, 2026-11-26)
+
+Static read of the link engine (FDAT 203, disc file `GG/COM/FDAT.T` entry 203, loads at `0x800490D0`), link start
+**`0x8004DB20`** (file +0x4A50). Same logic as MoA's `0x80055578`, read on PP this time. (code)
+
+**In plain words:** the two consoles first agree who is "first" (master) and who is "second" (slave). The master
+plays as **player 1**, the slave as **player 2**, on both screens, so both consoles hold the same AC in the same
+player block. "Me" is a pointer, not always player 1: the game code that means "my AC" reads `link_players[0]`
+(`0x8003BD04`), "the other AC" `link_players[1]` (`0x8003BD08`). 55 reads in the link engine (4 writes, all in the link start).
+
+1. **Rematch:** if `0x8003BCF1` (flow_flag_91) is set, the handshake is skipped and the last role
+   (`link_is_master` `0x8003BCF0`) is used again.
+2. **Handshake** over the exe's link buffers (exe_sys `0x80040F48` +0x3FC receive, +0x408 send, 8 bytes): this
+   side sends `R`, its role at +0x409 (starts as **`S`**) and `C`. If nothing comes back, the role becomes **`M`**
+   and it tries again; after **1,800 VBlanks (30 s)** without an answer it gives up (`0x80088718` = 1, timer start
+   `0x80088714`; both in the link engine's memory). If the answer has the **same** role, both wait a random
+   **3–18 frames** (`rand & 15` + 3, rand `0x8002CC30`) and start again. So the side that hears nothing first
+   becomes the master.
+3. **Master** (`M`): `link_players` = { player 1 block `0x800424E8`, player 2 block `0x80042890` },
+   `link_is_master` = 1.
+   **Slave:** copies its own player 1 block into player 2 (`0x3A8` = 936 bytes), then `link_players` =
+   { player 2, player 1 }, `link_is_master` = 0.
+4. **Exchange** `0x8004D9D0(me + 0x258, other + 0x258, 0x51)`: sends this side's stat block (player block +0x258,
+   MoA +0x250) and receives the other side's into the other block.
+5. Later waits on the cable give up after **300 VBlanks (5 s)** with no answer (`0x8004A178`, `0x8004A218`), with
+   the same flag.
+
+What reads "me" (sample): the time-up result compares my AP with the other's (AC object +0x160 via player block
++0x3A0, `0x8004A84C`), so the result is worked out on each console from its own side; the HUD shows the other AC's
+AP (`0x8004F86C`); an on-screen marker routine is set up for me first, then the other (`0x8005FF78`).
+
+**For Link Versus (0.5, two sessions on one PC):** whichever session answers second becomes player 2 and moves
+its own AC into the player 2 block. A direct start that skips the handshake must set `link_is_master`,
+`link_players` and (on the slave) the block copy itself, and set them opposite on the two sessions.
+
+Open (needs a running link): which controller feeds "me" (not traced: the pad routines are reached through the
+boot program). Also a likely mismatch: the menu (PP-8 step 4–5) puts the *other* AC's textures in the player 1
+texture slots on both consoles and never reads the role, while on the master "the other AC" is player 2. So the
+engine most likely picks texture slots by me / other, not by player block `guess`. Test 31.
 ## PP-9. Back from a fight (menu entry, PP-4 step 8)
 
 - **Mission / test fight (mode 0):** `0x80085854`, `0x800939A0`, `0x800857A4`, `0x800938E8`, credits clamped to
@@ -507,7 +547,7 @@ link launch, VRAM overlap, free space). What is left needs a running game or bel
   0x8003BD10 = 1 and 0x8003BD16 = 1.
 - How much of the menu heap is used at its busiest (PP-13), live only.
 - For other lanes: what the table at 0x800BD6F0 and the value 2 in the shop stock mean, and the mail table
-  0x8018D5D0 (Lane 8); which side the link engine treats as "me" (link work).
+  0x8018D5D0 (Lane 8). ~~Which side the link engine treats as "me"~~: PP-8a (round 3); which pad feeds it is open.
 
 ## Handed over (from Lane 3)
 
