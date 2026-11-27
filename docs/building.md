@@ -37,19 +37,21 @@ and be copied to another device. Nothing is written to AppData, `~/.local`, `~/.
 
     ACG1PLUS\
       ACG1PLUS.exe              starts the Windows game (launcher/acg_starter.c)
-      Build ACG1PLUS.bat        build / update
+      Build ACG1PLUS.bat        build / update (Windows)
+      Start ACG1PLUS.sh         starts the Steam Deck game (scripts/linux/start.sh)
+      Build ACG1PLUS.sh         build / update (Steam Deck / Linux)
       Disc\                     your disc image
       Memory Card\              card1.mcd, card2.mcd: shared by the Windows and the Deck game
       Mods\                     drop folder for mod packages
       RecompData\
         windows\                the Windows game: exe, DLLs, assets, bios, mods, game.toml,
                                 settings.toml, overlay_toolchain\, cache\, keyboard-profiles\
-        linux\                  the Steam Deck game (ladder 0.1), side by side
+        linux\                  the Steam Deck game, side by side
         launcher\               menu-sounds.txt, full-boot.txt, github-token.txt
         build\
           source\               the source, translated game C (generated\) and build files
           tools-windows\        PortableGit (if used) and the compiler pack
-          tools-linux\          the Deck's compiler pack (0.1)
+          tools-linux\          the Deck's compiler pack
           temp\  logs\          temporary files, one log per build
 
 How each thing that used to leave the folder is kept in it:
@@ -82,14 +84,65 @@ Known limits:
 - The updater token in `RecompData\launcher\` travels with the folder: forget it
   (UPDATES > FORGET GITHUB TOKEN) before giving the folder to anyone.
 
-## Steam Deck (ladder 0.1, not done yet)
+## Steam Deck (ladder 0.1)
 
-Same folder, `RecompData\linux\` beside `RecompData\windows\`, with the Linux compiler pack in
-`RecompData\build\tools-linux\` (v1.0.14 carries the SteamOS build sysroot). An exFAT drive has no
-"executable" flag, so the Deck build will be started through `bash` (or a small launcher copied to
-the Deck's own disk); tests for this are in `docs/research/mapping/ROUND1.md` (#32, #33).
+The same folder works on the Deck: the Deck game goes in `RecompData/linux/`, beside the Windows one,
+and both use the same `Disc/`, `Memory Card/` and `Mods/`.
+
+1. Copy `Build ACG1PLUS.sh` into the game folder (an empty folder, or the one Windows already built,
+   for example on a USB drive). Put the disc in `Disc/` as for Windows.
+2. On the Deck, switch to **Desktop Mode**, open the folder in Dolphin, right-click an empty spot and
+   pick **Open Terminal Here** (or open Konsole and `cd` there), then type:
+
+       bash "Build ACG1PLUS.sh"
+
+   Starting it through `bash` works even on drives where files can't be marked as programs.
+   The first build downloads about 830 MB (the compiler pack) plus the source.
+3. Start the game with `bash "Start ACG1PLUS.sh"`.
+4. **For Game Mode:** in Desktop Mode, open Steam → *Games* → *Add a Non-Steam Game to My Library* →
+   *Browse*, pick `Start ACG1PLUS.sh` (set the file type filter to *All Files*), then *Add Selected
+   Programs*. It then shows up in Game Mode under *Non-Steam*.
+
+To update: run `bash "Build ACG1PLUS.sh"` again.
+
+What the build does (`scripts/linux/build.sh`), the same steps as on Windows:
+
+| Step | What |
+|---|---|
+| 0 | checks that programs can run from the folder's drive (some drives are mounted so they can't), before any download |
+| git | SteamOS comes with git; nothing is installed |
+| source | this repo and the framework at their pinned versions |
+| compiler pack | `cmake-clang-v1` **v1.0.14 linux-x64** (pinned checksum): CMake, Ninja, Clang, Python 3.12 and a **build sysroot** (the system headers and libraries a compiler needs, which stock SteamOS leaves out). Unpacked into `RecompData/build/tools-linux/toolchain/` (about 2.6 GB) |
+| disc | finds your `.cue` in `Disc/` (or beside the script) and checks it against `game.toml` |
+| translate | `psxrecomp_cli.py generate`, as on Windows |
+| compile | `psxrecomp_cli.py rebuild`, as on Windows |
+| place | copies the game into `RecompData/linux/` and writes `Start ACG1PLUS.sh` at the top |
+
+Kept in the folder on Linux: the same list as for Windows (the game's own caches through
+`game/acg_portable.c`), and for the build `TMPDIR`, `CCACHE_DIR` and the four `XDG_*` folders (where
+Linux programs keep caches and settings) point inside `RecompData/build/temp/`. The build checks
+afterwards that it made nothing new in `~/.local`, `~/.cache` or `~/.config`.
+
+Not checked yet (ROUND1 tests #32, #33): a real Deck, an exFAT USB drive (file permissions, speed), how
+the game runs and loads from USB. The Linux compiler pack is big: with the Windows pack too, a folder
+holding both builds needs roughly 6-7 GB, most of it compilers (to be measured; trimming the packs is
+a later job).
 
 ## What the sandbox checked (2026-11-26)
+
+**Steam Deck route** (`scripts/linux/build.sh`, run start to finish in a fresh folder, with a test disc
+image rebuilt from the disc packs, `tools/build/packs_to_test_image.py`): the drive check, the Linux
+compiler pack (downloaded, checksum matched, unpacked), the disc check, translation (main program and all
+67 disc code pieces, 93,165 audited variants, every guard matching), compile and link with the pack's
+Clang and SteamOS build files, the folder layout and `Start ACG1PLUS.sh`. The game needs only libraries
+every SteamOS has (OpenGL, the C and C++ runtime; glibc 2.35 at most). Started through `Start ACG1PLUS.sh`
+it booted headless (game entry at frame 141) and ran 200 seconds; no disc code ran in the slow interpreter;
+memory cards landed in `Memory Card/`; nothing was written to the home folder. Folder size after the
+build: 4.2 GB (3.6 GB of it in `RecompData/build/`, mostly the compiler pack). Two optional libraries
+are switched off so every Linux machine builds what a stock Deck builds: OpenSSL and FreeType
+(`build.sh` explains why). The disc code's compiler is always the pack's Clang (a stand-in named `gcc`).
+
+**Windows route**, earlier the same day:
 
 On Linux, from the owner's disc: Generate translated the main program (970 routines) and all 67 pieces
 of disc code in `aot/overlays.json` (93,165 audited variants, every guard matching the disc), every
