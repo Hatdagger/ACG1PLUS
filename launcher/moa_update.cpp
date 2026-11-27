@@ -1,4 +1,4 @@
-/* Armored Core Gen 1: update check and self-update. See moa_update.h.
+/* ACG1PLUS: update check and self-update. See moa_update.h.
  *
  * Network access goes through the system's own curl (Windows 10+ ships one in
  * System32), run without a window; the program carries no TLS code.
@@ -29,6 +29,7 @@
  * with a note to unzip that one by hand.
  */
 #include "moa_update.h"
+#include "acg_portable.h"
 
 #include <algorithm>
 #include <atomic>
@@ -72,7 +73,7 @@ namespace fs = std::filesystem;
 namespace moa_update {
 namespace {
 
-const char* const kRepo = "Hatdagger/Armored-Core-Gen-1";
+const char* const kRepo = "Hatdagger/ACG1PLUS";
 const char* const kWorkflow = "release.yml";
 const char* const kSums = "SHA256SUMS.txt";
 const char* const kDevStamp = "dev-build.txt";   /* beside the game: the Actions run installed */
@@ -225,7 +226,7 @@ int run_curl(const std::vector<std::string>& args) {
 std::vector<std::string> curl_args(const std::string& url, const fs::path& out, bool api,
                                    const fs::path& auth_headers = fs::path(), bool follow = true) {
     std::vector<std::string> a = { follow ? "-fsSL" : "-fsS", "--connect-timeout", "20", "--max-time", "1800",
-                                   "--retry", "2", "-A", "Armored-Core-Gen-1-Updater" };
+                                   "--retry", "2", "-A", "ACG1PLUS-Updater" };
 #ifdef _WIN32
     a.push_back("--ssl-no-revoke");
 #endif
@@ -251,9 +252,13 @@ std::string read_all(const fs::path& p) {
     return std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 }
 
+/* Inside the game folder (RecompData/launcher/update-temp/), not the system's
+ * temp folder: the install is portable and writes nothing outside itself. */
 fs::path scratch_dir() {
     std::error_code ec;
-    fs::path d = fs::temp_directory_path(ec) / "acg-update";
+    const char* dir = acg_portable_launcher_dir();
+    fs::path d = (dir && dir[0]) ? fs::u8path(dir) / "update-temp"
+                                 : fs::temp_directory_path(ec) / "acg-update";
     fs::create_directories(d, ec);
     return d;
 }
@@ -562,20 +567,13 @@ int download(const std::string& url, const fs::path& file, uint64_t total) {
 
 /* ---- the token (dev channel) ------------------------------------------------ */
 
+/* In the game folder, RecompData/launcher/ (game/acg_portable.h): the install
+ * is portable. The token travels with the folder, so it must be forgotten
+ * (UPDATES > FORGET GITHUB TOKEN) before the folder is given to anyone. */
 fs::path token_file() {
-    std::error_code ec;
-    fs::path base;
-#ifdef _WIN32
-    const char* appdata = std::getenv("APPDATA");
-    if (appdata && appdata[0]) base = fs::u8path(appdata);
-#else
-    const char* xdg = std::getenv("XDG_CONFIG_HOME");
-    const char* home = std::getenv("HOME");
-    if (xdg && xdg[0]) base = fs::u8path(xdg);
-    else if (home && home[0]) base = fs::u8path(home) / ".config";
-#endif
-    if (base.empty()) return {};
-    return base / "Armored-Core-Gen-1" / "github-token.txt";
+    const char* dir = acg_portable_launcher_dir();
+    if (!dir || !dir[0]) return {};
+    return fs::u8path(dir) / "github-token.txt";
 }
 
 std::string read_token() {
@@ -861,14 +859,13 @@ void start(void (*job)()) {
 const char* current_version() { return MOA_VERSION; }
 
 bool supported(std::string* why) {
-    const char* reason = nullptr;
-#ifdef _WIN32
-    std::error_code ec;
-    if (game_root().empty() || !fs::exists(game_root() / "game.toml", ec))
-        reason = "UPDATING NEEDS THE GAME'S OWN FOLDER (GAME.TOML BESIDE THE PROGRAM)";
-#else
-    reason = "UPDATING IS ONLY AVAILABLE ON WINDOWS FOR NOW";
-#endif
+    /* Since 2026-11-26 no download holds the game: it is built on the player's
+     * PC from the player's own disc (docs/no-game-code.md). An update is a
+     * rebuild, never a zip to unpack over the folder. Rebuild-on-update in the
+     * launcher comes with ladder step 0.2; until then nothing is applied here. */
+    const char* reason =
+        "THIS GAME IS BUILT ON YOUR PC FROM YOUR DISC. TO UPDATE IT, RUN "
+        "\"BUILD ACG1PLUS.BAT\" IN THE GAME FOLDER.";
     if (why) *why = reason ? reason : "";
     return reason == nullptr;
 }
@@ -922,7 +919,7 @@ bool restart() {
     }
     std::error_code ec;
     const fs::path root = install_root();
-    const fs::path starter = root / fs::path(L"Armored Core Gen 1.exe");
+    const fs::path starter = root / fs::path(L"ACG1PLUS.exe");
     bool ok = nested_install() && fs::exists(starter, ec);
     if (ok) {
         const std::wstring cmd = L"\"" + starter.wstring() + L"\" --after-update " +

@@ -1,40 +1,40 @@
 {
   "format_version": 1,
   "game": {
-    "name": "Armored Core Gen 1",
-    "id": "SLUS-01030",
-    "boot_exe": "SLUS_010.30"
+    "name": "ACG1PLUS",
+    "id": "SLUS-00670",
+    "boot_exe": "SLUS_006.70"
   },
   "marketing": {
-    "description": "Armored Core: Master of Arena, natively recompiled",
-    "publisher": "FromSoftware / Agetec",
-    "year": "2000",
+    "description": "Armored Core: Project Phantasma, natively recompiled",
+    "publisher": "FromSoftware / ASCII Entertainment",
+    "year": "1998",
     "region": "USA",
     "players": 2
   },
   "rom_identity": {
-    "cue_name": "Armored Core - Master of Arena (USA) (Disc 1).cue",
-    "bin_name": "Armored Core - Master of Arena (USA) (Disc 1).bin",
+    "cue_name": "Armored Core - Project Phantasma (USA).cue",
+    "bin_name": "Armored Core - Project Phantasma (USA).bin",
     "track_counts": [
       1
     ],
     "require_cue": true,
     "data_track": {
-      "size": 700507920,
-      "md5": "4d5774c4baa65d6eaf281db59ee8e945",
-      "sha1": "96f5fcc9513ca47b19fd44bd72ee51c65a55cd43",
-      "crc32": "446ae06c"
+      "size": 454072416,
+      "md5": "91badb09339ee7e3b6d235609e8da1be",
+      "sha1": "0d3b5bbf3f860fad1482c242566b2ba890f314e2",
+      "crc32": "aaa1ef9c"
     },
-    "disc_fp": "cc8bb1835c4010be72b82914edccb74b3413f94c523475e7aebaddd0149fcb02"
+    "disc_fp": "1b8cdff66b85737755b650a44983af575a6768f21c91562389173b80bb11deb8"
   },
   "exe": {
     "load_address": "0x80011000",
-    "entry_pc": "0x80011D84",
-    "text_size": "0x0002E000",
+    "entry_pc": "0x80011E94",
+    "text_size": "0x0002B000",
     "stack_base": "0x801FFFF0"
   },
   "seeds": {
-    "count": 374,
+    "count": 383,
     "source": "boot_exe_jal"
   },
   "warnings": [

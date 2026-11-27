@@ -9,47 +9,51 @@ if(NOT EXISTS "${PSXRECOMP_ROOT}/runtime/runtime.cmake")
         "If psxrecomp/ is not a submodule, set -DPSXRECOMP_ROOT=<path-to-psxrecomp>.")
 endif()
 
-project(Armored_Core_Gen_1 LANGUAGES C CXX)
+project(ACG1PLUS LANGUAGES C CXX)
 
 # --- Opt-in product surfaces (OFF by default in the framework) -------------
-# Scaffold prompts / flags fill these. Without recomp-ui, PSX_RECOMP_UI is OFF.
-# The wizard (WIZARD_CMAKE_BLOCK / ENABLE_SETUP_WIZARD) is the first-run disc
-# picker; releases are compiled from the committed generated/ C, so it never
-# needs to generate or rebuild anything on a player's machine.
 # recomp-ui submodule present (PSX_RECOMP_UI defaults ON).
 if(EXISTS "${PSXRECOMP_ROOT}/lib/recomp-net/CMakeLists.txt")
     set(PSX_NETPLAY ON CACHE BOOL
         "Link recomp-net delay-sync (opt-in; needs recomp-net)" FORCE)
 endif()
-set(PSX_SETUP_WIZARD ON CACHE BOOL
+# The framework's first-run wizard (Generate & rebuild inside the game) is OFF:
+# its toolchain step installs the compiler under AppData and adds it to the
+# user's PATH, and this game must stay in one portable folder. The game is
+# built by scripts/windows/build.ps1 instead (docs/building.md); our own
+# "preparing game" screen comes at ladder step 0.2.
+set(PSX_SETUP_WIZARD OFF CACHE BOOL
     "Advertise first-run setup wizard + Generate & rebuild in recomp-ui" FORCE)
 
-# --- Launcher front end (launcher/) ------------------------------------------
-# recomp-ui has no hook for a title's own menu, so a small patch adds one
-# (patches/recomp-ui/). It is applied to the submodule's working tree here and
-# left alone when already applied; a recomp-ui bump that breaks it stops the
-# configure so the patch gets refreshed.
-set(ACG_RECOMP_UI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/recomp-ui")
-file(GLOB ACG_RECOMP_UI_PATCHES "${CMAKE_CURRENT_SOURCE_DIR}/patches/recomp-ui/*.patch")
-list(SORT ACG_RECOMP_UI_PATCHES)
+# --- Small patches to the two framework submodules ----------------------------
+# patches/recomp-ui/: a hook for this title's own launcher menu.
+# patches/psxrecomp/: PSX_MEDIA_CACHE_DIR, so the media import cache can stay in
+# the game folder (portable install). Each patch is applied to the submodule's
+# working tree here and left alone when already applied; a framework bump that
+# breaks one stops the configure so it gets refreshed.
 find_package(Git QUIET)
-if(ACG_RECOMP_UI_PATCHES AND NOT GIT_FOUND)
-    message(FATAL_ERROR "git is needed to apply the recomp-ui patches in patches/recomp-ui")
-endif()
-foreach(_acg_patch IN LISTS ACG_RECOMP_UI_PATCHES)
-    execute_process(COMMAND "${GIT_EXECUTABLE}" apply --reverse --check "${_acg_patch}"
-        WORKING_DIRECTORY "${ACG_RECOMP_UI_DIR}" RESULT_VARIABLE _acg_applied
-        OUTPUT_QUIET ERROR_QUIET)
-    if(NOT _acg_applied EQUAL 0)
-        execute_process(COMMAND "${GIT_EXECUTABLE}" apply "${_acg_patch}"
-            WORKING_DIRECTORY "${ACG_RECOMP_UI_DIR}" RESULT_VARIABLE _acg_apply
-            ERROR_VARIABLE _acg_apply_err)
-        if(NOT _acg_apply EQUAL 0)
-            message(FATAL_ERROR "recomp-ui patch does not apply: ${_acg_patch}\n${_acg_apply_err}")
-        endif()
-        message(STATUS "Applied recomp-ui patch ${_acg_patch}")
+foreach(_acg_sub recomp-ui psxrecomp)
+    file(GLOB _acg_patches "${CMAKE_CURRENT_SOURCE_DIR}/patches/${_acg_sub}/*.patch")
+    list(SORT _acg_patches)
+    if(_acg_patches AND NOT GIT_FOUND)
+        message(FATAL_ERROR "git is needed to apply the patches in patches/${_acg_sub}")
     endif()
+    foreach(_acg_patch IN LISTS _acg_patches)
+        execute_process(COMMAND "${GIT_EXECUTABLE}" apply --reverse --check "${_acg_patch}"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${_acg_sub}" RESULT_VARIABLE _acg_applied
+            OUTPUT_QUIET ERROR_QUIET)
+        if(NOT _acg_applied EQUAL 0)
+            execute_process(COMMAND "${GIT_EXECUTABLE}" apply "${_acg_patch}"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${_acg_sub}" RESULT_VARIABLE _acg_apply
+                ERROR_VARIABLE _acg_apply_err)
+            if(NOT _acg_apply EQUAL 0)
+                message(FATAL_ERROR "${_acg_sub} patch does not apply: ${_acg_patch}\n${_acg_apply_err}")
+            endif()
+            message(STATUS "Applied ${_acg_sub} patch ${_acg_patch}")
+        endif()
+    endforeach()
 endforeach()
+set(ACG_RECOMP_UI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/recomp-ui")
 
 include("${PSXRECOMP_ROOT}/runtime/runtime.cmake")
 
@@ -65,65 +69,39 @@ if(NOT IS_DIRECTORY "${PSX_PRELOADED_MODS}")
     set(PSX_PRELOADED_MODS "NONE")
 endif()
 
-# --- Which disc this build is for --------------------------------------------
-# Each disc version is its own program (its code differs), built from its own
-# committed game C:
-#   US  Master of Arena USA disc 1, SLUS-01030: game.toml, generated/
-#   JP  Master of Arena Japan disc 1, SLPS-01855: game-jp.toml, generated-jp/
-# The Windows release ships both: the US program in RecompData/ and the
-# Japanese one in RecompData/Japan/, each beside its own game.toml. The
-# framework's regional switch (regional/regional-launch.toml, psxrecomp
-# runtime/include/regional_launch.h) starts the program that matches the disc.
-set(ACG_REGION "US" CACHE STRING "Disc this build is for: US (SLUS-01030) or JP (SLPS-01855)")
-set_property(CACHE ACG_REGION PROPERTY STRINGS US JP)
-if(ACG_REGION STREQUAL "JP")
-    set(ACG_GEN_MARKER "generated-jp/SLPS_018.55_dispatch.c")
-    set(ACG_GEN_FULL_GLOB "generated-jp/SLPS_018.55_full_*.c")
-    set(ACG_GAME_TOML "game-jp.toml")
-    set(ACG_REGION_JP 1)
-elseif(ACG_REGION STREQUAL "US")
-    set(ACG_GEN_MARKER "generated/SLUS_010.30_dispatch.c")
-    set(ACG_GEN_FULL_GLOB "generated/SLUS_010.30_full_*.c")
-    set(ACG_GAME_TOML "game.toml")
-    set(ACG_REGION_JP 0)
-else()
-    message(FATAL_ERROR "ACG_REGION must be US or JP, not '${ACG_REGION}'")
-endif()
-message(STATUS "Armored Core Gen 1: building the ${ACG_REGION} disc program (${ACG_GAME_TOML})")
-
+# --- The game ---------------------------------------------------------------
+# Armored Core: Project Phantasma, USA (SLUS-00670), the only disc this project
+# builds since 2026-11-26 (the Master of Arena configs are in reference/moa-build/).
+# generated/ holds the game C that psxrecomp_cli.py generate writes from the
+# player's own disc, on the player's own PC: the main program
+# (SLUS_006.70_*) and, from aot/overlays.json, the code the game loads from the
+# disc while playing (overlays_static*.c). Never committed (.gitignore).
 psxrecomp_add_game_runtime(psx-runtime
     PRELOADED_MODS_DIR "${PSX_PRELOADED_MODS}"
     ENABLE_NETPLAY_IF_PRESENT
     NETPLAY_LOBBY_URL "ws://netplay.retcomm.net:8765"
-    ENABLE_SETUP_WIZARD
-    WINDOW_TITLE "Armored Core: Master of Arena"
+    WINDOW_TITLE "Armored Core: Project Phantasma"
+    EXE_NAME "ACG1PLUS_Game"
     DEFAULT_GAME_CONFIG_PATH "game.toml"
     MAX_PLAYERS 2
-    # LAUNCHER_BOXART "${CMAKE_CURRENT_SOURCE_DIR}/launcher_assets/img/boxart.tga"
     APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/psxrecomp.ico"
-    # Committed game C (psxrecomp_cli.py generate; git add generated). Release
-    # CI configures with -DPSXRECOMP_REQUIRE_GAME_C=ON so a checkout without
-    # it fails instead of building a setup host.
-    GEN_MARKER "${ACG_GEN_MARKER}"
-    GEN_FULL_GLOB "${ACG_GEN_FULL_GLOB}"
+    # Before the list arguments below (GEN_FULL_GLOB, CODEGEN_SETUP_SOURCES),
+    # which would swallow it.
+    GAME_OVERLAY_STATIC_C "${CMAKE_CURRENT_SOURCE_DIR}/generated/overlays_static.c"
+    GEN_MARKER "generated/SLUS_006.70_dispatch.c"
+    GEN_FULL_GLOB "generated/SLUS_006.70_full_*.c"
     CODEGEN_SETUP_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/codegen_setup.c"
 )
 
 # Stage runtime configs next to the exe for direct build/ launches. Only copy
 # files that exist — never fail POST_BUILD when game_options.toml is absent.
-# The JP program's game-jp.toml is staged as game.toml: each program reads the
-# game.toml beside it (and the packager ships that staged copy).
 foreach(_PSX_RUNTIME_CONFIG game.toml game_options.toml)
-    set(_acg_config_src "${_PSX_RUNTIME_CONFIG}")
-    if(_PSX_RUNTIME_CONFIG STREQUAL "game.toml")
-        set(_acg_config_src "${ACG_GAME_TOML}")
-    endif()
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_acg_config_src}")
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_PSX_RUNTIME_CONFIG}")
         add_custom_command(TARGET psx-runtime POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${CMAKE_CURRENT_SOURCE_DIR}/${_acg_config_src}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/${_PSX_RUNTIME_CONFIG}"
                 "$<TARGET_FILE_DIR:psx-runtime>/${_PSX_RUNTIME_CONFIG}"
-            COMMENT "Staging ${_acg_config_src} as ${_PSX_RUNTIME_CONFIG}"
+            COMMENT "Staging ${_PSX_RUNTIME_CONFIG}"
             VERBATIM)
     endif()
 endforeach()
@@ -134,18 +112,14 @@ endforeach()
 target_sources(psx-runtime PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/launcher/moa_update.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/launcher/moa_ui_sound.cpp")
-# Game-side code: the START GAME choices (game/acg_quick_start.c, hooked with a
-# function override on the title open; the launcher sets the choice through
-# game/acg_start.h). Its addresses are the US disc's; the JP program gets a
-# stand-in that always boots normally (game/acg_start_none.c) until they are
-# found on the Japanese disc.
-if(ACG_REGION STREQUAL "JP")
-    target_sources(psx-runtime PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/game/acg_start_none.c")
-else()
-    target_sources(psx-runtime PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/game/acg_quick_start.c")
-endif()
+# Game-side code: the START GAME choices. Phantasma has no quick-start hooks
+# yet (ladder 0.3), so game/acg_start_none.c makes every start a normal boot.
+# The Master of Arena version is kept for reference in reference/moa-build/.
+# game/acg_portable.c keeps every cache and launcher file inside the game
+# folder (portable install; runs before the game's main()).
+target_sources(psx-runtime PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/game/acg_start_none.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/game/acg_portable.c")
 # Game-side code: Esc during play goes back to the launcher (game/acg_escape.c,
 # registered as the title's in-game menu provider).
 target_sources(psx-runtime PRIVATE
@@ -154,11 +128,8 @@ target_include_directories(psx-runtime PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/game"
     "${CMAKE_CURRENT_SOURCE_DIR}/launcher"
     "${PSXRECOMP_ROOT}/runtime/include")
-set_property(SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/codegen_setup.c"
-    APPEND PROPERTY COMPILE_DEFINITIONS "ACG_REGION_JP=${ACG_REGION_JP}")
 set_property(SOURCE "${ACG_RECOMP_UI_DIR}/src/common/backends/imgui/launcher_imgui.cpp"
-    APPEND PROPERTY COMPILE_DEFINITIONS RECOMP_LAUNCHER_MOA_MENU=1
-        "ACG_REGION_JP=${ACG_REGION_JP}")
+    APPEND PROPERTY COMPILE_DEFINITIONS RECOMP_LAUNCHER_MOA_MENU=1)
 if(PSX_RELEASE_CHANNEL STREQUAL "public")
     set(_acg_dev_updates 0)
 else()
@@ -168,15 +139,14 @@ set_property(SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/launcher/moa_update.cpp"
     APPEND PROPERTY COMPILE_DEFINITIONS
         "MOA_VERSION=\"${PSX_GAME_VERSION}\"" "MOA_DEV_UPDATES=${_acg_dev_updates}")
 
-# Windows: "Armored Core Gen 1.exe", the small program the player starts. The
-# release keeps the game in RecompData/ beside it, with Memory Card/ and Mods/
-# next to them (launcher/acg_starter.c; scripts/package_prebuilt_release.sh
-# lays the folder out). Built with the game so CI needs no extra target.
-# Only the US build makes it; the JP program is reached through the US one.
-if(WIN32 AND ACG_REGION STREQUAL "US")
+# Windows: "ACG1PLUS.exe", the small program the player starts. It sits at the
+# top of the portable folder and starts RecompData/windows/ACG1PLUS_Game.exe
+# (launcher/acg_starter.c; scripts/windows/build.ps1 lays the folder out,
+# docs/building.md). Built with the game so no extra target is needed.
+if(WIN32)
     add_executable(acg-starter WIN32 "${CMAKE_CURRENT_SOURCE_DIR}/launcher/acg_starter.c")
     set_target_properties(acg-starter PROPERTIES
-        OUTPUT_NAME "Armored Core Gen 1"
+        OUTPUT_NAME "ACG1PLUS"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/starter")
     target_compile_definitions(acg-starter PRIVATE
         "ACG_GAME_EXE=L\"$<TARGET_FILE_NAME:psx-runtime>\"")

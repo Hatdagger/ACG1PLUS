@@ -1,0 +1,1580 @@
+{
+  "schema": "psxrecomp AOT methods v1",
+  "game_id": "SLUS-00670",
+  "_comment": "Project Phantasma USA. Made by tools/build/make_aot_profile.py from the owner's disc (facts only: offsets, sizes, load addresses, entries, checksums). Generate compiles these into generated/overlays_static*.c on the player's PC; never commit that output. Left out: FDAT 107, 112, 132, 137, 157, 187, 192. Their handler table and calls point outside the arena stage slot (static guess: they load near 0x801C9DD8; 192 holds almost no code), so they are compiled while playing instead, as before. Handed to the mapping (stages topic).",
+  "disc_hashes": {
+    "md5": "91badb09339ee7e3b6d235609e8da1be"
+  },
+  "static_output": "generated/overlays_static.c",
+  "strict_bounds": true,
+  "cross_image_call_roots": true,
+  "expected_records": 67,
+  "images": [
+    {
+      "note": "FDAT 0: mission 0 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x800",
+          "size": "0xc000",
+          "load_addr": "0x80097a38",
+          "sha256": "c6dfdfa31c2da697de8b92dba7ba323fcf7034376258b12f3b166fbbc66b20bf"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 5: mission 1 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x97000",
+          "size": "0xa000",
+          "load_addr": "0x80097a38",
+          "sha256": "6790e1b382b9fa439a57c01f8aba348469b09e4ec31bcd6b6c700d2729e08e8b"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 10: mission 2 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x134000",
+          "size": "0x8800",
+          "load_addr": "0x80097a38",
+          "sha256": "b4deee8ee8607bfa982b94511f88b51cf0aeb3e4e3fc80edc005cd5e28509b14"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 15: mission 3 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x1e9800",
+          "size": "0xa800",
+          "load_addr": "0x80097a38",
+          "sha256": "751617f10202f7226ca256f17c94e8c8229d6a9beda48af2d0e98ca46767e5e9"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 20: mission 4 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x2c5000",
+          "size": "0xb000",
+          "load_addr": "0x80097a38",
+          "sha256": "b0675ff490af4655c5bc0281dfd8b4256d055bbf3c3b5ccea614c60322914486"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 25: mission 5 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x362000",
+          "size": "0x8000",
+          "load_addr": "0x80097a38",
+          "sha256": "58924c5945566e741e989756789aa33e14efa0df30d07463caafa24dcdd4495a"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 30: mission 6 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x3f9000",
+          "size": "0xd800",
+          "load_addr": "0x80097a38",
+          "sha256": "380b9b7c763f7166469879f6d377a1a81e184170122983b11c44e63434b47390"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 35: mission 7 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x4c9800",
+          "size": "0xc000",
+          "load_addr": "0x80097a38",
+          "sha256": "1ed4da80070924f548f3d79e5ee4614561e7ee1986afb2144785ce0456217834"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 40: mission 8 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x5b0800",
+          "size": "0xc800",
+          "load_addr": "0x80097a38",
+          "sha256": "6d11d136d207ef4293c43cc60907c1f828a1f9b8c85b225ff6fb73e220dee0b4"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 45: mission 9 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x62f800",
+          "size": "0xb800",
+          "load_addr": "0x80097a38",
+          "sha256": "5cc687d2403f056b7069b8e3d238d4f5706afc8719c2c96b585eb86f6307ca31"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 50: mission 10 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x705800",
+          "size": "0x9000",
+          "load_addr": "0x80097a38",
+          "sha256": "309e504cdbdbfd2d76499242b2a37dbabcfa1af24742cab12cb09e9f163c8f32"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 55: mission 11 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x768800",
+          "size": "0x5000",
+          "load_addr": "0x80097a38",
+          "sha256": "95438d965a54e3ded9f62856692962988d32f6ca3d23527b5110676bc1ef8879"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 60: mission 12 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x7f3800",
+          "size": "0xa800",
+          "load_addr": "0x80097a38",
+          "sha256": "2ef256b0d1a7aef0bc3d4a7af7229ffbfe2fbf8071456c840c3337f8c99ffc22"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 65: mission 13 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x8ac000",
+          "size": "0xd000",
+          "load_addr": "0x80097a38",
+          "sha256": "80b4bf2c8ebb3ca08b6cb776f6583dac5ec7c4832a7a56f41c8afb4cd1793b88"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 70: mission 14 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x939800",
+          "size": "0xb000",
+          "load_addr": "0x80097a38",
+          "sha256": "b72a94f8800d777fa9347e1a9bcbb3edcb5de83e881e56875f6b709f15bbca77"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 75: mission 15 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x9f4000",
+          "size": "0xa800",
+          "load_addr": "0x80097a38",
+          "sha256": "17a82cad0b4e8a51c781f90d7cb573671d18f89c72f671d7ed1081ffff158273"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 80: mission 16 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xaaa800",
+          "size": "0x4800",
+          "load_addr": "0x80097a38",
+          "sha256": "71621efa32d3300fc3aade36feff367e766c3f1e04fdf0bd7989e11dfc64adb1"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 95: mission 19 code",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xb0e000",
+          "size": "0x7000",
+          "load_addr": "0x80097a38",
+          "sha256": "e6501d9d1356fa387db9b2079f646b13c3797a2b7bec8121cfb1100455788110"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 100: stage 20 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xb60800",
+          "size": "0x1800",
+          "load_addr": "0x800904b0",
+          "sha256": "333f59d013a97c5963dc17b582b7d1c87c9645e4bff0388ac9fde59fcc96d9ab"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 101: stage 20 code for the VS engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xb62000",
+          "size": "0x1800",
+          "load_addr": "0x8008f5d0",
+          "sha256": "b727258957be534ee2b83b0fcb5a540b1e6ef3a32514080fc2591aeecdb30c5b"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 102: stage 20 code for the arena engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xb63800",
+          "size": "0x1800",
+          "load_addr": "0x800956f0",
+          "sha256": "7cb02f876834329de677f2a005e04765b5929ec57c05cea738d1cf1dcffe655d"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 103: stage 20 code for the VS replay engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xb65000",
+          "size": "0x1800",
+          "load_addr": "0x8008f828",
+          "sha256": "a69b2168e326bc8d3c0b926eda2ebb7a6b62a9ffea3121cc11870240fc5bc92b"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 105: stage 21 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xb85800",
+          "size": "0x1800",
+          "load_addr": "0x800904b0",
+          "sha256": "54abf1b6132b10c97bdb36fe1a6ee005fd3285c2077dd4434f9db793b5a422e6"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 106: stage 21 code for the VS engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xb87000",
+          "size": "0x1800",
+          "load_addr": "0x8008f5d0",
+          "sha256": "26b039880df046f3afb74751e322f796cb934337e8bf4576d6fcca3f1904bbf2"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 108: stage 21 code for the VS replay engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xb8a000",
+          "size": "0x1800",
+          "load_addr": "0x8008f828",
+          "sha256": "e3a1806fa16ab5fe7c833b80df9785cf474ce3c300553db31f06ce547826444f"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 110: stage 22 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xbd4000",
+          "size": "0x1800",
+          "load_addr": "0x800904b0",
+          "sha256": "f9c7843e2e4631a65df8d1e7b3fa3bb57f5181dceb848e39064aca5111045e31"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 111: stage 22 code for the VS engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xbd5800",
+          "size": "0x1800",
+          "load_addr": "0x8008f5d0",
+          "sha256": "ffc9bb6a279877ede6936cb5571f78ee3ccadedba6bc58e828f218f60397dd4f"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 113: stage 22 code for the VS replay engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xbd8800",
+          "size": "0x1800",
+          "load_addr": "0x8008f828",
+          "sha256": "1770d594c7c9a388bb67811d8ae53440d3d94fe47856ffeae985790adf8beeb5"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 115: stage 23 code for the link engine; same bytes as FDAT 120: stage 24 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xbf5000",
+          "size": "0x1000",
+          "load_addr": "0x800904b0",
+          "sha256": "72b1818fc57a4a0907f201976cd530f56f3039dc734332285f28a50a3a661b95"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 116: stage 23 code for the VS engine; same bytes as FDAT 121: stage 24 code for the VS engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xbf6000",
+          "size": "0x1000",
+          "load_addr": "0x8008f5d0",
+          "sha256": "c1115206ae65dd42b942c530173a0d0d8e1abc8bb110c4a2e3338b13aaf8a969"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 117: stage 23 code for the arena engine; same bytes as FDAT 122: stage 24 code for the arena engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xbf7000",
+          "size": "0x1000",
+          "load_addr": "0x800956f0",
+          "sha256": "f895e1d5f90080ddf9ac0da60af7eed9485dbd0e0aaee6dff582632ed64edd2e"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 118: stage 23 code for the VS replay engine; same bytes as FDAT 123: stage 24 code for the VS replay engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xbf8000",
+          "size": "0x1000",
+          "load_addr": "0x8008f828",
+          "sha256": "b95f504c08abcca6592b8bd3eb4d40876256bd864663d477558519dbd17faac3"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 125: stage 25 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xc4a800",
+          "size": "0x1000",
+          "load_addr": "0x800904b0",
+          "sha256": "7527cb43181a2fc9333b5990f7130666517ae7d7fc0564f066d7e3b0624e3da5"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 126: stage 25 code for the VS engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xc4b800",
+          "size": "0x1000",
+          "load_addr": "0x8008f5d0",
+          "sha256": "ed22710fcba329505029c43a587c18ba6943d5bc581cfd0da2845e7bd92377c1"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 127: stage 25 code for the arena engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xc4c800",
+          "size": "0x1000",
+          "load_addr": "0x800956f0",
+          "sha256": "aac0b6df986ce3e029cd457f694ad2b12cf49dabf48c00b5c494865fa808f1c3"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 128: stage 25 code for the VS replay engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xc4d800",
+          "size": "0x1000",
+          "load_addr": "0x8008f828",
+          "sha256": "73b366c2394aeef9021412a1b3275c834c0b4e3f217921b2c1ca7fa4c84d0b17"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 130: stage 26 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xc7e000",
+          "size": "0x1800",
+          "load_addr": "0x800904b0",
+          "sha256": "19189d554b1e3ed82305dd07862353fe812c8d5d814e4ada6f50d224b55f6640"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 131: stage 26 code for the VS engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xc7f800",
+          "size": "0x1800",
+          "load_addr": "0x8008f5d0",
+          "sha256": "26291d644c37408aba75a4a2fb89c00e444a2c2d94e684e939ff414bc009831e"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 133: stage 26 code for the VS replay engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xc82000",
+          "size": "0x1800",
+          "load_addr": "0x8008f828",
+          "sha256": "79a48855ab03c505184cc28a6647b78e129a51a062008150070e322b1424dcde"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 135: stage 27 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xcc6800",
+          "size": "0x1800",
+          "load_addr": "0x800904b0",
+          "sha256": "21200fd8aa12a756fff35263233046a21adfd92bdf20cd56268ea4c16c924d7f"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 136: stage 27 code for the VS engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xcc8000",
+          "size": "0x1800",
+          "load_addr": "0x8008f5d0",
+          "sha256": "a3c4fc193d00ac5e1d7be82879064cb38df7e0898f5135ca3f16aef1c37b1b9b"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 138: stage 27 code for the VS replay engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xccb000",
+          "size": "0x1800",
+          "load_addr": "0x8008f828",
+          "sha256": "df6c936cc7b7476852a461543e4026b3dda5cc609047e79a9f9da4590f05319f"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 140: stage 28 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xd0c800",
+          "size": "0x1800",
+          "load_addr": "0x800904b0",
+          "sha256": "351d1db73916516b8ed19ffce52c309072243a5e612fce797e2d56a938aad433"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 141: stage 28 code for the VS engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xd0e000",
+          "size": "0x1800",
+          "load_addr": "0x8008f5d0",
+          "sha256": "4a60139899b52c745994ee9791f09c72bbba868e72c7a59b8ad9827ab21c7953"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 142: stage 28 code for the arena engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xd0f800",
+          "size": "0x1800",
+          "load_addr": "0x800956f0",
+          "sha256": "a5aff8f0f6beb4ecb6923e9227c6956926f57664522143590850ccfa0e6a9c39"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 143: stage 28 code for the VS replay engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xd11000",
+          "size": "0x1800",
+          "load_addr": "0x8008f828",
+          "sha256": "997915356dbdf8c56b3f7282eec2add94fcee8f3be295a0860642a0678d89a8a"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 145: stage 29 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xd5f000",
+          "size": "0x1800",
+          "load_addr": "0x800904b0",
+          "sha256": "14285f8cc3f14663c48869ba6afeffd43816ce1e3bca6d60645d2b69006766a2"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 146: stage 29 code for the VS engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xd60800",
+          "size": "0x1800",
+          "load_addr": "0x8008f5d0",
+          "sha256": "a9ab985a9534a283df594efc2e70ccf13e5709487d410e841d05bb72606b2a88"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 147: stage 29 code for the arena engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xd62000",
+          "size": "0x1800",
+          "load_addr": "0x800956f0",
+          "sha256": "cfac2ab30c92989e848cf1a03e90f4c58799ef45cb7d36bd55c0daa4b3ee9fd8"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 148: stage 29 code for the VS replay engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xd63800",
+          "size": "0x1800",
+          "load_addr": "0x8008f828",
+          "sha256": "b727c55422b85b69e7a36e1c75b12374b8365fd3e5e9a9f0da08ce63e9b2fb3d"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 150: stage 30 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xd99000",
+          "size": "0x1000",
+          "load_addr": "0x800904b0",
+          "sha256": "c56064c6eeec5ccf8b0640bf6887ad545fb0c9bf9f68d3a2538850e5dcd5b443"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 152: stage 30 code for the arena engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xd9a000",
+          "size": "0x1000",
+          "load_addr": "0x800956f0",
+          "sha256": "d34c07c72e4b33a53b20f972d0b288a46f1b247151c0e8aa133c4a8b5133851e"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 155: stage 31 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xdd1000",
+          "size": "0x1800",
+          "load_addr": "0x800904b0",
+          "sha256": "c78c6151ceed39482c817b1aacd4be5ee3d05a9f81d579bde8f56ab05f7449d4"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 160: stage 32 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xe1c000",
+          "size": "0x1000",
+          "load_addr": "0x800904b0",
+          "sha256": "1e877cdbb87d365bf7bf6cfe35f781faa0917c409f00cf574e4abd9705df0353"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 162: stage 32 code for the arena engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xe1d000",
+          "size": "0x1000",
+          "load_addr": "0x800956f0",
+          "sha256": "28f8ad1b0424c19e1c1cbfc39afca0f0634bf74dc3d557c7e6f36b23a2e6d8c7"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 165: stage 33 code for the link engine; same bytes as FDAT 175: stage 35 code for the link engine; same bytes as FDAT 180: stage 36 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xe51000",
+          "size": "0x1000",
+          "load_addr": "0x800904b0",
+          "sha256": "01045dfde0ba1561d7caa5214f2b07cbbbf597ec20fd4f5c9d159ca29a23d2a1"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 167: stage 33 code for the arena engine; same bytes as FDAT 177: stage 35 code for the arena engine; same bytes as FDAT 182: stage 36 code for the arena engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xe52000",
+          "size": "0x1000",
+          "load_addr": "0x800956f0",
+          "sha256": "91c700c9bddde51840a1b33cbce7cd970bbd6213cd676fc2dff2948fb45ffb1e"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 170: stage 34 code for the link engine; same bytes as FDAT 195: stage 39 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xe7f000",
+          "size": "0x1000",
+          "load_addr": "0x800904b0",
+          "sha256": "a08ab68c86a33e21de85cb33a4f3d60f577c5b418a7e67b14d205fde23b0fa5f"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 172: stage 34 code for the arena engine; same bytes as FDAT 197: stage 39 code for the arena engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xe80000",
+          "size": "0x1000",
+          "load_addr": "0x800956f0",
+          "sha256": "ea7b5b6067cb9cfc13f79a51f6a09c2cc137d48850de86a4b0d86a9ef89f218c"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 185: stage 37 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xf66800",
+          "size": "0x1800",
+          "load_addr": "0x800904b0",
+          "sha256": "dfe334f2dbf095e416d26e363350b07041de987e1cce9d7a2d6d8aaa0e6ab73d"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 190: stage 38 code for the link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0xfe8000",
+          "size": "0x1000",
+          "load_addr": "0x800904b0",
+          "sha256": "e41b134111b03bf829d88b989068f64b280b4d600ec1a6f67b53d39673e3cd71"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28
+      ]
+    },
+    {
+      "note": "FDAT 201: menu (hub, garage, shop, VS menu)",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x10b0800",
+          "size": "0x86000",
+          "load_addr": "0x800490d0",
+          "sha256": "68a2d6e95b17aec3f9ba7c7f386d9d2f9994fa6ed40ad39ce2904f3b988ef409"
+        }
+      ],
+      "allow_missing": true,
+      "entries": [
+        "0x80098ef0"
+      ]
+    },
+    {
+      "note": "FDAT 202: missions engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x1136800",
+          "size": "0x47000",
+          "load_addr": "0x800490d0",
+          "sha256": "fbcdcaa9640a72f9a46a0ef0fa954e283c29248d8277069c26d67c5a8bd81bba"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        4
+      ]
+    },
+    {
+      "note": "FDAT 203: link engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x117d800",
+          "size": "0x43000",
+          "load_addr": "0x800490d0",
+          "sha256": "c26bcb4eedc0a16c6951bfffdd8ea251f5e176f844fa69e3ebaacfeaae2dac6b"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        4
+      ]
+    },
+    {
+      "note": "FDAT 204: VS engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x11c0800",
+          "size": "0x42000",
+          "load_addr": "0x800490d0",
+          "sha256": "2bce3c3dcea54c7403c7b72cd1394a9a44f0c6808c4d70eb509616fbe7e07896"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        4
+      ]
+    },
+    {
+      "note": "FDAT 205: arena engine",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x1202800",
+          "size": "0x48000",
+          "load_addr": "0x800490d0",
+          "sha256": "6db624fbcea1c8ba1140552737bbfd2f52f34510e141c2f155477f4cd8840234"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        4
+      ]
+    },
+    {
+      "note": "FDAT 206: VS replay",
+      "method": "fixed_address_extents",
+      "extents": [
+        {
+          "file": "GG/COM/FDAT.T",
+          "address": "0x124a800",
+          "size": "0x42000",
+          "load_addr": "0x800490d0",
+          "sha256": "125325adfedbea6c56b017166203c89c7e07e033fac48eb96cfd57eef7ef8f79"
+        }
+      ],
+      "allow_missing": true,
+      "entry_pointer_offsets": [
+        4
+      ]
+    }
+  ]
+}

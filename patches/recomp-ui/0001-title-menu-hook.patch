@@ -1,23 +1,24 @@
 diff --git a/src/common/backends/imgui/launcher_imgui.cpp b/src/common/backends/imgui/launcher_imgui.cpp
-index ac6d127..7fc37cc 100644
+index ac6d127..32a2044 100644
 --- a/src/common/backends/imgui/launcher_imgui.cpp
 +++ b/src/common/backends/imgui/launcher_imgui.cpp
-@@ -37,6 +37,14 @@
+@@ -37,6 +37,15 @@
  
  #include "launcher_sdlcompat.h"   // pulls the right SDL header + event shim
  
 +#if defined(RECOMP_LAUNCHER_MOA_MENU) && RECOMP_LAUNCHER_MOA_MENU
-+/* Armored Core Gen 1: before the menu's anonymous namespace, so these headers'
++/* ACG1PLUS: before the menu's anonymous namespace, so these headers'
 + * functions are not declared inside it. */
 +#include "moa_update.h"
 +#include "moa_ui_sound.h"
 +#include "disc_identity.h"   /* psxrecomp runtime: the disc finder */
 +#include "acg_start.h"       /* game/: the START GAME choice for the game side */
++#include "acg_portable.h"    /* game/: the launcher's files stay in the game folder */
 +#endif
  #include "imgui.h"
  #include "consoles/ps2/ps2_background.hpp"
  #include "launcher_nav.h"
-@@ -2322,8 +2330,8 @@ static void reveal_disc_note_in_body() {
+@@ -2322,8 +2331,8 @@ static void reveal_disc_note_in_body() {
      if (move != 0.0f) ImGui::SetScrollY(ImGui::GetScrollY() + move);
  }
  
@@ -28,7 +29,7 @@ index ac6d127..7fc37cc 100644
      const VerifyResult& v = m->verify;
      // Keep the Serial/Region/ISO checklist mounted even before a disc is
      // picked (setup wizard) so AutoResize modals don't jump when verify runs.
-@@ -2851,8 +2859,8 @@ void draw_game_panel(LauncherModel* m, const LauncherTheme& th, bool fill_h = fa
+@@ -2851,8 +2860,8 @@ void draw_game_panel(LauncherModel* m, const LauncherTheme& th, bool fill_h = fa
      // Region + verification state, centered under the art.
      const char* noun = (m->rom_noun && m->rom_noun[0]) ? m->rom_noun : "ROM";
      if (disc_verdict) {
@@ -39,7 +40,7 @@ index ac6d127..7fc37cc 100644
      } else {
          const bool verified = launcher_model_rom_verified(m);
          char line[64];
-@@ -14467,17 +14475,17 @@ void draw_footer(LauncherModel* m, const LauncherTheme& th, float footer_h) {
+@@ -14467,17 +14476,17 @@ void draw_footer(LauncherModel* m, const LauncherTheme& th, float footer_h) {
          ImGui::SetCursorScreenPos(ImVec2(origin.x, cta_y + (play_h - ImGui::GetFrameHeight()) * 0.5f));
          if (ImGui::Checkbox(ui_text("Skip launcher on boot"), &skip))
              launcher_model_request_skip_toggle(m);
@@ -68,7 +69,7 @@ index ac6d127..7fc37cc 100644
          }
      } else if (m->view == LNG_VIEW_SETTINGS &&
                 launcher_model_can_restore_defaults(m)) {
-@@ -16086,6 +16094,22 @@ static void draw_launch_commit_progress(const LauncherTheme& th) {
+@@ -16086,6 +16095,22 @@ static void draw_launch_commit_progress(const LauncherTheme& th) {
      ImGui::PopStyleColor();
  }
  
@@ -91,7 +92,7 @@ index ac6d127..7fc37cc 100644
  void draw_ui(LauncherModel* m, const LauncherTheme& th, int logical_w, int logical_h) {
      ImGuiViewport* vp = ImGui::GetMainViewport();
      ImGui::SetNextWindowPos(vp->Pos);
-@@ -16121,6 +16145,12 @@ void draw_ui(LauncherModel* m, const LauncherTheme& th, int logical_w, int logic
+@@ -16121,6 +16146,12 @@ void draw_ui(LauncherModel* m, const LauncherTheme& th, int logical_w, int logic
          }
      }
  
@@ -104,7 +105,7 @@ index ac6d127..7fc37cc 100644
      // ---- Marquee header: brand · GAME TITLE · subtitle .......... [nav] ----
      ImVec2 hp = ImGui::GetCursorScreenPos();
      // Vertically center the brand mark against the two-line title block (game
-@@ -16310,6 +16340,7 @@ void draw_ui(LauncherModel* m, const LauncherTheme& th, int logical_w, int logic
+@@ -16310,6 +16341,7 @@ void draw_ui(LauncherModel* m, const LauncherTheme& th, int logical_w, int logic
      end_container();
  
      draw_footer(m, th, footer_h);

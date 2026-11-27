@@ -1,13 +1,13 @@
-/* START GAME stand-in for the Japanese disc program (ACG_REGION=JP).
+/* START GAME stand-in: every start boots the normal way.
  *
- * game/acg_quick_start.c replays the US game's own boot, title and LOAD code
- * at US disc addresses. Those addresses have moved on the Japanese disc
- * (SLPS-01855), so until they are found there this program boots every start
- * the normal way: logos, intro and title screen. The launcher's START GAME
- * page offers only LAUNCH GAME in this program (launcher/moa_menu.inc,
- * ACG_REGION_JP).
+ * Used by the Project Phantasma program (since 2026-11-26) until its own
+ * quick-start hooks are written (ladder 0.3): the Master of Arena version
+ * (reference/moa-build/acg_quick_start_moa_us.c) replays MoA US code at MoA
+ * addresses, which mean nothing on Phantasma. The launcher's START GAME page
+ * offers only LAUNCH GAME meanwhile (launcher/moa_menu.inc, ACG_QUICK_START).
  *
- * The save check stays: it reads the memory card block, not game code.
+ * The save check below is Master of Arena's save format and is not used while
+ * LOAD GAME is off; it gets Phantasma's layout with the quick starts.
  */
 #include "acg_start.h"
 
@@ -30,7 +30,7 @@ int acg_start_save_ok(const unsigned char* save, unsigned bytes)
     return sum == want;
 }
 
-/* Every choice boots normally. 1 for the choices the JP launcher offers
+/* Every choice boots normally. 1 for the choices the launcher offers
  * (LAUNCH GAME, nothing), 0 for the ones it doesn't, so a stray call says no. */
 int acg_start_set(int mode, int full_boot, const unsigned char* save)
 {
