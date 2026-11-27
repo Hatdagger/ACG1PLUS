@@ -568,6 +568,16 @@ void find_disc() {
     go(P_FIND);
 }
 
+void rebuild() {
+    const setup::Snapshot s = setup::snapshot();
+    if (s.status == setup::Status::Running || s.status == setup::Status::Cancelling) { go(P_PREP); return; }
+    S.find_only = false;
+    const fs::path cue = chosen_disc();
+    if (!cue.empty()) { start_build(cue); return; }
+    disc::scan(P().root, last_disc());
+    go(P_FIND);
+}
+
 bool take_disc_ready() {
     const bool r = S.disc_ready;
     S.disc_ready = false;

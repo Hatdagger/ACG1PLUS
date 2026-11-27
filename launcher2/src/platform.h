@@ -73,4 +73,16 @@ void user_path_set(const std::wstring& value);
  * Linux systems have it on PATH. Empty if none was found. */
 std::string curl_program();
 
+/* 0.2.4 self-update. The launcher's own program file (resolved at start). */
+fs::path self_exe();
+/* Rename FROM to TO, replacing TO; tried again for up to 3 seconds (Windows: an
+ * antivirus can hold a file it is scanning for a moment). Works on the running
+ * program too: Windows lets a running .exe be renamed, Linux any file. */
+bool rename_retry(const fs::path& from, const fs::path& to, std::string* error);
+/* Start EXE with ARGS in place of this launcher (after a self-update). Linux:
+ * replaces this process (same process id, so Steam's Game Mode keeps tracking
+ * it); returns only if that failed. Windows: starts it on its own (not tied to
+ * this launcher), then the caller exits. False if it couldn't be started. */
+bool restart_self(const fs::path& exe, const std::vector<std::string>& args);
+
 } /* namespace plat */

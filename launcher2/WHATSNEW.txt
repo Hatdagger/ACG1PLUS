@@ -1,0 +1,4 @@
+# One short line: what this launcher version brings. Shown by the launcher on its
+# main menu and UPDATES page (release.sh puts it in manifest.json). Lines starting
+# with # are skipped. Update it with each test build, like test-notes.md.
+UPDATES: install new versions from the launcher, then rebuild the game

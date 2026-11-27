@@ -494,6 +494,12 @@ fs::path find_source_zip(std::string* sha_out) {
     const fs::path zip = P.build / (std::string("acg1plus-source-") + ACG_SOURCE_VERSION + ".zip");
     download(S_SOURCE, ACG_SOURCE_URL, zip, ACG_SOURCE_SHA256, (uint64_t)ACG_SOURCE_SIZE, "the game's source");
     *sha_out = ACG_SOURCE_SHA256;
+    /* 0.2.4: an update brings a new zip; the ones before it aren't needed. */
+    std::error_code ec;
+    for (const auto& e : fs::directory_iterator(P.build, ec)) {
+        const std::string n = plat::u8str(e.path().filename());
+        if (e.path() != zip && n.rfind("acg1plus-source-", 0) == 0) fs::remove(e.path(), ec);
+    }
     return zip;
 }
 
@@ -813,48 +819,92 @@ void mirror(const fs::path& from, const fs::path& to, const char* keep = nullptr
     }
 }
 
+/* 0.2.4: the new game is put together in RecompData/<os>.incoming/ first and
+ * swapped in only when it is complete, so a full drive or a failed copy leaves
+ * the game that was there (the one an update replaces) as it was. The swap is
+ * a few renames. The player's own files in RecompData/<os>/ (settings.toml,
+ * saves, caches, keyboard profiles, mods/installed) are not in the incoming
+ * folder and stay where they are. */
 void step_place() {
     const Paths& P = g_paths;
     const fs::path out = P.src / "build-release";
+    const fs::path in = P.data / (std::string(kOs) + ".incoming");
+    const fs::path old = P.data / (std::string(kOs) + ".replaced");
     std::error_code ec;
-    fs::create_directories(P.game, ec);
-    fs::copy_file(out / kExe, P.game / kExe, fs::copy_options::overwrite_existing, ec);
+    fs::remove_all(in, ec);
+    fs::remove_all(old, ec);
+    fs::create_directories(in, ec);
+    if (ec) fail("Couldn't put the game in place", "Couldn't make " + plat::u8str(in) + ": " + ec.message());
+    fs::copy_file(out / kExe, in / kExe, fs::copy_options::overwrite_existing, ec);
     if (ec) fail("Couldn't put the game in place", std::string("Couldn't copy ") + kExe + ": " + ec.message() +
-                 (ec.value() ? "\n\nIs the game still running? Close it and RETRY." : ""));
-    plat::make_executable(P.game / kExe);
+                 "\n\nIs the drive full? The game you had before is unchanged.");
+    plat::make_executable(in / kExe);
 #if defined(_WIN32)
     for (const auto& e : fs::directory_iterator(out, ec)) {
         std::string ext = plat::u8str(e.path().extension());
         for (char& c : ext) c = (char)std::tolower((unsigned char)c);
-        if (ext == ".dll") fs::copy_file(e.path(), P.game / e.path().filename(), fs::copy_options::overwrite_existing, ec);
+        if (ext == ".dll") fs::copy_file(e.path(), in / e.path().filename(), fs::copy_options::overwrite_existing, ec);
     }
 #endif
     for (const char* f : { "game.toml", "game_options.toml", "psx_game_version.txt" })
-        if (fs::exists(out / f, ec)) fs::copy_file(out / f, P.game / f, fs::copy_options::overwrite_existing, ec);
-    /* Folders the runtime reads beside the program. The player's own files
-     * (settings.toml, saves, caches, keyboard profiles) are outside them;
-     * mods/installed holds the player's installed mods and is never replaced. */
+        if (fs::exists(out / f, ec)) fs::copy_file(out / f, in / f, fs::copy_options::overwrite_existing, ec);
+    /* Folders the runtime reads beside the program. mods/installed holds the
+     * player's installed mods and is never replaced. */
     set_frac(S_PLACE, 0.2f);
-    mirror(out / "assets", P.game / "assets");
-    mirror(out / "bios", P.game / "bios");
-    mirror(out / "mods", P.game / "mods", "installed");
-    mirror(out / "overlay_toolchain", P.game / "overlay_toolchain");
-    mirror(P.src / "psxrecomp" / "runtime" / "licenses", P.game / "licenses");
-    set_frac(S_PLACE, 0.9f);
+    mirror(out / "assets", in / "assets");
+    mirror(out / "bios", in / "bios");
+    mirror(out / "mods", in / "mods", "installed");
+    mirror(out / "overlay_toolchain", in / "overlay_toolchain");
+    mirror(P.src / "psxrecomp" / "runtime" / "licenses", in / "licenses");
+    set_frac(S_PLACE, 0.7f);
     /* Portable: the background compiler is named relative to overlay_toolchain/. */
 #if defined(_WIN32)
     const char* rel = "..\\..\\build\\tools-windows\\toolchain\\bin\\clang.exe";
 #else
     const char* rel = "../../build/tools-linux/toolchain/bin/clang";
 #endif
-    if (fs::is_directory(P.game / "overlay_toolchain", ec)) {
-        write_text(P.game / "overlay_toolchain" / "compiler.txt", std::string(rel) + "\n");
+    if (fs::is_directory(in / "overlay_toolchain", ec)) {
+        write_text(in / "overlay_toolchain" / "compiler.txt", std::string(rel) + "\n");
         log(std::string("Background compiler: ") + rel + " (relative, so the folder can be moved)");
     }
     const auto info = ini::load(P.src / "SOURCE.txt");
     std::string bi = "built=" + stamp() + "\nlauncher=" ACG_LAUNCHER_VERSION "\n";
     for (const char* k : { "version", "commit" }) if (info.count(k)) bi += std::string("source_") + k + "=" + info.at(k) + "\n";
-    write_text(P.game / "build-info.txt", bi);
+    /* Which source zip, so a newer launcher knows the game needs rebuilding. */
+    bi += "source_sha256=" + read_text(P.state / "source.sha256") + "\n";
+    if (!write_text(in / "build-info.txt", bi)) fail("Couldn't put the game in place", "Couldn't write build-info.txt.");
+
+    /* The swap: each of the new game's files and folders replaces the old one
+     * (moved aside to <os>.replaced first, and back if a rename fails). */
+    fs::create_directories(P.game, ec);
+    fs::create_directories(old, ec);
+    std::vector<fs::path> names, moved;   /* moved: names already swapped */
+    for (const auto& e : fs::directory_iterator(in, ec)) names.push_back(e.path().filename());
+    for (const fs::path& name : names) {
+        const fs::path src = in / name;
+        const fs::path dst = P.game / name;
+        std::string err;
+        if (name == "mods" && fs::is_directory(dst / "installed", ec)) {
+            if (!plat::rename_retry(dst / "installed", src / "installed", &err))
+                fail("Couldn't put the game in place", err + "\n\nIs the game still running? Close it and RETRY.");
+        }
+        if (fs::exists(dst, ec) && !plat::rename_retry(dst, old / name, &err)) {
+            for (const auto& m : moved) {   /* put back what was swapped */
+                std::string e2;
+                fs::remove_all(P.game / m, ec);
+                plat::rename_retry(old / m, P.game / m, &e2);
+            }
+            fail("Couldn't put the game in place", err + "\n\nIs the game still running? Close it and RETRY. "
+                 "The game you had before is unchanged.");
+        }
+        if (!plat::rename_retry(src, dst, &err)) {
+            plat::rename_retry(old / name, dst, &err);
+            fail("Couldn't put the game in place", err);
+        }
+        moved.push_back(name);
+    }
+    fs::remove_all(in, ec);
+    fs::remove_all(old, ec);
 }
 
 void step_check() {
@@ -1072,6 +1122,18 @@ bool game_built(std::string* info) {
         *info = s;
     }
     return true;
+}
+
+bool game_outdated(std::string* built_version) {
+    if (!source_known()) return false;   /* a developer build: nothing to compare */
+    const Paths& P = g_paths;
+    std::error_code ec;
+    if (!fs::exists(P.game / "build-info.txt", ec)) return false;
+    const auto kv = ini::load(P.game / "build-info.txt");
+    if (built_version) *built_version = kv.count("source_version") ? kv.at("source_version") : std::string();
+    auto it = kv.find("source_sha256");
+    /* Built by 0.2.2 / 0.2.3 (no source_sha256): from an older source too. */
+    return it == kv.end() || it->second != ACG_SOURCE_SHA256;
 }
 
 } /* namespace setup */

@@ -50,6 +50,7 @@ export ACG_SOURCE_VERSION="$VERSION"
 export ACG_SOURCE_SHA256="$(tr -d ' \r\n' < "$FILES/acg1plus-source-$VERSION.sha256")"
 export ACG_SOURCE_SIZE="$(stat -c %s "$ZIP")"
 export ACG_SOURCE_URL="https://github.com/$REPO/releases/download/$TAG/acg1plus-source-$VERSION.zip"
+export ACG_REPO="$REPO"
 rm -f "$FILES/acg1plus-source-$VERSION.sha256"
 echo "Source zip: $ACG_SOURCE_URL ($ACG_SOURCE_SIZE bytes, sha256 $ACG_SOURCE_SHA256)"
 
@@ -58,10 +59,16 @@ echo "Source zip: $ACG_SOURCE_URL ($ACG_SOURCE_SIZE bytes, sha256 $ACG_SOURCE_SH
 cp "$WORK/out/linux/ACG1PLUS" "$WORK/out/windows/ACG1PLUS.exe" "$FILES/"
 chmod +x "$FILES/ACG1PLUS"
 
-# 3. manifest.json and SHA256SUMS.txt (the launcher's updates read the manifest from 0.2.4).
-python3 - "$FILES" "$VERSION" "$TAG" "$REPO" "$(git -C "$ROOT" rev-parse HEAD)" <<'PY'
+# 3. manifest.json and SHA256SUMS.txt (the launcher's UPDATES read the manifest from 0.2.4:
+#    launcher_version, summary from WHATSNEW.txt, and each launcher's url + sha256 + size).
+python3 - "$FILES" "$VERSION" "$TAG" "$REPO" "$(git -C "$ROOT" rev-parse HEAD)" "$HERE/WHATSNEW.txt" <<'PY'
 import hashlib, json, os, sys
-files, version, tag, repo, commit = sys.argv[1:6]
+files, version, tag, repo, commit, whatsnew = sys.argv[1:7]
+# One line the launcher shows for this release on its main menu and UPDATES page.
+summary = ""
+if os.path.exists(whatsnew):
+    with open(whatsnew, encoding="utf-8") as f:
+        summary = next((l.strip() for l in f if l.strip() and not l.startswith("#")), "")
 def sha(p):
     h = hashlib.sha256()
     with open(p, "rb") as f:
@@ -76,6 +83,7 @@ for name in sorted(os.listdir(files)):
 base = "https://github.com/RetroPortingToolKit/RetroPorting-Toolchains/releases/download/v1.0.14/"
 manifest = {
     "name": "ACG1PLUS", "launcher_version": version, "tag": tag, "commit": commit,
+    "summary": summary,
     "files": entries,
     "source_zip": f"acg1plus-source-{version}.zip",
     "compiler_packs": {

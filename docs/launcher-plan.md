@@ -72,6 +72,13 @@ game from the player's disc.
   has built**; if the build fails, nothing changes and the log is kept.
 - The launcher updates itself the same way (download, check, swap, restart).
 - Release notes cover only that release's changes.
+- **How 0.2.4 does it (2026-11-26):** a release's launcher and its source zip belong together (the zip's
+  checksum is built into the launcher), so one update = the new launcher replaces this one and restarts,
+  then UPDATE THE GAME rebuilds the game from the new launcher's source. Before the swap, the new launcher
+  must match the release's `manifest.json` checksum and start here (it is asked its version). The replaced
+  launcher is kept in `RecompData/launcher/updates/previous/`. The rebuilt game is put together beside the
+  old one and swapped in with renames at the very end, so a failed or stopped build leaves the old game.
+  TEST channel: press Y five times on the UPDATES page (again to hide it); lists the newest test-* builds.
 
 ## Steps (each one a pull request, reviewed before anything is uploaded)
 | Step | Done when |
@@ -79,7 +86,7 @@ game from the player's disc.
 | 0.2.1 | Launcher shell on Windows and Deck: AC-style main menu with every entry (VERSUS and ROGUE ARENA shown as "coming"), controller + mouse/keyboard, 1280x800 and full screen, EXIT. First upload as a test pre-release so the owner can see it. **Built** (`launcher2/`, see its README); not yet run on a real PC or Deck |
 | 0.2.2 | First run: disc finder (Disc/, beside the launcher, USB drives, a controller-friendly file picker), disc check, "Preparing game" screen with plain stage names, progress, time estimate, cancel/resume, log, retry. **Built** (`launcher2/src/firstrun.cpp`, `disc.cpp`, `setup.cpp`; the source zip and `launcher2/release.sh`); whole first run checked on Linux in the sandbox with a test disc; not yet run on Windows or a real Deck |
 | 0.2.3 | START GAME: launches the built game straight into the game (its own menu skipped, `--no-launcher`), memory cards in `Memory Card/`, the launcher returns when the game closes; FULL BOOT toggle. **Built** (`launcher2/src/play.cpp`, START GAME page in `menu.cpp`; `game/acg_escape.c`: started by the launcher, Esc or holding SELECT + START for 2 s closes the game). FULL BOOT = the PlayStation start-up screen only (the game's own logos need 0.3 hooks). First start writes `settings.toml` with full screen + full volume. Checked on Linux in the sandbox with a stand-in game; not yet with the real game, on Windows or a real Deck |
-| 0.2.4 | UPDATES: releases + hidden TEST channel, rebuild-on-update with the old game kept, launcher self-update |
+| 0.2.4 | UPDATES: releases + hidden TEST channel, rebuild-on-update with the old game kept, launcher self-update. **Built** (`launcher2/src/update.cpp`, UPDATES page in `menu.cpp`, swap-in at the end in `setup.cpp`); checked on Linux in the sandbox (TEST list from GitHub, install + restart from a fake release, damaged download refused); not yet on Windows or a real Deck |
 | 0.2.5 | SETTINGS: every page from the current menu (DISPLAY, PICTURE, SOUND / SYSTEM, ADVANCED, controller mapping), saved into the game's `settings.toml`; menu sounds read from the disc |
 | 0.2.6 | MODS page |
 | 0.2.7 | The game's in-game launcher menu removed; first stable Release (0.2.x) |

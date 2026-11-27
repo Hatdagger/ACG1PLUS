@@ -11,6 +11,8 @@
 #include "play.h"
 #include "ui.h"
 
+#include <string>
+
 namespace menu {
 
 using Host = ui::Host;
@@ -28,6 +30,10 @@ void inject(const char* what);
 
 /* The game has closed (main.cpp saw it): back to START GAME, or the error page. */
 void game_closed(const play::Result& r);
+
+/* 0.2.4: open the UPDATES page (after the launcher updated itself: the version
+ * it replaced, said on the page; "" otherwise). */
+void open_updates(const std::string& updated_from);
 
 /* Which page is up (test screenshots). */
 int page();

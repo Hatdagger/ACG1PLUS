@@ -10,9 +10,13 @@ and keyboard as a fallback, a 1280x800 window or full screen, EXIT.
 Step **0.2.2** added the **first run**: it finds the player's disc, checks it, and builds the game
 from it on a "Preparing game" screen, all inside the launcher (no scripts, no git).
 
-Step **0.2.3** (this folder today) adds **START GAME**: the launcher starts the game it built and comes
-back when the game closes. SETTINGS, MODS and UPDATES say which step brings them; VERSUS and ROGUE
-ARENA are marked COMING.
+Step **0.2.3** added **START GAME**: the launcher starts the game it built and comes back when the
+game closes.
+
+Step **0.2.4** (this folder today) adds **UPDATES**: newer launchers from the repo's Releases (and a
+hidden TEST channel for test builds), the launcher replacing itself, and building the game again with
+the old one kept until the new one is ready. SETTINGS and MODS say which step brings them; VERSUS and
+ROGUE ARENA are marked COMING.
 
 ## The first run
 
@@ -85,6 +89,52 @@ the START GAME page. If the game ends with an error (or can't be started), a pag
 exit code, the game's last lines and the log file: START AGAIN / BACK. Everything the game prints
 goes to `RecompData/launcher/logs/game-last.log` (the run before: `game-previous.log`).
 
+## UPDATES
+
+A release's launcher and its source zip belong together (`release.sh` builds the zip's checksum into
+the launcher), so **one update is: the new launcher replaces this one and starts, then UPDATE THE GAME
+builds the game again from its source.** The work is in `src/update.cpp`; the page in `src/menu.cpp`.
+
+**Looking** (at start, when CHECK AT START is ON, the default; and with CHECK FOR UPDATES):
+`api.github.com/repos/Hatdagger/ACG1PLUS/releases` with curl, no sign-in (GitHub allows 60 looks an
+hour from one internet address). Then each listed release's `manifest.json`: its launcher version,
+the one-line summary (`WHATSNEW.txt`) and each launcher's address, SHA-256 and size.
+
+| Channel | Lists | Offers |
+|---|---|---|
+| RELEASES (default) | real releases (not pre-releases), the newest 3 | the newest with a higher version than this launcher |
+| TEST (hidden) | `test-*` pre-releases, the newest 6 | any of them: INSTALLED = the launcher in use, TOO OLD = before 0.2.4 (it couldn't update back) |
+
+The TEST channel: press **Y five times** on the UPDATES page (keyboard: L) to show the CHANNEL row,
+again to hide it (`launcher.ini`: `test_unlocked=1`, `channel=test`). The main menu marks UPDATES with
+NEW, shows "0.2.x READY TO INSTALL" in STATUS and what's new on the INFO panel.
+
+**Installing** (asks first):
+
+1. The new launcher is downloaded into `RecompData/launcher/updates/download/` and checked against the
+   manifest's SHA-256 and size. A mismatch: not used, nothing changes.
+2. It is started once with `--version-file`: it must start on this PC and say the version the
+   manifest says. If not: not used.
+3. This launcher is moved to `RecompData/launcher/updates/previous/` and the new one takes its name
+   and place (renames; a running program can be renamed on Windows and Linux). If the second rename
+   fails, the old one is put back.
+4. The new launcher starts with the same options (Linux: in place of this one, same process, so
+   Steam's Game Mode keeps tracking it; Windows: started, then this one closes) and opens UPDATES with
+   "LAUNCHER UPDATED FROM ... TO ..." and the cursor on UPDATE THE GAME.
+
+**UPDATE THE GAME** is shown when the game in `RecompData/<os>/` was built from another source
+(`build-info.txt` `source_sha256`; games built by 0.2.2 / 0.2.3 don't have it and count as older).
+It runs "Preparing game" again with the disc chosen last time: the new source zip is downloaded (the
+old zips are deleted), and the game translated and compiled again (the tools and the build files are
+kept, so it is quicker than the first time). **The game that is there stays playable until the very
+end**: "Putting the game in place" puts the new game together in `RecompData/<os>.incoming/` and only
+then swaps it in with renames (the old files go to `<os>.replaced/` meanwhile, and come back if a
+rename fails). The player's own files there (`settings.toml`, saves, caches, `mods/installed/`) stay.
+START GAME still starts the older game until then.
+
+Nothing is downloaded or installed while the game is being prepared; the launcher can't update
+itself while the game runs (its window is hidden then).
+
 ## The source zip
 
 `acg1plus-source-<version>.zip` (`tools/release/make_source_zip.py`, about 70 MB) is this repo at the
@@ -126,6 +176,8 @@ The mouse pointer hides while a controller is used and comes back when the mouse
 | `src/disc.cpp` | finding and checking the disc, copying it into `Disc/` |
 | `src/setup.cpp` | the "Preparing game" steps |
 | `src/play.cpp` | START GAME: starting the built game, waiting for it, its log |
+| `src/update.cpp` | UPDATES: the list of releases, manifests, downloading and swapping the launcher, the restart |
+| `src/json.h` | a small JSON reader (GitHub's list, `manifest.json`) |
 | `src/platform.cpp` | child programs (process group / job object), drives, free space; Windows + Linux |
 | `src/hash.cpp` | SHA-256 and MD5 |
 | `src/unzip.cpp` + `third_party/miniz` | unpacking; miniz 3.0.2 (MIT licence, `third_party/miniz/LICENSE`) |
@@ -169,8 +221,14 @@ It downloads the Linux compiler pack (CMake, Ninja, Clang, SteamOS sysroot, SDL3
 | `--test-game-args a,b` | tests: extra words for the game's command line (for example `--headless`) |
 | `--test-no-hide` | tests: keep the launcher's window up while the game runs |
 | `--version` | print the version and the source it builds |
+| `--version-file FILE` | write only the version into FILE and stop (asked of a new launcher before it is installed) |
+| `--no-update-check` | don't look for updates at start this time |
+| `--test-releases-url URL` | tests: read the list of releases from URL instead of GitHub's (`file://` works) |
 
 ## Test options
+
+After an update's restart the test presses and `--test-shot` are not passed on (the other options
+are); `--test-shots` carries on numbering.
 
 `--test-keys up,down,confirm,back,x,y` presses those (one every 10 frames; `waitN` pauses N seconds) and
 `--test-shot FILE.bmp` saves a picture of the window afterwards and closes. `--test-shots DIR` saves a
@@ -186,7 +244,10 @@ example under a virtual screen:
 
 GitHub builds them: Actions → **Launcher test release** → Run workflow, branch to build (for example
 `launcher/0.2`). It runs this branch's `launcher2/release.sh` and makes `test-launcher-<VERSION>` with
-both launchers, the source zip, `manifest.json` and `SHA256SUMS.txt`, notes from
-`launcher2/test-notes.md` (only that build's changes; update it with each test build). Running it again
+both launchers, the source zip, `manifest.json` (with `summary` from `WHATSNEW.txt`) and
+`SHA256SUMS.txt`, notes from
+`launcher2/test-notes.md` (only that build's changes; update it with each test build). The one line
+the launcher shows for the build (main menu, UPDATES) is `launcher2/WHATSNEW.txt`; update it too. Running it again
 for the same tag replaces every file, the source zip included: a launcher downloaded before then no longer
-matches it and must be downloaded again.
+matches it. From 0.2.4 that launcher fixes itself: on the TEST channel the rebuilt test build shows as not
+installed (its launcher has a new checksum), and installing it brings the matching launcher.
