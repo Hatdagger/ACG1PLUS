@@ -28,7 +28,7 @@ const ImU32 kWarn   = IM_COL32(226, 91, 58, 255);
 namespace {
 char   g_note[200] = {0};
 double g_note_until = 0.0;
-bool   g_fake[9] = {};   /* up down left right confirm back start x y */
+bool   g_fake[11] = {};  /* up down left right confirm back start x y l1 r1 */
 
 ImFont* font_of(const Gfx& g, float size, bool bold) {
     ImFont* f = g.host->font ? g.host->font(size, bold) : nullptr;
@@ -184,18 +184,23 @@ Input read_input() {
     in.start = key(ImGuiKey_GamepadStart, false);
     in.x     = key(ImGuiKey_GamepadFaceLeft, false) || key(ImGuiKey_Tab, false);
     in.y     = key(ImGuiKey_GamepadFaceUp, false) || key(ImGuiKey_L, false);
+    /* Tabs: L1 / R1 (LB / RB, the Deck's L1 / R1), or Q / E. */
+    in.tab_prev = key(ImGuiKey_GamepadL1, false) || key(ImGuiKey_Q, false);
+    in.tab_next = key(ImGuiKey_GamepadR1, false) || key(ImGuiKey_E, false);
 
     bool* f = g_fake;
     in.up |= f[0]; in.down |= f[1]; in.left |= f[2]; in.right |= f[3];
     in.confirm |= f[4]; in.back |= f[5]; in.start |= f[6]; in.x |= f[7]; in.y |= f[8];
+    in.tab_prev |= f[9]; in.tab_next |= f[10];
     for (bool& b : g_fake) b = false;
     return in;
 }
 
 void inject(const char* what) {
     if (!what) return;
-    static const char* names[9] = { "up", "down", "left", "right", "confirm", "back", "start", "x", "y" };
-    for (int i = 0; i < 9; ++i) if (!std::strcmp(what, names[i])) g_fake[i] = true;
+    static const char* names[11] = { "up", "down", "left", "right", "confirm", "back", "start", "x", "y",
+                                     "l1", "r1" };
+    for (int i = 0; i < 11; ++i) if (!std::strcmp(what, names[i])) g_fake[i] = true;
 }
 
 std::string upper(const std::string& s) {
