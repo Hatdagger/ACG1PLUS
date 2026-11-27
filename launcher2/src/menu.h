@@ -8,6 +8,7 @@
  */
 #pragma once
 
+#include "play.h"
 #include "ui.h"
 
 namespace menu {
@@ -24,5 +25,11 @@ void draw(const Host& host, Requests& req);
 /* Feed simulated presses (tests): "down", "up", "left", "right", "confirm",
  * "back", "x", "y". Applied on the next draw(). */
 void inject(const char* what);
+
+/* The game has closed (main.cpp saw it): back to START GAME, or the error page. */
+void game_closed(const play::Result& r);
+
+/* Which page is up (test screenshots). */
+int page();
 
 } /* namespace menu */

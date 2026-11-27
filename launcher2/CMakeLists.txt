@@ -64,6 +64,7 @@ add_executable(acg1plus_launcher WIN32
     src/firstrun.cpp
     src/disc.cpp
     src/setup.cpp
+    src/play.cpp
     src/platform.cpp
     src/hash.cpp
     src/unzip.cpp

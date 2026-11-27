@@ -35,6 +35,11 @@ struct State {
     bool   test_auto = false, test_exit = false;
     double page_since = 0.0;
     std::string copy_error;
+    /* 0.2.3: only finding the disc again (the game is built, the disc moved):
+     * once one is chosen it is remembered and START GAME carries on. */
+    bool   find_only = false;
+    bool   disc_ready = false;
+    bool   start_now = false;    /* START GAME chosen on the DONE page */
 };
 State S;
 
@@ -93,6 +98,13 @@ std::string gb_text(uint64_t b) {
 void start_build(const fs::path& cue) {
     S.disc_cue = cue;
     remember_disc(cue);
+    if (S.find_only) {
+        S.find_only = false;
+        S.disc_ready = true;
+        disc::stop();
+        go(P_NONE);
+        return;
+    }
     setup::start(cue);
     S.show_log = false;
     go(P_PREP);
@@ -225,7 +237,8 @@ void draw_find(const Gfx& g, const Input& in, Requests&) {
         for (const auto& c : ds.found) if (c.check == disc::Check::Good) { use_candidate(c); return; }
     }
     if (in.confirm) activate = S.cursor;
-    if (in.back) { disc::stop(); go(P_WELCOME); return; }
+    const Page back_to = S.find_only ? P_NONE : P_WELCOME;
+    if (in.back) { disc::stop(); S.find_only = false; go(back_to); return; }
     if (activate < 0) return;
     S.cursor = activate;
     if (activate < shown) {
@@ -236,7 +249,7 @@ void draw_find(const Gfx& g, const Input& in, Requests&) {
     switch (activate - shown) {
         case 0: S.dir.clear(); S.pick_cursor = 0; S.pick_top = 0; go(P_PICKER); break;
         case 1: disc::scan(P().root, last_disc()); break;
-        default: disc::stop(); go(P_WELCOME); break;
+        default: disc::stop(); S.find_only = false; go(back_to); break;
     }
 }
 
@@ -530,14 +543,14 @@ void draw_done(const Gfx& g, const Input& in, Requests& req) {
     std::string info;
     setup::game_built(&info);
     const std::string t = "Built from your disc in " + clock_text(s.elapsed > 0 ? s.elapsed : 0) +
-                          ".\n\nStarting it from here comes with launcher 0.2.3. Everything it needs is in "
-                          "RecompData.";
+                          ".\n\nEverything it needs is in RecompData. START GAME starts it.";
     text(g, 406.0f, 116.0f, 11.0f, kText, t.c_str(), 196.0f);
-    static const char* rows[] = { "BACK TO THE MENU" };
-    const int a = menu_rows(g, 392.0f, 300.0f, 224.0f, rows, 1, &S.cursor, in);
+    static const char* rows[] = { "START GAME", "BACK TO THE MENU" };
+    const int a = menu_rows(g, 392.0f, 282.0f, 224.0f, rows, 2, &S.cursor, in);
     footer(g, "A  SELECT");
     if (S.test_exit && ImGui::GetTime() - S.page_since > 2.0) req.quit = true;
-    if (a == 0 || in.back) go(P_NONE);
+    if (a == 0) { S.start_now = true; go(P_NONE); return; }
+    if (a == 1 || in.back) go(P_NONE);
 }
 
 } /* namespace */
@@ -546,6 +559,31 @@ void open() {
     const setup::Snapshot s = setup::snapshot();
     if (s.status == setup::Status::Running || s.status == setup::Status::Cancelling) { go(P_PREP); return; }
     go(P_WELCOME);
+}
+
+void find_disc() {
+    S.find_only = true;
+    S.disc_ready = false;
+    disc::scan(P().root, last_disc());
+    go(P_FIND);
+}
+
+bool take_disc_ready() {
+    const bool r = S.disc_ready;
+    S.disc_ready = false;
+    return r;
+}
+
+bool take_start_now() {
+    const bool r = S.start_now;
+    S.start_now = false;
+    return r;
+}
+
+fs::path chosen_disc() {
+    const fs::path d = last_disc();
+    std::error_code ec;
+    return !d.empty() && fs::exists(d, ec) ? d : fs::path();
 }
 
 bool active() { return S.page != P_NONE; }

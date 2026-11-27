@@ -26,6 +26,7 @@ struct Host {
 struct Requests {
     bool quit = false;
     bool toggle_fullscreen = false;
+    bool game_started = false;    /* 0.2.3: the game was just started (play.h) */
 };
 
 extern const float kW, kH, kRowH;
@@ -64,6 +65,10 @@ struct Input { bool up, down, left, right, confirm, back, start, x, y; };
 Input read_input();
 /* Simulated presses for tests: up, down, left, right, confirm, back, x, y. */
 void inject(const char* what);
+/* Ignore every press for this many frames, and until nothing is held (after
+ * the game closes, so the button that closed it doesn't choose anything here). */
+void hold_input(int frames);
+bool holding();
 
 std::string upper(const std::string& s);
 

@@ -145,8 +145,28 @@ bool mouse_moved() {
     return d.x != 0.0f || d.y != 0.0f;
 }
 
+namespace { int g_hold = 0; bool g_hold_release = false; }
+
+void hold_input(int frames) { g_hold = frames; g_hold_release = true; }
+bool holding() { return g_hold > 0 || g_hold_release; }
+
+static bool anything_held() {
+    static const ImGuiKey keys[] = {
+        ImGuiKey_Enter, ImGuiKey_KeypadEnter, ImGuiKey_Space, ImGuiKey_Escape, ImGuiKey_Backspace,
+        ImGuiKey_GamepadFaceDown, ImGuiKey_GamepadFaceRight, ImGuiKey_GamepadFaceLeft, ImGuiKey_GamepadFaceUp,
+        ImGuiKey_GamepadStart, ImGuiKey_GamepadBack, ImGuiKey_GamepadDpadUp, ImGuiKey_GamepadDpadDown };
+    for (ImGuiKey k : keys) if (ImGui::IsKeyDown(k)) return true;
+    return ImGui::IsMouseDown(ImGuiMouseButton_Left) || ImGui::IsMouseDown(ImGuiMouseButton_Right);
+}
+
 Input read_input() {
     Input in = {};
+    if (g_hold > 0 || g_hold_release) {
+        if (g_hold > 0) --g_hold;
+        if (g_hold == 0 && !anything_held()) g_hold_release = false;
+        for (bool& b : g_fake) b = false;
+        return in;
+    }
     in.up    = key(ImGuiKey_UpArrow, true) || key(ImGuiKey_GamepadDpadUp, true) ||
                key(ImGuiKey_GamepadLStickUp, true) || key(ImGuiKey_W, true);
     in.down  = key(ImGuiKey_DownArrow, true) || key(ImGuiKey_GamepadDpadDown, true) ||

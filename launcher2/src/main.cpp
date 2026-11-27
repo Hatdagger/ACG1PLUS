@@ -1,11 +1,12 @@
-/* ACG1PLUS launcher (launcher2), ladder step 0.2.2: the first run.
+/* ACG1PLUS launcher (launcher2), ladder step 0.2.3: START GAME.
  *
  * A program of its own with no game code in it (docs/launcher-plan.md): one
  * window (1280x800, or full screen), the Armored Core system menu (menu.cpp),
  * controller first with mouse and keyboard as a fallback. 0.2.2 adds the first
  * run (firstrun.cpp): finding the disc (disc.cpp) and the "Preparing game"
- * screen that builds the game from it (setup.cpp). Later steps: starting the
- * game (0.2.3), updates (0.2.4), settings (0.2.5) and mods (0.2.6).
+ * screen that builds the game from it (setup.cpp). 0.2.3 starts the built game
+ * (play.cpp): the launcher's window is hidden while it runs and comes back when
+ * it closes. Later steps: updates (0.2.4), settings (0.2.5) and mods (0.2.6).
  *
  * SDL3 for the window, controllers and input; Dear ImGui (the copy in
  * recomp-ui) with its SDL3 + OpenGL 3 backends for drawing. Both are linked
@@ -34,6 +35,10 @@
  *   --test-exit-when-done       (tests) close when the game is ready or the build stops
  *   --test-shots DIR            (tests) save a picture of every new page and step
  *                               into DIR, and one every 2 minutes while preparing
+ *   --test-game-args a,b,c      (tests) extra words for the game's command line
+ *                               (for example --headless)
+ *   --test-no-hide              (tests) keep the launcher's window up while the
+ *                               game runs (to see the "running" page)
  */
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -46,7 +51,9 @@
 #include "ini.h"
 #include "menu.h"
 #include "platform.h"
+#include "play.h"
 #include "setup.h"
+#include "ui.h"
 
 #include <algorithm>
 #include <cmath>
@@ -192,7 +199,7 @@ int main(int argc, char** argv) {
     int force_fullscreen = -1;
     const char* test_shot = nullptr;
     const char* test_shots = nullptr;
-    bool no_first_run = false, test_auto = false, test_exit = false;
+    bool no_first_run = false, test_auto = false, test_exit = false, test_no_hide = false;
     std::vector<std::string> test_keys;
     setup::Options opts;
     for (int i = 1; i < argc; ++i) {
@@ -213,6 +220,8 @@ int main(int argc, char** argv) {
         else if (!std::strcmp(a, "--force-translate")) opts.force_translate = true;
         else if (!std::strcmp(a, "--source-zip") && i + 1 < argc) opts.source_zip = fs::absolute(plat::u8path(argv[++i]));
         else if (!std::strcmp(a, "--test-disc-md5") && i + 1 < argc) disc::accept_md5(argv[++i]);
+        else if (!std::strcmp(a, "--test-game-args") && i + 1 < argc) play::set_test_args(split_commas(argv[++i]));
+        else if (!std::strcmp(a, "--test-no-hide")) test_no_hide = true;
     }
     setup::init_paths(program_dir());
     setup::set_options(opts);
@@ -312,8 +321,37 @@ int main(int argc, char** argv) {
     int key_frame = 40;
     double key_wait_until = 0.0;
     int shot_frame = -1;
+    bool hidden_for_game = false;
 
     while (running) {
+        /* The game has closed: the launcher comes back. What was pressed to
+         * close the game is not taken as a choice here. */
+        play::Result game_result;
+        if (play::ended(&game_result)) {
+            if (hidden_for_game) {
+                SDL_ShowWindow(win);
+                SDL_RaiseWindow(win);
+                hidden_for_game = false;
+            }
+            SDL_FlushEvents(SDL_EVENT_FIRST, SDL_EVENT_LAST);
+            io.ClearInputKeys();
+            io.ClearInputMouse();
+            ui::hold_input(20);
+            key_frame = std::max(key_frame, frame + 30);
+            menu::game_closed(game_result);
+        }
+        /* While the game runs with the launcher hidden: nothing is drawn and
+         * nothing the controller does reaches the menu (the launcher keeps
+         * reading controllers in the background, see above). */
+        if (hidden_for_game) {
+            SDL_Event ev;
+            while (SDL_PollEvent(&ev))
+                if (ev.type == SDL_EVENT_QUIT) running = false;
+            if (!running) break;
+            SDL_Delay(50);
+            continue;
+        }
+
         SDL_Event ev;
         while (SDL_PollEvent(&ev)) {
             ImGui_ImplSDL3_ProcessEvent(&ev);
@@ -386,6 +424,7 @@ int main(int argc, char** argv) {
         menu::Requests req;
         menu::draw(host, req);
         if (req.quit) running = false;
+        if (req.game_started && !test_no_hide) hidden_for_game = true;
         if (req.toggle_fullscreen) {
             fullscreen = !fullscreen;
             SDL_SetWindowFullscreen(win, fullscreen);
@@ -412,7 +451,7 @@ int main(int argc, char** argv) {
         /* --test-shots: a picture of every new page / step (a few frames after it
          * appears, so it has drawn), and one every 2 minutes while preparing. */
         if (test_shots) {
-            const std::string k = firstrun::active() ? firstrun::shot_key() : std::string("menu");
+            const std::string k = firstrun::active() ? firstrun::shot_key() : "menu" + std::to_string(menu::page());
             if (k != shot_key_seen) { shot_key_seen = k; shot_due = frame + 12; }
             const double t = ImGui::GetTime();
             if (firstrun::preparing() && t >= next_prep_shot) {
@@ -428,6 +467,16 @@ int main(int argc, char** argv) {
         }
         SDL_GL_SwapWindow(win);
         ++frame;
+        /* Hidden after this frame was shown (the "running" page), so a window
+         * that can't be hidden still shows something sensible. */
+        if (hidden_for_game) SDL_HideWindow(win);
+    }
+
+    /* Closing the launcher while the game runs (only possible where its window
+     * can't be hidden, or when the system asks it to close): the game too. */
+    if (play::running()) {
+        play::stop();
+        for (int i = 0; i < 100 && !play::ended(nullptr); ++i) SDL_Delay(50);
     }
 
     /* Closing while preparing: stop the build (everything it started), so it
