@@ -83,6 +83,8 @@ def main():
         if s in SKIP:
             print('slot %d: skipped (%s)' % (s, SKIP[s])); continue
         k = s + FIRST_ENGINE
+        if not ac1.entry(FDAT, 2 * s) or not ac1.entry(FDAT, 2 * s + 1):
+            print('slot %d: skipped (empty on the AC1 disc)' % s); continue
         try:
             code, rep = C.convert(ac1.entry(FDAT, 2 * s), pp_exe, pp_eng, ac1_exe_bytes, ac1_eng)
             mp, notes = MD.fix_map(ac1.entry(FDAT, 2 * s + 1))

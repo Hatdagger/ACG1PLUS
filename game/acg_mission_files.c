@@ -41,7 +41,7 @@
 #define G_LOADER_W1     0xAFB1001Cu
 
 /* FDAT 202 start-up: the four loads by mission number (return addresses) and the words that prove it */
-#define RA_RTIM         0x8004DB68u   /* loader(1, M+0, buffer) */
+#define RA_RTIM         0x8004DB6Cu   /* loader(1, M+0, buffer); jal at 0x8004DB64 (the lbu is the word before) */
 #define RA_COMMON       0x8004DB88u   /* loader(2, 200, buffer) */
 #define RA_CODE         0x8004DD28u   /* loader(2, 5 * M+0, 0x80097A38) */
 #define RA_MAP          0x8004DD48u   /* loader(2, 5 * M+0 + 4, buffer) */
