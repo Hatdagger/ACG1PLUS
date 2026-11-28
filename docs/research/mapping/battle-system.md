@@ -507,6 +507,8 @@ src = "mapping/battle-system.md"
 
 ### Handed over to Lane 4 (from other lanes)
 
+- From stage enemies (2026-11-28): the missions engine's hit routine PP `0x800730A4` takes damage × **2** off the player's AP (quarters), VS `0x800718D0` × 4, so mission hits cost half (MoA `0x8007AF00`, AC1 `0x80075350` the same). `stage-enemies.md` §5.
+
 
 
 ---

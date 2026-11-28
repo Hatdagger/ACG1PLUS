@@ -317,7 +317,7 @@ frame), not a wrong address.
 
 ## Handed over (to this lane)
 
-—
+- From stage enemies (2026-11-28): mission enemy ACs run a script-driven brain inside each mission module (PP mission 19 handler `0x800981B8`, script data `0x80099A80`, interpreter near `0x8009C3D4`), not the arena AI record. `stage-enemies.md` §6.
 
 ## Handed over to the build chat (round 3 topic 4)
 
