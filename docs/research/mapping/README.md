@@ -48,6 +48,12 @@ AC surface mask: flag-2 surfaces exist only on seven MoA mission maps, so it mat
 | 7 | Missions batch: PP message codes, per-mission u16 table | `missions-import-pp.md` | open |
 | 8 | The 57 animation names (if room) | `pa-archives.md` | open |
 
+## Stage enemies (2026-11-28, one chat)
+
+| # | Topic | Doc | Status |
+|---|---|---|---|
+| 1 | Stage and mission enemies: kinds, behaviour, aim and fire, damage, mission ACs | `stage-enemies.md` | done 2026-11-28, PR #NN (static; tests 38–42 in `ROUND1.md`) |
+
 ## AC1 mapping (2026-11-26, one chat, topics in order; `PLAN-AC1.md`)
 
 | # | Topic | Doc | Status |
